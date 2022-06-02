@@ -95,7 +95,7 @@ android {
         bephaDev {
             applicationIdSuffix ".bephaDev"
             buildConfigField "String", "APP_DIR", '"IMIS-BEPHADEV"'
-            resValue "string", "app_name_claims", "Claims BEPHA"
+            resValue "string", "app_name_claims", "CS-Claims"
             buildConfigField "String", "API_BASE_URL", '"http://149.210.235.40/devupgrade/rest/"'
             dimension 'std'
         }
