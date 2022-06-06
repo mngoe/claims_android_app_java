@@ -25,7 +25,6 @@ workflows:
         CM_KEY_ALIAS_PASSWORD: neckva@2022 # Add encrypted alias password
         CM_KEY_ALIAS_USERNAME: keystore_name # Add alias name
     scripts: # Add the build configurations here
-      scripts:
         # ...
         - |
           # set up release keystore
