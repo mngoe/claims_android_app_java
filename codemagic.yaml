@@ -1,7 +1,7 @@
 workflows:
   simple-workflow:
     name: Native Android
-    max_build_duration: 60
+    max_build_duration: 120
     scripts:
       - name: Run tests
         script: ./gradlew test
@@ -17,18 +17,18 @@ workflows:
 
   release-workflow:
     name: Native Android
-    max_build_duration: 60
+    max_build_duration: 120
     environment:
+
       vars:
         CM_KEYSTORE: tmp/keystore_name.keystore # Add encrypted keystore file
         CM_KEYSTORE_PASSWORD: neckva@2022 # Add encrypted keystore password
         CM_KEY_ALIAS_PASSWORD: neckva@2022 # Add encrypted alias password
         CM_KEY_ALIAS_USERNAME: keystore_name # Add alias name
     scripts: # Add the build configurations here
-      - name: Set up key properties
-        script: |
-        # set up release keystore
-        echo $CM_KEYSTORE | base64 --decode > /tmp/keystore_name.keystore
+      - name: set up release keystore
+        script:
+        echo $CM_KEYSTORE | base64 --decode > /tmp/keystore.keystore
         cat >> "$CM_BUILD_DIR/key.properties" <<EOF
         storePassword=$CM_KEYSTORE_PASSWORD
         keyPassword=$CM_KEY_ALIAS_PASSWORD
