@@ -36,8 +36,8 @@ workflows:
           storeFile=/tmp/keystore.keystore
           EOF
 
-        - name: Run tests
-          script: ./gradlew test
+        #  - name: Run tests
+          # script: ./gradlew test
         - name: Build release apk
           script: ./gradlew assembleRelease
     artifacts:
