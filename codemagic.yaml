@@ -33,7 +33,7 @@ workflows:
           storePassword=$CM_KEYSTORE_PASSWORD
           keyPassword=$CM_KEY_ALIAS_PASSWORD
           keyAlias=$CM_KEY_ALIAS_USERNAME
-          storeFile=/tmp/keystore.keystore
+          storeFile=/tmp/keystore_name.keystore
           EOF
 
         #  - name: Run tests
