@@ -13,7 +13,6 @@ workflows:
           set -e
           ./gradlew connectedAndroidTest
           adb logcat -d > emulator.log
-        test_report: app/build/outputs/androidTest-results/connected/*.xml
       - name: Build debug apk
         script: ./gradlew assembleDebug
     artifacts:
