@@ -3,6 +3,9 @@ workflows:
     name: Native Android
     max_build_duration: 120
     scripts:
+      - |
+      # give access permission
+      chmod -x gradlew
       - name: Run tests
         script: ./gradlew test
       - name: Build debug apk
