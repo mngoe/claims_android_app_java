@@ -59,11 +59,11 @@ workflows:
           storePassword=$CM_KEYSTORE_PASSWORD
           keyPassword=$CM_KEY_ALIAS_PASSWORD
           keyAlias=$CM_KEY_ALIAS_USERNAME
-          storeFile=/tmp/keystore_name.keystore
+          storeFile=claims_android_app_java\tmp\keystore_name.keystore
           EOF
 
-        #  - name: Run tests
-          # script: ./gradlew test
+        - name: Run tests
+          script: ./gradlew test
         - name: Build release apk
           script: ./gradlew assembleRelease
     artifacts:
