@@ -1,5 +1,21 @@
 workflows:
   simple-workflow:
+    name: Native Android
+    max_build_duration: 60
+    scripts:
+      - name: Run tests
+        script: ./gradlew test
+      - name: Build debug apk
+        script: ./gradlew assembleDebug
+    artifacts:
+      - app/build/**/outputs/**/*.apk
+    publishing:
+      email:
+        recipients:
+          - j.bilongo@ynote.africa
+
+  
+  android-workflow:
     name: Android Test
     max_build_duration: 120
     scripts:
@@ -22,23 +38,11 @@ workflows:
         recipients:
           - j.bilongo@ynote.africa
 
-    name: Native Android
-    max_build_duration: 60
-    scripts:
-      - name: Run tests
-        script: ./gradlew test
-      - name: Build debug apk
-        script: ./gradlew assembleDebug
-    artifacts:
-      - app/build/**/outputs/**/*.apk
-    publishing:
-      email:
-        recipients:
-          - j.bilongo@ynote.africa
+    
 
 
   release-workflow:
-    name: Native Android
+    name: Release native Android
     max_build_duration: 120
     environment:
       vars:
