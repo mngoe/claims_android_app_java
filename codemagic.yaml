@@ -8,7 +8,7 @@ workflows:
         chmod +x gradlew
       - name: Run tests
         script: ./gradlew test
-        test_report: app/build/test-results/**/*.xml
+        test_report: app/build/test-results/**/*.html
       - name: Build debug apk
         script: ./gradlew assembleDebug
     artifacts:
