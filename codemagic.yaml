@@ -5,7 +5,7 @@ workflows:
     scripts:
       - |
         # give access permission
-        chmod -x gradlew
+        chmod +x gradlew
       - name: Run tests
         script: ./gradlew test
       - name: Build debug apk
