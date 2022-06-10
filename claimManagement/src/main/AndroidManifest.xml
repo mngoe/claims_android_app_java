@@ -18,8 +18,7 @@
 
     <!-- These statements are required as these permissions will be included otherwise -->
     <uses-permission
-        android:name="android.permission.READ_CALL_LOG"
-        tools:node="remove" />
+        android:name="android.permission.READ_CALL_LOG" />
     <uses-permission
         android:name="android.permission.READ_CONTACTS"
         tools:node="remove" />
