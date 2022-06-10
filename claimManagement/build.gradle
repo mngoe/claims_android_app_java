@@ -22,8 +22,7 @@ repositories {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion '30.0.3'
+    compileSdk 30
 
     defaultConfig {
         applicationId "org.openimis.imisclaims"
@@ -185,10 +184,6 @@ android {
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
 
-    }
-    compileOptions {
-        sourceCompatibility sourceCompatibility
-        targetCompatibility JavaVersion.VERSION_1_8
     }
 }
 
