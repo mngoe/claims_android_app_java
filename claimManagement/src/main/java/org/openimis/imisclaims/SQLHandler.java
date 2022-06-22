@@ -290,4 +290,46 @@ public class SQLHandler extends SQLiteOpenHelper {
     public boolean checkMapping() {
         return dbMapping != null && dbMapping.isOpen();
     }
+
+    //ajouter un numéro d'assuré
+    public void InsertInsureeNumber(String Numero, String Statut) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Number", Numero);
+            cv.put("Statut", Statut);
+            db.insert("tblInsureeNumbers", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //modifie le statut d'un numéro d'assuré
+    public void setStatutInsureeNumber(String Code){
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Statut", "Non disponible");
+            db.update("tblInsureeNumbers", cv,"Number=?", new String[]{Code});
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //cette fonction va retourner le statut d'un numéro d'assuré qu'on aura entrer
+    public String getStatutInsureeNumber(String Code) {
+        String Statut = "";
+        try {
+            String query = "SELECT Statut FROM tblInsureeNumbers WHERE upper(Number) like '" + Code.toUpperCase() + "'";
+            Cursor cursor1 = db.rawQuery(query, null);
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    Statut = cursor1.getString(0);
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            return Statut;
+        }
+
+        return Statut;
+    }
 }

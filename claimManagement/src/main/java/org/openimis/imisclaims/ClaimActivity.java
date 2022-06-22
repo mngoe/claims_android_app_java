@@ -200,6 +200,7 @@ public class ClaimActivity extends ImisActivity {
             WriteJSON();
             WriteXML();
             ClearForm();
+            sqlHandler.setStatutInsureeNumber(etCHFID.getText().toString());
             ShowDialog(getResources().getString(R.string.ClaimPosted));
         });
     }
@@ -447,6 +448,7 @@ public class ClaimActivity extends ImisActivity {
             ShowDialog(etHealthFacility, getResources().getString(R.string.MissingHealthFacility));
             return false;
         }
+
         if (sqlHandler.getAdjustibility("ClaimAdministrator").equals("M")) {
             if (etClaimAdmin.getText().length() == 0) {
                 ShowDialog(etClaimAdmin, getResources().getString(R.string.MissingClaimAdmin));
@@ -464,10 +466,18 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
+        //vérifie le statut du numéro d'adhérant
+        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()) != "disponible") {
+            ShowDialog(etCHFID, getResources().getString(R.string.UsedCHFID));
+            return false;
+        }
+
         if (!isValidCHFID()) {
             ShowDialog(etCHFID, getResources().getString(R.string.InvalidCHFID));
             return false;
         }
+
+
 
         if (etStartDate.getText().length() == 0) {
             ShowDialog(etStartDate, getResources().getString(R.string.MissingStartDate));
