@@ -197,7 +197,7 @@ public class ClaimActivity extends ImisActivity {
 
         btnPost.setOnClickListener(v -> {
             if (!isValidData()) return;
-            if(sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()) == ""){
+            if(sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()) == "disponible"){
                 WriteJSON();
                 WriteXML();
                 ClearForm();

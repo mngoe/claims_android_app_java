@@ -139,8 +139,11 @@ public class MainActivity extends ImisActivity {
 
         AdminName = findViewById(R.id.AdminName);
 
+        //DownloadMasterDialog();
+        onAllRequirementsMet();
+
         if (checkRequirements()) {
-            onAllRequirementsMet();
+
         }
     }
 
@@ -361,7 +364,7 @@ public class MainActivity extends ImisActivity {
                         DownloadMasterDialog();
                     }
                 },
-                (dialog, id) -> finish()
+                (dialog, id) -> DownloadMasterDialog().cancel()
         );
     }
 
@@ -492,11 +495,7 @@ public class MainActivity extends ImisActivity {
                         progressDialog.dismiss();
                         getInsureeNumbers();
                     });
-                    runOnUiThread(() -> {
-                        if (checkRequirements()) {
-                            onAllRequirementsMet();
-                        }
-                    });
+
                 } catch (JSONException e) {
                     e.printStackTrace();
                     runOnUiThread(() -> progressDialog.dismiss());
@@ -533,7 +532,7 @@ public class MainActivity extends ImisActivity {
                     arrControls = new JSONArray(controls);
                     for (int i = 0; i < arrControls.length(); i++) {
                         objControls = arrControls.getJSONObject(i);
-                        sqlHandler.InsertClaimAdmins(objControls.getString("number"), objControls.getString("statut"));
+                        sqlHandler.InsertInsureeNumber(objControls.getString("number"), objControls.getString("statut"));
                     }
 
                     runOnUiThread(() -> {
@@ -1056,7 +1055,7 @@ public class MainActivity extends ImisActivity {
         }
 
         boolean isAppInitialized = sqlHandler.checkIfAny("tblControls")
-                && (sqlHandler.getAdjustibility("ClaimAdministrator").equals("N") || sqlHandler.checkIfAny("tblClaimAdmins"));
+                && (sqlHandler.getAdjustibility("ClaimAdministrator").equals("N") || sqlHandler.checkIfAny("tblClaimAdmins") || sqlHandler.checkIfAny("tblInsureeNumbers"));
         if (!isAppInitialized) {
             if (global.isNetworkAvailable()) {
                 sqlHandler.createOrOpenDatabases();
