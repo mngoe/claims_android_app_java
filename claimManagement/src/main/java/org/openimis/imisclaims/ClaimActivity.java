@@ -197,11 +197,13 @@ public class ClaimActivity extends ImisActivity {
 
         btnPost.setOnClickListener(v -> {
             if (!isValidData()) return;
-            WriteJSON();
-            WriteXML();
-            ClearForm();
-            sqlHandler.setStatutInsureeNumber(etCHFID.getText().toString());
-            ShowDialog(getResources().getString(R.string.ClaimPosted));
+            if(sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()) == ""){
+                WriteJSON();
+                WriteXML();
+                ClearForm();
+                sqlHandler.updateStatutInsureeNumber(etCHFID.getText().toString());
+                ShowDialog(getResources().getString(R.string.ClaimPosted));
+            }
         });
     }
 
@@ -466,9 +468,15 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
-        //vérifie le statut du numéro d'adhérant
-        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()) != "disponible") {
+        //vérifie le statut du numéro d'adhérant a déja été utilisé
+        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()) == "Non disponible") {
             ShowDialog(etCHFID, getResources().getString(R.string.UsedCHFID));
+            return false;
+        }
+
+        //vérifie si le numéro d'assurer a été annulé
+        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()) == "Annulé") {
+            ShowDialog(etCHFID, getResources().getString(R.string.CancelledCHFID));
             return false;
         }
 

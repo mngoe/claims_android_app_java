@@ -198,4 +198,5 @@
   <string name="initializing_complete">Initialisation Terminée</string>
   <string name="application">Application</string>
   <string name="UsedCHFID">Numéro d\'assuré déja utilisé</string>
+    <string name="CancelledCHFID">Ce numéro d\'assurance a été annulé</string>
 </resources>

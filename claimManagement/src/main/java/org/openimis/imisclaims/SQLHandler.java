@@ -16,6 +16,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String CreateTableMapping = "CREATE TABLE IF NOT EXISTS tblMapping(Code text,Name text,Type text);";
     private static final String CreateTableControls = "CREATE TABLE IF NOT EXISTS tblControls(FieldName text, Adjustibility text);";
     private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Code text, Name text);";
+    private static final String CreateTableInsureeNumbers = "CREATE TABLE IF NOT EXISTS tblInsureeNumbers(Number text, Statut text);";
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code text, Name text, Type text, Price text);";
     //private static final String CreateTableDateUpdates = "CREATE TABLE tblDateUpdates(Id INTEGER PRIMARY KEY AUTOINCREMENT, last_update_date text);";
 
@@ -272,6 +273,7 @@ public class SQLHandler extends SQLiteOpenHelper {
             db.execSQL(CreateTableControls);
             db.execSQL(CreateTableReferences);
             db.execSQL(CreateTableClaimAdmins);
+            db.execSQL(CreateTableInsureeNumbers);
             dbMapping.execSQL(CreateTableMapping);
         } catch (Exception e) {
             e.printStackTrace();
@@ -304,7 +306,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     }
 
     //modifie le statut d'un numéro d'assuré
-    public void setStatutInsureeNumber(String Code){
+    public void updateStatutInsureeNumber(String Code){
         try {
             ContentValues cv = new ContentValues();
             cv.put("Statut", "Non disponible");

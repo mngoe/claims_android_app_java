@@ -1,5 +1,7 @@
 package org.openimis.imisclaims;
 
+import static android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION;
+
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
@@ -17,10 +19,10 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v4.app.NotificationCompat;
 import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -43,8 +45,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
-
-import static android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION;
 
 public class MainActivity extends ImisActivity {
     private static final int REQUEST_PERMISSIONS_CODE = 1;
@@ -486,6 +486,54 @@ public class MainActivity extends ImisActivity {
                         String otherNames = objControls.getString("otherNames");
                         String name = lastName + " " + otherNames;
                         sqlHandler.InsertClaimAdmins(objControls.getString("claimAdminCode"), name);
+                    }
+
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        getInsureeNumbers();
+                    });
+                    runOnUiThread(() -> {
+                        if (checkRequirements()) {
+                            onAllRequirementsMet();
+                        }
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> progressDialog.dismiss());
+                }
+            });
+            thread.start();
+        } else {
+            ErrorDialogBox(getResources().getString(R.string.CheckInternet));
+            return false;
+        }
+        return true;
+    }
+
+    //joseph
+    public boolean getInsureeNumbers() {
+        if (global.isNetworkAvailable()) {
+            String progress_message = getResources().getString(R.string.application);
+            progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
+            Thread thread = new Thread(() -> {
+                String controls;
+
+                String functionName = "claim/GetInsureeNumber";
+                try {
+                    String content = toRestApi.getFromRestApi(functionName);
+
+                    JSONObject ob;
+
+                    ob = new JSONObject(content);
+                    controls = ob.getString("insuree_numbers");
+                    sqlHandler.ClearAll("tblInsureeNumbers");
+                    //Insert Diagnosese
+                    JSONArray arrControls;
+                    JSONObject objControls;
+                    arrControls = new JSONArray(controls);
+                    for (int i = 0; i < arrControls.length(); i++) {
+                        objControls = arrControls.getJSONObject(i);
+                        sqlHandler.InsertClaimAdmins(objControls.getString("number"), objControls.getString("statut"));
                     }
 
                     runOnUiThread(() -> {
