@@ -132,14 +132,14 @@ public class ClaimActivity extends ImisActivity {
             }
 
             //Fetch if Healthfacility code is available
-            SharedPreferences spHF = global.getDefaultSharedPreferences();
+            /*SharedPreferences spHF = global.getDefaultSharedPreferences();
             String HF = spHF.getString("HF", "");
             if (HF.length() > 0) {
                 etHealthFacility.setText(HF);
                 etClaimAdmin.requestFocus();
             } else {
                 etHealthFacility.requestFocus();
-            }
+            }*/
         } else {
             try {
                 fillForm(new JSONObject(claim));
@@ -197,11 +197,11 @@ public class ClaimActivity extends ImisActivity {
 
         btnPost.setOnClickListener(v -> {
             if (!isValidData()) return;
-            if(sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()) == "disponible"){
+            if(sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("Disponible")){
                 WriteJSON();
                 WriteXML();
-                ClearForm();
                 sqlHandler.updateStatutInsureeNumber(etCHFID.getText().toString());
+                ClearForm();
                 ShowDialog(getResources().getString(R.string.ClaimPosted));
             }
         });
@@ -469,13 +469,13 @@ public class ClaimActivity extends ImisActivity {
         }
 
         //vérifie le statut du numéro d'adhérant a déja été utilisé
-        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()) == "Non disponible") {
+        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("Non disponible")) {
             ShowDialog(etCHFID, getResources().getString(R.string.UsedCHFID));
             return false;
         }
 
         //vérifie si le numéro d'assurer a été annulé
-        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()) == "Annulé") {
+        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("Annulé")) {
             ShowDialog(etCHFID, getResources().getString(R.string.CancelledCHFID));
             return false;
         }
@@ -543,8 +543,9 @@ public class ClaimActivity extends ImisActivity {
                 ShowDialog(tvItemTotal, getResources().getString(R.string.MissingClaim));
                 return false;
             }
-            return true;
+
         }
+        return true;
     }
 
     private boolean isValidCHFID() {
