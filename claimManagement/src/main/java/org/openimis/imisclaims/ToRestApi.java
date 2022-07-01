@@ -1,5 +1,7 @@
 package org.openimis.imisclaims;
 
+import static org.openimis.imisclaims.BuildConfig.API_BASE_URL;
+
 import android.util.Log;
 
 import org.apache.http.HttpEntity;
@@ -10,29 +12,22 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
 
 import java.io.IOException;
-
-import static org.openimis.imisclaims.BuildConfig.API_BASE_URL;
-import static org.openimis.imisclaims.BuildConfig.API_VERSION;
 
 public class ToRestApi {
     private final Token token;
     private final String uri;
-    private final String apiVersion;
 
     public ToRestApi() {
         token = Global.getGlobal().getJWTToken();
         uri = API_BASE_URL + "api/";
-        apiVersion = API_VERSION;
     }
 
     public HttpResponse getFromRestApi(String functionName, boolean addToken) {
         HttpClient httpClient = new DefaultHttpClient();
         HttpGet httpGet = new HttpGet(uri + functionName);
         httpGet.setHeader("Content-Type", "application/json");
-        httpGet.setHeader("api-version", apiVersion);
         if (addToken) {
             httpGet.setHeader("Authorization", "bearer " + token.getTokenText().trim());
         }
@@ -53,7 +48,6 @@ public class ToRestApi {
 
         HttpPost httpPost = new HttpPost(uri + functionName);
         httpPost.setHeader("Content-type", "application/json");
-        httpPost.setHeader("api-version", apiVersion);
         if (addToken) {
             httpPost.setHeader("Authorization", "bearer " + token.getTokenText().trim());
         }

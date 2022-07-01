@@ -305,17 +305,6 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    //modifie le statut d'un numéro d'assuré
-    public void updateStatutInsureeNumber(String Code){
-        try {
-            ContentValues cv = new ContentValues();
-            cv.put("Statut", "Non disponible");
-            db.update("tblInsureeNumbers", cv,"Number=?", new String[]{Code});
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     //cette fonction va retourner le statut d'un numéro d'assuré qu'on aura entrer
     public String getStatutInsureeNumber(String Code) {
         String Statut = "";

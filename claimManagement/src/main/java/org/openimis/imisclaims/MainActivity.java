@@ -419,7 +419,7 @@ public class MainActivity extends ImisActivity {
 
                     String functionName = "claim/Controls";
                     try {
-                        /*String content = toRestApi.getFromRestApi(functionName);
+                        String content = toRestApi.getFromRestApi(functionName);
 
                         JSONObject ob;
 
@@ -435,7 +435,8 @@ public class MainActivity extends ImisActivity {
                             for (int i = 0; i < arrControls.length(); i++) {
                                 objControls = arrControls.getJSONObject(i);
                                 sqlHandler.InsertControls(objControls.getString("fieldName"), objControls.getString("adjustibility"));
-                            }*/
+                            }
+                        }
 
                         error_occurred = "false";
                         if (error_occurred.equals("false")) {
@@ -453,7 +454,7 @@ public class MainActivity extends ImisActivity {
                             error_message = "Insert controls failed";
                             ErrorDialogBox(error_message);
                         }
-                    } catch (/*JSONException |*/ NullPointerException e) {
+                    } catch (JSONException e) {
                         e.printStackTrace();
                         runOnUiThread(() -> progressDialog.dismiss());
                     }
@@ -476,7 +477,7 @@ public class MainActivity extends ImisActivity {
 
                 String functionName = "claim/GetClaimAdmins";
                 try {
-                    /*String content = toRestApi.getFromRestApi(functionName);
+                    String content = toRestApi.getFromRestApi(functionName);
 
                     JSONObject ob;
 
@@ -493,17 +494,17 @@ public class MainActivity extends ImisActivity {
                         String otherNames = objControls.getString("otherNames");
                         String name = lastName + " " + otherNames;
                         sqlHandler.InsertClaimAdmins(objControls.getString("claimAdminCode"), name);
-                    }*/
-                    sqlHandler.ClearAll("tblClaimAdmins");
+                    }
+                    //sqlHandler.ClearAll("tblClaimAdmins");
 
-                    sqlHandler.InsertClaimAdmins("1234", "joseph");
+                    //sqlHandler.InsertClaimAdmins("1234", "joseph");
 
                     runOnUiThread(() -> {
                         progressDialog.dismiss();
-                        getInsureeNumbers();
+                        getChequeNumbers();
                     });
 
-                } catch (/*JSONException e*/ NullPointerException e) {
+                } catch (JSONException e) {
                     e.printStackTrace();
                     runOnUiThread(() -> progressDialog.dismiss());
                 }
@@ -517,36 +518,36 @@ public class MainActivity extends ImisActivity {
     }
 
     //joseph
-    public boolean getInsureeNumbers() {
+    public boolean getChequeNumbers() {
         if (global.isNetworkAvailable()) {
             String progress_message = getResources().getString(R.string.application);
             progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
             Thread thread = new Thread(() -> {
-                String controls;
+                String chequeNumbers;
 
-                String functionName = "claim/GetInsureeNumber";
+                String functionName = "claim/GetChequeNumbers";
                 try {
-                    /*String content = toRestApi.getFromRestApi(functionName);
+                    String content = toRestApi.getFromRestApi(functionName);
 
                     JSONObject ob;
 
                     ob = new JSONObject(content);
-                    controls = ob.getString("insuree_numbers");
-                    sqlHandler.ClearAll("tblInsureeNumbers");
+                    chequeNumbers = ob.getString("chequeNumbers");
+                    sqlHandler.ClearAll("tblChequeNumbers");
                     //Insert Diagnosese
                     JSONArray arrControls;
                     JSONObject objControls;
-                    arrControls = new JSONArray(controls);
+                    arrControls = new JSONArray(chequeNumbers);
                     for (int i = 0; i < arrControls.length(); i++) {
                         objControls = arrControls.getJSONObject(i);
                         sqlHandler.InsertInsureeNumber(objControls.getString("number"), objControls.getString("statut"));
-                    }*/
+                    }
 
-                    sqlHandler.ClearAll("tblInsureeNumbers");
+                    //sqlHandler.ClearAll("tblInsureeNumbers");
 
-                    sqlHandler.InsertInsureeNumber("2022", "Disponible");
-                    sqlHandler.InsertInsureeNumber("2021", "Non disponible");
-                    sqlHandler.InsertInsureeNumber("2020", "Annulé");
+                    //sqlHandler.InsertInsureeNumber("2022", "Disponible");
+                    //sqlHandler.InsertInsureeNumber("2021", "Non disponible");
+                    //sqlHandler.InsertInsureeNumber("2020", "Annulé");
 
                     runOnUiThread(() -> {
                         progressDialog.dismiss();
@@ -557,7 +558,7 @@ public class MainActivity extends ImisActivity {
                             onAllRequirementsMet();
                         }
                     });
-                } catch (/*JSONException e*/ NullPointerException e) {
+                } catch (JSONException e) {
                     e.printStackTrace();
                     runOnUiThread(() -> progressDialog.dismiss());
                 }
@@ -656,7 +657,7 @@ public class MainActivity extends ImisActivity {
                     String functionName = "claim/GetDiagnosesServicesItems";
 
                     try {
-                        /*HttpResponse response = toRestApi.postToRestApi(object, functionName);
+                        HttpResponse response = toRestApi.postToRestApi(object, functionName);
                         resp[0] = response;
                         HttpEntity respEntity = response.getEntity();
                         if (respEntity != null) {
@@ -665,13 +666,13 @@ public class MainActivity extends ImisActivity {
 
                             content[0] = EntityUtils.toString(respEntity);
 
-                        }*/
+                        }
 
                         JSONObject ob = null;
                         try {
                             //ob = new JSONObject(content[0]);
-                            if (/*!String.valueOf(response.getStatusLine().getStatusCode()).equals("200")*/ob == null) {
-                                /*diagnoses = ob.getString("diagnoses");
+                            if (!String.valueOf(response.getStatusLine().getStatusCode()).equals("200")) {
+                                diagnoses = ob.getString("diagnoses");
                                 services = ob.getString("services");
                                 items = ob.getString("items");
                                 last_update_date = ob.getString("update_since_last");
@@ -687,33 +688,33 @@ public class MainActivity extends ImisActivity {
                                 for (int i = 0; i < arrDiagnoses.length(); i++) {
                                     objDiagnoses = arrDiagnoses.getJSONObject(i);
                                     sqlHandler.InsertReferences(objDiagnoses.getString("code"), objDiagnoses.getString("name"), "D", "");
-                                }*/
-                            sqlHandler.InsertReferences("0034", "paludisme", "D", "");
+                                }
+                            //sqlHandler.InsertReferences("0034", "paludisme", "D", "");
 
                                 //Insert Services
-                                /*JSONArray arrServices = null;
+                                JSONArray arrServices = null;
                                 JSONObject objServices = null;
                                 arrServices = new JSONArray(services);
                                 for (int i = 0; i < arrServices.length(); i++) {
                                     objServices = arrServices.getJSONObject(i);
                                     sqlHandler.InsertReferences(objServices.getString("code"), objServices.getString("name"), "S", objServices.getString("price"));
                                     sqlHandler.InsertMapping(objServices.getString("code"), objServices.getString("name"), "S");
-                                }*/
-                            sqlHandler.InsertReferences("00265", "visite prénatale", "S", "2500");
-                            sqlHandler.InsertMapping("00265", "visite prénatale", "S");
+                                }
+                            //sqlHandler.InsertReferences("00265", "visite prénatale", "S", "2500");
+                            //sqlHandler.InsertMapping("00265", "visite prénatale", "S");
 
                                 //Insert Items
-                                /*JSONArray arrItems = null;
+                                JSONArray arrItems = null;
                                 JSONObject objItems = null;
                                 arrItems = new JSONArray(items);
                                 for (int i = 0; i < arrItems.length(); i++) {
                                     objItems = arrItems.getJSONObject(i);
                                     sqlHandler.InsertReferences(objItems.getString("code"), objItems.getString("name"), "I", objItems.getString("price"));
                                     sqlHandler.InsertMapping(objItems.getString("code"), objItems.getString("name"), "I");
-                                }*/
+                                }
 
-                            sqlHandler.InsertReferences("0298", "paracetamol", "I", "1000");
-                            sqlHandler.InsertMapping("0298", "paracetamol", "I");
+                            //sqlHandler.InsertReferences("0298", "paracetamol", "I", "1000");
+                            //sqlHandler.InsertMapping("0298", "paracetamol", "I");
 
                                 runOnUiThread(() -> {
                                     progressDialog.dismiss();
@@ -741,7 +742,7 @@ public class MainActivity extends ImisActivity {
                                     });
                                 }
                             }
-                        } catch (/*JSONException e*/Exception e) {
+                        } catch (JSONException e) {
                             e.printStackTrace();
                             runOnUiThread(() -> {
                                 progressDialog.dismiss();

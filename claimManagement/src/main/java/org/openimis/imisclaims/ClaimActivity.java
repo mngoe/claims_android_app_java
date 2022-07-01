@@ -197,10 +197,9 @@ public class ClaimActivity extends ImisActivity {
 
         btnPost.setOnClickListener(v -> {
             if (!isValidData()) return;
-            if(sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("Disponible")){
+            if(sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("En cours")){
                 WriteJSON();
                 WriteXML();
-                sqlHandler.updateStatutInsureeNumber(etCHFID.getText().toString());
                 ClearForm();
                 ShowDialog(getResources().getString(R.string.ClaimPosted));
             }
@@ -468,15 +467,9 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
-        //vérifie le statut du numéro d'adhérant a déja été utilisé
-        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("Non disponible")) {
-            ShowDialog(etCHFID, getResources().getString(R.string.UsedCHFID));
-            return false;
-        }
-
-        //vérifie si le numéro d'assurer a été annulé
-        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("Annulé")) {
-            ShowDialog(etCHFID, getResources().getString(R.string.CancelledCHFID));
+        //vérifie le statut du numéro de chèque existe
+        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("")) {
+            ShowDialog(etCHFID, getResources().getString(R.string.InexistCHFID));
             return false;
         }
 

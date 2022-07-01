@@ -48,9 +48,8 @@ android {
         buildConfigField "String", "APP_DIR", '"IMIS"'
         resValue "string", "app_name_claims", "openIMIS Claims"
         resValue "string", "ReleaseDateValue", getDate()
-        buildConfigField "String", "API_BASE_URL", '"http://demo.openimis.org/rest/"'
+        buildConfigField "String", "API_BASE_URL", '"http://3.238.179.83:89/reposApi/"'
         buildConfigField "String", "RAR_PASSWORD", '")(#$1HsD"'
-        buildConfigField "String", "API_VERSION", '"3"'
     }
 
     productFlavors {
@@ -96,7 +95,7 @@ android {
             applicationIdSuffix ".bephaDev"
             buildConfigField "String", "APP_DIR", '"IMIS-BEPHADEV"'
             resValue "string", "app_name_claims", "CS-Claims"
-            buildConfigField "String", "API_BASE_URL", '"http://149.210.235.40/devupgrade/rest/"'
+            buildConfigField "String", "API_BASE_URL", '"http://3.238.179.83:89/reposApi/"'
             dimension 'std'
         }
         niger {
