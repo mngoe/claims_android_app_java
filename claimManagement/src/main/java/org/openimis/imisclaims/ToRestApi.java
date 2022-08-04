@@ -43,6 +43,22 @@ public class ToRestApi {
         }
     }
 
+    public HttpResponse getFromRestApiServices(String functionName, String api_version) {
+        HttpClient httpClient = new DefaultHttpClient();
+        HttpGet httpGet = new HttpGet(functionName);
+        httpGet.setHeader("Content-Type", "application/json");
+        httpGet.setHeader("api-version", api_version);
+        try {
+            HttpResponse response = httpClient.execute(httpGet);
+            int responseCode = response.getStatusLine().getStatusCode();
+            Log.i("HTTP_GET", functionName + " - " + responseCode);
+            return response;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     public HttpResponse postToRestApi(Object object, String functionName, boolean addToken) {
         HttpClient httpClient = new DefaultHttpClient();
 
@@ -75,6 +91,11 @@ public class ToRestApi {
 
     public String getFromRestApi(String functionName) {
         HttpResponse response = getFromRestApi(functionName, false);
+        return getContent(response);
+    }
+
+    public String getFromRestApiVersion(String functionName, String api_version) {
+        HttpResponse response = getFromRestApiServices(functionName,api_version);
         return getContent(response);
     }
 

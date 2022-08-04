@@ -24,6 +24,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -207,6 +208,7 @@ public class MainActivity extends ImisActivity {
             startActivity(intent);
         } else if (id == R.id.nav_Refresh_Map) {
             doLoggedIn(this::confirmRefreshMap);
+            Log.e("services: ", sqlHandler.getServices().toString());
         } else if (id == R.id.nav_claim) {
             Intent intent = new Intent(this, ClaimActivity.class);
             startActivity(intent);
@@ -551,13 +553,64 @@ public class MainActivity extends ImisActivity {
 
                     runOnUiThread(() -> {
                         progressDialog.dismiss();
-                        showToast(R.string.initializing_complete);
+                        getServices();
                     });
                     runOnUiThread(() -> {
                         if (checkRequirements()) {
                             onAllRequirementsMet();
                         }
                     });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> progressDialog.dismiss());
+                }
+            });
+            thread.start();
+        } else {
+            ErrorDialogBox(getResources().getString(R.string.CheckInternet));
+            return false;
+        }
+        return true;
+    }
+
+    //joseph
+    public boolean getServices() {
+        if (global.isNetworkAvailable()) {
+            String progress_message = getResources().getString(R.string.application);
+            progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
+            Thread thread = new Thread(() -> {
+
+                String servicesLink = "https://3efa-41-92-186-137.eu.ngrok.io/api/GetListServiceItems";
+                String api_version = "2";
+
+                try {
+                    String services = toRestApi.getFromRestApiVersion(servicesLink,api_version);
+
+                    JSONArray arr;
+
+                    arr = new JSONArray(services);
+                    sqlHandler.ClearAll("tblServices");
+                    //Insert Services
+                    JSONObject objServices;
+                    for (int i = 0; i < arr.length(); i++) {
+                        objServices = arr.getJSONObject(i);
+                        sqlHandler.InsertService(objServices.getString("ServCode"),
+                                objServices.getString("ServName"), "S",
+                                objServices.getString("ServPrice"),
+                                objServices.getString("ServPackageType"));
+                        sqlHandler.InsertMapping(objServices.getString("ServCode"),
+                                objServices.getString("ServName"), "S");
+                    }
+
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        showToast(R.string.initializing_complete);
+                    });
+                    /*runOnUiThread(() -> {
+                        if (checkRequirements()) {
+                            onAllRequirementsMet();
+                        }
+                    });*/
                 } catch (JSONException e) {
                     e.printStackTrace();
                     runOnUiThread(() -> progressDialog.dismiss());
@@ -648,7 +701,6 @@ public class MainActivity extends ImisActivity {
             Thread thread = new Thread() {
                 public void run() {
                     String diagnoses = null;
-                    String services = null;
                     String items = null;
                     String last_update_date = null;
                     String error_occurred = null;
@@ -660,6 +712,7 @@ public class MainActivity extends ImisActivity {
                         HttpResponse response = toRestApi.postToRestApi(object, functionName);
                         resp[0] = response;
                         HttpEntity respEntity = response.getEntity();
+
                         if (respEntity != null) {
                             final String[] code = {null};
                             // EntityUtils to get the response content
@@ -670,10 +723,9 @@ public class MainActivity extends ImisActivity {
 
                         JSONObject ob = null;
                         try {
-                            //ob = new JSONObject(content[0]);
+                            ob = new JSONObject(content[0]);
                             if (!String.valueOf(response.getStatusLine().getStatusCode()).equals("200")) {
                                 diagnoses = ob.getString("diagnoses");
-                                services = ob.getString("services");
                                 items = ob.getString("items");
                                 last_update_date = ob.getString("update_since_last");
                                 saveLastUpdateDate(last_update_date);
@@ -694,10 +746,10 @@ public class MainActivity extends ImisActivity {
                                 //Insert Services
                                 JSONArray arrServices = null;
                                 JSONObject objServices = null;
-                                arrServices = new JSONArray(services);
+                                arrServices = new JSONArray(content[0]);
                                 for (int i = 0; i < arrServices.length(); i++) {
                                     objServices = arrServices.getJSONObject(i);
-                                    sqlHandler.InsertReferences(objServices.getString("code"), objServices.getString("name"), "S", objServices.getString("price"));
+                                    sqlHandler.InsertReferences(objServices.getString("code"), objServices.getString("name"), "S", "");
                                     sqlHandler.InsertMapping(objServices.getString("code"), objServices.getString("name"), "S");
                                 }
                             //sqlHandler.InsertReferences("00265", "visite prénatale", "S", "2500");

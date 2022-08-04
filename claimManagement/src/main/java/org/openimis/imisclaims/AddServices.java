@@ -2,16 +2,14 @@ package org.openimis.imisclaims;
 
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -21,7 +19,9 @@ import java.util.HashMap;
 public class AddServices extends ImisActivity {
     ListView lvServices;
     TextView tvCode, tvName;
-    EditText etSQuantity, etSAmount;
+    LinearLayout llSService;
+    LinearLayout.LayoutParams layoutParams;
+    EditText etSQuantity, etSAmount, etSName;
     Button btnAdd;
     AutoCompleteTextView etServices;
     int Pos;
@@ -41,8 +41,16 @@ public class AddServices extends ImisActivity {
         tvCode = findViewById(R.id.tvCode);
         tvName = findViewById(R.id.tvName);
         etSQuantity = findViewById(R.id.etSQuantity);
+        etSQuantity.setKeyListener(null);
         etSAmount = findViewById(R.id.etSAmount);
+        etSAmount.setKeyListener(null);
+        etSName = findViewById(R.id.etSName);
+        etSName.setKeyListener(null);
         etServices = findViewById(R.id.etService);
+        llSService = findViewById(R.id.llSService);
+        layoutParams = new LinearLayout.LayoutParams
+                (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+
 
         ServiceAdapter serviceAdapter = new ServiceAdapter(this, sqlHandler);
         etServices.setAdapter(serviceAdapter);
@@ -55,6 +63,7 @@ public class AddServices extends ImisActivity {
                 final int descColumnIndex = cursor.getColumnIndexOrThrow("Name");
                 String Code = cursor.getString(itemColumnIndex);
                 String Name = cursor.getString(descColumnIndex);
+                String packageType = sqlHandler.getPackageType(Code);
 
                 oService = new HashMap<>();
                 oService.put("Code", Code);
@@ -62,6 +71,37 @@ public class AddServices extends ImisActivity {
 
                 etSQuantity.setText("1");
                 etSAmount.setText(sqlHandler.getServicePrice(Code));
+                etSName.setText(sqlHandler.getServiceName(Code));
+
+                if(packageType.equals("S")){
+                    TextView text = new TextView(AddServices.this);
+                    text.setText("Sub-Service");
+                    text.setTextSize(20);
+
+                    EditText etssCode = new EditText(AddServices.this);
+                    etssCode.setText(Code);
+                    etssCode.setKeyListener(null);
+
+                    EditText etssName = new EditText(AddServices.this);
+                    etssName.setText(sqlHandler.getServiceName(Code));
+                    etssName.setKeyListener(null);
+
+                    EditText etssQuantity = new EditText(AddServices.this);
+                    etssQuantity.setText("0");
+
+                    EditText etssPrice = new EditText(AddServices.this);
+                    etssPrice.setText(sqlHandler.getServicePrice(Code));
+                    etssPrice.setKeyListener(null);
+
+                    llSService.addView(text,layoutParams);
+                    llSService.addView(etssCode,layoutParams);
+                    llSService.addView(etssName,layoutParams);
+                    llSService.addView(etssQuantity,layoutParams);
+                    llSService.addView(etssPrice,layoutParams);
+
+                }else{
+                    llSService.removeAllViews();
+                }
             }
         });
 
@@ -129,6 +169,8 @@ public class AddServices extends ImisActivity {
 
                 if (oService == null) return;
 
+                llSService.removeAllViews();
+
                 String Amount, Quantity;
 
                 HashMap<String, String> lvService = new HashMap<>();
@@ -146,6 +188,7 @@ public class AddServices extends ImisActivity {
                 etServices.setText("");
                 etSAmount.setText("");
                 etSQuantity.setText("");
+                etSName.setText("");
 
             } catch (Exception e) {
                 Log.d("AddLvError", e.getMessage());

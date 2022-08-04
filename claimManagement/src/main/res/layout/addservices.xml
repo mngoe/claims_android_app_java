@@ -9,12 +9,15 @@
 	<TextView
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:typeface="monospace"
+		android:layout_marginStart="20dp"
+		android:layout_marginTop="20dp"
+		android:layout_marginEnd="20dp"
+		android:layout_marginBottom="20dp"
 		android:fontFamily="sans-serif-light"
-		android:textSize="25dp"
-		android:textColor="@color/Black"
 		android:text="@string/AddServices"
-		android:layout_margin="20dp"/>
+		android:textColor="@color/Black"
+		android:textSize="25dp"
+		android:typeface="monospace" />
 
     <LinearLayout android:id="@+id/llTop"
 		android:layout_width="match_parent"
@@ -42,6 +45,17 @@
 					android:focusable="true"
 					android:hint="@string/SelectService"
 					android:fontFamily="sans-serif-light"/>
+		<EditText
+			android:id="@+id/etSName"
+			android:layout_width="match_parent"
+			android:layout_height="50dp"
+			android:layout_weight="1"
+			android:ems="10"
+			android:hint="@string/ServiceName"
+			android:inputType="text"
+			android:fontFamily="sans-serif-light"
+			android:singleLine="true" />
+
 			<EditText
 				android:id="@+id/etSQuantity"
 				android:layout_width="match_parent"
@@ -65,6 +79,17 @@
 			android:maxLength="9"
 			android:fontFamily="sans-serif-light"
 			android:singleLine="true" />
+
+		<LinearLayout
+			android:id="@+id/llSService"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:visibility="visible"
+			android:orientation="vertical"
+			android:layout_marginTop="20dp"
+			/>
+
+
 
 		   <Button
 		            android:id="@+id/btnAdd"
