@@ -14,6 +14,7 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public class AddServices extends ImisActivity {
@@ -27,6 +28,9 @@ public class AddServices extends ImisActivity {
     int Pos;
     HashMap<String, String> oService;
     SimpleAdapter alAdapter;
+    SimpleAdapter ssAdapter;
+
+    public static ArrayList<HashMap<String, String>> lvSServiceList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -36,6 +40,8 @@ public class AddServices extends ImisActivity {
         if (actionBar != null) {
             actionBar.setTitle(getResources().getString(R.string.app_name_claim));
         }
+
+        lvSServiceList = new ArrayList<>();
 
         lvServices = findViewById(R.id.lvServices);
         tvCode = findViewById(R.id.tvCode);
@@ -51,8 +57,28 @@ public class AddServices extends ImisActivity {
         layoutParams = new LinearLayout.LayoutParams
                 (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
 
-
         ServiceAdapter serviceAdapter = new ServiceAdapter(this, sqlHandler);
+
+        HashMap<String, String> sService1 = new HashMap<>();
+        sService1.put("Code", "1234");
+        sService1.put("Name", "CHIRURGIE");
+        sService1.put("Price", "3600");
+        sService1.put("Quantity", "0");
+
+        HashMap<String, String> sService2 = new HashMap<>();
+        sService2.put("Code", "dedzs");
+        sService2.put("Name", "Accouchement");
+        sService2.put("Price", "4990");
+        sService2.put("Quantity", "0");
+
+        lvSServiceList.add(sService1);
+        lvSServiceList.add(sService2);
+
+
+        ssAdapter = new SimpleAdapter(AddServices.this, lvSServiceList, R.layout.lv_sservice,
+                new String[]{"Code", "Name", "Price", "Quantity"},
+                new int[]{R.id.tvLvCode, R.id.tvLvName, R.id.tvLvPrice, R.id.tvLvQuantity});
+
         etServices.setAdapter(serviceAdapter);
         etServices.setThreshold(1);
         etServices.setOnItemClickListener((parent, view, position, l) -> {
@@ -74,30 +100,16 @@ public class AddServices extends ImisActivity {
                 etSName.setText(sqlHandler.getServiceName(Code));
 
                 if(packageType.equals("S")){
+
                     TextView text = new TextView(AddServices.this);
-                    text.setText("Sub-Service");
+                    text.setText("Sub-Services");
                     text.setTextSize(20);
 
-                    EditText etssCode = new EditText(AddServices.this);
-                    etssCode.setText(Code);
-                    etssCode.setKeyListener(null);
+                    ListView list = new ListView(AddServices.this);
+                    list.setAdapter(ssAdapter);
 
-                    EditText etssName = new EditText(AddServices.this);
-                    etssName.setText(sqlHandler.getServiceName(Code));
-                    etssName.setKeyListener(null);
-
-                    EditText etssQuantity = new EditText(AddServices.this);
-                    etssQuantity.setText("0");
-
-                    EditText etssPrice = new EditText(AddServices.this);
-                    etssPrice.setText(sqlHandler.getServicePrice(Code));
-                    etssPrice.setKeyListener(null);
-
-                    llSService.addView(text,layoutParams);
-                    llSService.addView(etssCode,layoutParams);
-                    llSService.addView(etssName,layoutParams);
-                    llSService.addView(etssQuantity,layoutParams);
-                    llSService.addView(etssPrice,layoutParams);
+                    llSService.addView(text);
+                    llSService.addView(list);
 
                 }else{
                     llSService.removeAllViews();
