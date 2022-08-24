@@ -14,6 +14,10 @@ import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -59,62 +63,67 @@ public class AddServices extends ImisActivity {
 
         ServiceAdapter serviceAdapter = new ServiceAdapter(this, sqlHandler);
 
-        HashMap<String, String> sService1 = new HashMap<>();
-        sService1.put("Code", "1234");
-        sService1.put("Name", "CHIRURGIE");
-        sService1.put("Price", "3600");
-        sService1.put("Quantity", "0");
-
-        HashMap<String, String> sService2 = new HashMap<>();
-        sService2.put("Code", "dedzs");
-        sService2.put("Name", "Accouchement");
-        sService2.put("Price", "4990");
-        sService2.put("Quantity", "0");
-
-        lvSServiceList.add(sService1);
-        lvSServiceList.add(sService2);
-
-
-        ssAdapter = new SimpleAdapter(AddServices.this, lvSServiceList, R.layout.lv_sservice,
-                new String[]{"Code", "Name", "Price", "Quantity"},
-                new int[]{R.id.tvLvCode, R.id.tvLvName, R.id.tvLvPrice, R.id.tvLvQuantity});
-
         etServices.setAdapter(serviceAdapter);
         etServices.setThreshold(1);
         etServices.setOnItemClickListener((parent, view, position, l) -> {
-            if (position >= 0) {
+                if (position >= 0) {
 
-                Cursor cursor = (Cursor) parent.getItemAtPosition(position);
-                final int itemColumnIndex = cursor.getColumnIndexOrThrow("Code");
-                final int descColumnIndex = cursor.getColumnIndexOrThrow("Name");
-                String Code = cursor.getString(itemColumnIndex);
-                String Name = cursor.getString(descColumnIndex);
-                String packageType = sqlHandler.getPackageType(Code);
+                    Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+                    final int itemColumnIndex = cursor.getColumnIndexOrThrow("Code");
+                    final int descColumnIndex = cursor.getColumnIndexOrThrow("Name");
+                    String Code = cursor.getString(itemColumnIndex);
+                    String Name = cursor.getString(descColumnIndex);
+                    String packageType = sqlHandler.getPackageType(Code);
+                    String id = sqlHandler.getId(Code);
 
-                oService = new HashMap<>();
-                oService.put("Code", Code);
-                oService.put("Name", Name);
+                    oService = new HashMap<>();
+                    oService.put("Code", Code);
+                    oService.put("Name", Name);
 
-                etSQuantity.setText("1");
-                etSAmount.setText(sqlHandler.getServicePrice(Code));
-                etSName.setText(sqlHandler.getServiceName(Code));
+                    etSQuantity.setText("1");
+                    etSAmount.setText(sqlHandler.getServicePrice(Code));
+                    etSName.setText(sqlHandler.getServiceName(Code));
 
-                if(packageType.equals("S")){
+                    if (!packageType.equals("S")) {
+                        try {
+                            JSONArray subServiceArr = sqlHandler.getSubServicesFromId(id);
+                            Log.e("subServices", subServiceArr.toString());
 
-                    TextView text = new TextView(AddServices.this);
-                    text.setText("Sub-Services");
-                    text.setTextSize(20);
+                            for (int i = 0; i < subServiceArr.length(); i++) {
+                                JSONObject obj = subServiceArr.getJSONObject(i);
 
-                    ListView list = new ListView(AddServices.this);
-                    list.setAdapter(ssAdapter);
+                                HashMap<String, String> sService = new HashMap<>();
+                                sService.put("Code", obj.getString("Code"));
+                                sService.put("Name", obj.getString("Name"));
+                                sService.put("Price", obj.getString("Price"));
+                                sService.put("Quantity", "0");
 
-                    llSService.addView(text);
-                    llSService.addView(list);
+                                lvSServiceList.add(sService);
 
-                }else{
-                    llSService.removeAllViews();
+                            }
+
+                            ssAdapter = new SimpleAdapter(AddServices.this, lvSServiceList, R.layout.lv_sservice,
+                                    new String[]{"Code", "Name", "Price", "Quantity"},
+                                    new int[]{R.id.tvLvCode, R.id.tvLvName, R.id.tvLvPrice, R.id.tvLvQuantity});
+
+                            TextView text = new TextView(AddServices.this);
+                            text.setText("Sub-Services");
+                            text.setTextSize(20);
+
+                            ListView list = new ListView(AddServices.this);
+                            list.setAdapter(ssAdapter);
+
+                            llSService.addView(text);
+                            llSService.addView(list);
+
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                    }else {
+                        llSService.removeAllViews();
+                    }
                 }
-            }
+
         });
 
         etServices.addTextChangedListener(new TextWatcher() {

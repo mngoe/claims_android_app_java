@@ -45,13 +45,13 @@ public class ToRestApi {
 
     public HttpResponse getFromRestApiServices(String functionName, String api_version) {
         HttpClient httpClient = new DefaultHttpClient();
-        HttpGet httpGet = new HttpGet(functionName);
+        HttpGet httpGet = new HttpGet(uri + functionName);
         httpGet.setHeader("Content-Type", "application/json");
         httpGet.setHeader("api-version", api_version);
         try {
             HttpResponse response = httpClient.execute(httpGet);
             int responseCode = response.getStatusLine().getStatusCode();
-            Log.i("HTTP_GET", functionName + " - " + responseCode);
+            Log.i("HTTP_GET", uri + functionName + " - " + responseCode);
             return response;
         } catch (IOException e) {
             e.printStackTrace();

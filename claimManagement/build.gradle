@@ -95,7 +95,7 @@ android {
             applicationIdSuffix ".bephaDev"
             buildConfigField "String", "APP_DIR", '"IMIS-BEPHADEV"'
             resValue "string", "app_name_claims", "CS-Claims"
-            buildConfigField "String", "API_BASE_URL", '"http://3.238.179.83:89/reposApi/"'
+            buildConfigField "String", "API_BASE_URL", '"https://cs.minsante.cm/rest/"'
             dimension 'std'
         }
         niger {
