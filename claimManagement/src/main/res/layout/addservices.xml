@@ -9,50 +9,66 @@
 	<TextView
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:typeface="monospace"
+		android:layout_marginStart="20dp"
+		android:layout_marginTop="20dp"
+		android:layout_marginEnd="20dp"
+		android:layout_marginBottom="20dp"
 		android:fontFamily="sans-serif-light"
-		android:textSize="25dp"
-		android:textColor="@color/Black"
 		android:text="@string/AddServices"
-		android:layout_margin="20dp"/>
+		android:textColor="@color/Black"
+		android:textSize="25dp"
+		android:typeface="monospace" />
 
-    <LinearLayout android:id="@+id/llTop"
+	<LinearLayout
+		android:id="@+id/llTop"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
 		android:layout_marginLeft="20dp"
-		android:layout_marginRight="20dp"
 		android:layout_marginTop="70dp"
+		android:layout_marginRight="20dp"
 		android:orientation="vertical">
 
 
-		        <!--<Spinner-->
-		            <!--android:id="@+id/spServices"-->
-		            <!--android:layout_width="0dp"-->
-		            <!--android:layout_height="wrap_content"-->
-		            <!--android:layout_weight="1"-->
-		            <!--android:focusable="true"-->
-		            <!--android:prompt="@string/SelectService" />-->
+		<!--<Spinner-->
+		<!--android:id="@+id/spServices"-->
+		<!--android:layout_width="0dp"-->
+		<!--android:layout_height="wrap_content"-->
+		<!--android:layout_weight="1"-->
+		<!--android:focusable="true"-->
+		<!--android:prompt="@string/SelectService" />-->
 
 
-				<AutoCompleteTextView
-					android:id="@+id/etService"
-					android:layout_width="match_parent"
-					android:layout_height="50dp"
-					android:layout_weight="1"
-					android:focusable="true"
-					android:hint="@string/SelectService"
-					android:fontFamily="sans-serif-light"/>
-			<EditText
-				android:id="@+id/etSQuantity"
-				android:layout_width="match_parent"
-				android:layout_height="50dp"
-				android:layout_weight="1"
-				android:ems="10"
-				android:hint="@string/Quantity"
-				android:inputType="number"
-				android:maxLength="6"
-				android:fontFamily="sans-serif-light"
-				android:singleLine="true" />
+		<AutoCompleteTextView
+			android:id="@+id/etService"
+			android:layout_width="match_parent"
+			android:layout_height="50dp"
+			android:layout_weight="1"
+			android:focusable="true"
+			android:fontFamily="sans-serif-light"
+			android:hint="@string/SelectService" />
+
+		<EditText
+			android:id="@+id/etSName"
+			android:layout_width="match_parent"
+			android:layout_height="50dp"
+			android:layout_weight="1"
+			android:ems="10"
+			android:fontFamily="sans-serif-light"
+			android:hint="@string/ServiceName"
+			android:inputType="text"
+			android:singleLine="true" />
+
+		<EditText
+			android:id="@+id/etSQuantity"
+			android:layout_width="match_parent"
+			android:layout_height="50dp"
+			android:layout_weight="1"
+			android:ems="10"
+			android:fontFamily="sans-serif-light"
+			android:hint="@string/Quantity"
+			android:inputType="number"
+			android:maxLength="6"
+			android:singleLine="true" />
 
 		<EditText
 			android:id="@+id/etSAmount"
@@ -60,21 +76,33 @@
 			android:layout_height="50dp"
 			android:layout_weight="1"
 			android:ems="10"
+			android:fontFamily="sans-serif-light"
 			android:hint="@string/Amount"
 			android:inputType="number"
 			android:maxLength="9"
-			android:fontFamily="sans-serif-light"
 			android:singleLine="true" />
 
-		   <Button
-		            android:id="@+id/btnAdd"
-		            android:layout_width="match_parent"
-		            android:layout_height="50dp"
-		            android:layout_gravity="center"
-		            android:gravity="center_vertical|center_horizontal"
-		            android:text="@string/Add" />
-		        
-			</LinearLayout>
+		<LinearLayout
+			android:id="@+id/llSService"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="20dp"
+			android:orientation="vertical"
+			android:visibility="visible" >
+
+
+		</LinearLayout>
+
+
+		<Button
+			android:id="@+id/btnAdd"
+			android:layout_width="match_parent"
+			android:layout_height="50dp"
+			android:layout_gravity="center"
+			android:gravity="center_vertical|center_horizontal"
+			android:text="@string/Add" />
+
+	</LinearLayout>
 
 	<LinearLayout
 	    android:id="@+id/llListView"

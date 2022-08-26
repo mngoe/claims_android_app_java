@@ -10,13 +10,22 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.text.TextUtils;
 import android.util.Log;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class SQLHandler extends SQLiteOpenHelper {
     public static final String DB_NAME_MAPPING = Global.getGlobal().getSubdirectory("Databases") + "/" + "Mapping.db3";
     public static final String DB_NAME_DATA = Global.getGlobal().getSubdirectory("Databases") + "/" + "ImisData.db3";
     private static final String CreateTableMapping = "CREATE TABLE IF NOT EXISTS tblMapping(Code text,Name text,Type text);";
     private static final String CreateTableControls = "CREATE TABLE IF NOT EXISTS tblControls(FieldName text, Adjustibility text);";
     private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Code text, Name text);";
+    private static final String CreateTableInsureeNumbers = "CREATE TABLE IF NOT EXISTS tblInsureeNumbers(Number text, Statut text);";
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code text, Name text, Type text, Price text);";
+    private static final String CreateTableServices = "CREATE TABLE IF NOT EXISTS tblServices(Id text, Code text, Name text, Type text, Price text, PackageType text);";
+    private static final String CreateTableItems = "CREATE TABLE IF NOT EXISTS tblItems(Id text, Code text, Name text, Type text, Price text);";
+    private static final String CreateTableSubServices = "CREATE TABLE IF NOT EXISTS tblSubServices(ServiceId text, ServiceLinked text);";
+    private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text);";
     //private static final String CreateTableDateUpdates = "CREATE TABLE tblDateUpdates(Id INTEGER PRIMARY KEY AUTOINCREMENT, last_update_date text);";
 
     Global global;
@@ -74,12 +83,80 @@ public class SQLHandler extends SQLiteOpenHelper {
         return price;
     }
 
+    public String getPriceService(String code) {
+        String price = "0";
+        try (Cursor c = db.query("tblServices", new String[]{"Price"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    price = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return price;
+    }
+
+    public String getNameService(String code) {
+        String name = "";
+        try (Cursor c = db.query("tblServices", new String[]{"Name"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    name = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return name;
+    }
+
+    public String getPackageType(String code) {
+        String packageType = "";
+        try (Cursor c = db.query("tblServices", new String[]{"PackageType"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    packageType = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return packageType;
+    }
+
+    public String getId(String code) {
+        String id = "";
+        try (Cursor c = db.query("tblServices", new String[]{"Id"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    id = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return id;
+    }
+
     public String getItemPrice(String code) {
         return getPrice(code, "I");
     }
 
     public String getServicePrice(String code) {
-        return getPrice(code, "S");
+        return getPriceService(code);
+    }
+
+    public String getServiceName(String code) {
+        return getNameService(code);
     }
 
     public boolean InsertMapping(String Code, String Name, String Type) {
@@ -105,6 +182,61 @@ public class SQLHandler extends SQLiteOpenHelper {
             cv.put("Price", Price);
 
             db.insert("tblReferences", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void InsertService(String Id, String Code, String Name, String Type, String Price, String PackageType) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Id", Id);
+            cv.put("Code", Code);
+            cv.put("Name", Name);
+            cv.put("Type", Type);
+            cv.put("Price", Price);
+            cv.put("PackageType", PackageType);
+
+            db.insert("tblServices", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void InsertItem(String Id, String Code, String Name, String Type, String Price) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Id", Id);
+            cv.put("Code", Code);
+            cv.put("Name", Name);
+            cv.put("Type", Type);
+            cv.put("Price", Price);
+
+            db.insert("tblItems", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void InsertSubServices(String ServiceId, String ServiceLinked) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("ServiceId", ServiceId);
+            cv.put("ServiceLinked", ServiceLinked);
+
+            db.insert("tblSubServices", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void InsertSubItems(String ItemId, String ServiceId) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("ItemId", ItemId);
+            cv.put("ServiceId", ServiceId);
+
+            db.insert("tblSubItems", null, cv);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -267,11 +399,247 @@ public class SQLHandler extends SQLiteOpenHelper {
         return Name;
     }
 
+    public JSONArray getServices() {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblServices ";
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONArray getItems() {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblItems ";
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONArray getSubServices() {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblSubServices ";
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONArray getSubServicesFromId(String id) {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblServices WHERE Id = (SELECT ServiceId From tblSubServices WHERE ServiceLinked ="+ id +")";
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONArray getSubItemFromId(String id) {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblItems WHERE Id = (SELECT ItemId From tblSubItems WHERE ServiceId ="+ id +")";
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONArray getSubItems() {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblSubItems ";
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONObject getService(String serviceId) {
+        String nullOverride="";
+        JSONObject resultSet = new JSONObject();
+        try {
+            String query = "SELECT * FROM tblServices WHERE Id = "+ serviceId;
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet = rowObject;
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
     public void createTables() {
         try {
             db.execSQL(CreateTableControls);
             db.execSQL(CreateTableReferences);
             db.execSQL(CreateTableClaimAdmins);
+            db.execSQL(CreateTableInsureeNumbers);
+            db.execSQL(CreateTableServices);
+            db.execSQL(CreateTableItems);
+            db.execSQL(CreateTableSubServices);
+            db.execSQL(CreateTableSubItems);
             dbMapping.execSQL(CreateTableMapping);
         } catch (Exception e) {
             e.printStackTrace();
@@ -289,5 +657,36 @@ public class SQLHandler extends SQLiteOpenHelper {
 
     public boolean checkMapping() {
         return dbMapping != null && dbMapping.isOpen();
+    }
+
+    //ajouter un numéro d'assuré
+    public void InsertInsureeNumber(String Numero, String Statut) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Number", Numero);
+            cv.put("Statut", Statut);
+            db.insert("tblInsureeNumbers", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //cette fonction va retourner le statut d'un numéro d'assuré qu'on aura entrer
+    public String getStatutInsureeNumber(String Code) {
+        String Statut = "";
+        try {
+            String query = "SELECT Statut FROM tblInsureeNumbers WHERE upper(Number) like '" + Code.toUpperCase() + "'";
+            Cursor cursor1 = db.rawQuery(query, null);
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    Statut = cursor1.getString(0);
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            return Statut;
+        }
+
+        return Statut;
     }
 }

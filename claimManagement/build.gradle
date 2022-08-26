@@ -20,12 +20,12 @@ repositories {
 }
 
 android {
-    compileSdkVersion 30
-    buildToolsVersion '30.0.3'
+    compileSdk 30
+    buildToolsVersion '27.0.3'
 
     defaultConfig {
         applicationId "org.openimis.imisclaims"
-        minSdkVersion 26
+        minSdkVersion 21
         targetSdkVersion 30
         versionCode 3
         versionName "2.0.1"
@@ -48,9 +48,8 @@ android {
         buildConfigField "String", "APP_DIR", '"IMIS"'
         resValue "string", "app_name_claims", "openIMIS Claims"
         resValue "string", "ReleaseDateValue", getDate()
-        buildConfigField "String", "API_BASE_URL", '"http://demo.openimis.org/rest/"'
+        buildConfigField "String", "API_BASE_URL", '"http://3.238.179.83:89/reposApi/"'
         buildConfigField "String", "RAR_PASSWORD", '")(#$1HsD"'
-        buildConfigField "String", "API_VERSION", '"3"'
     }
 
     productFlavors {
@@ -95,8 +94,8 @@ android {
         bephaDev {
             applicationIdSuffix ".bephaDev"
             buildConfigField "String", "APP_DIR", '"IMIS-BEPHADEV"'
-            resValue "string", "app_name_claims", "Claims BEPHA"
-            buildConfigField "String", "API_BASE_URL", '"http://149.210.235.40/devupgrade/rest/"'
+            resValue "string", "app_name_claims", "CS-Claims"
+            buildConfigField "String", "API_BASE_URL", '"https://cs.minsante.cm/rest/"'
             dimension 'std'
         }
         niger {

@@ -132,14 +132,14 @@ public class ClaimActivity extends ImisActivity {
             }
 
             //Fetch if Healthfacility code is available
-            SharedPreferences spHF = global.getDefaultSharedPreferences();
+            /*SharedPreferences spHF = global.getDefaultSharedPreferences();
             String HF = spHF.getString("HF", "");
             if (HF.length() > 0) {
                 etHealthFacility.setText(HF);
                 etClaimAdmin.requestFocus();
             } else {
                 etHealthFacility.requestFocus();
-            }
+            }*/
         } else {
             try {
                 fillForm(new JSONObject(claim));
@@ -197,10 +197,12 @@ public class ClaimActivity extends ImisActivity {
 
         btnPost.setOnClickListener(v -> {
             if (!isValidData()) return;
-            WriteJSON();
-            WriteXML();
-            ClearForm();
-            ShowDialog(getResources().getString(R.string.ClaimPosted));
+            if(sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("En cours")){
+                WriteJSON();
+                WriteXML();
+                ClearForm();
+                ShowDialog(getResources().getString(R.string.ClaimPosted));
+            }
         });
     }
 
@@ -447,6 +449,7 @@ public class ClaimActivity extends ImisActivity {
             ShowDialog(etHealthFacility, getResources().getString(R.string.MissingHealthFacility));
             return false;
         }
+
         if (sqlHandler.getAdjustibility("ClaimAdministrator").equals("M")) {
             if (etClaimAdmin.getText().length() == 0) {
                 ShowDialog(etClaimAdmin, getResources().getString(R.string.MissingClaimAdmin));
@@ -464,10 +467,18 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
+        //vérifie le statut du numéro de chèque existe
+        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("")) {
+            ShowDialog(etCHFID, getResources().getString(R.string.InexistCHFID));
+            return false;
+        }
+
         if (!isValidCHFID()) {
             ShowDialog(etCHFID, getResources().getString(R.string.InvalidCHFID));
             return false;
         }
+
+
 
         if (etStartDate.getText().length() == 0) {
             ShowDialog(etStartDate, getResources().getString(R.string.MissingStartDate));
@@ -525,8 +536,9 @@ public class ClaimActivity extends ImisActivity {
                 ShowDialog(tvItemTotal, getResources().getString(R.string.MissingClaim));
                 return false;
             }
-            return true;
+
         }
+        return true;
     }
 
     private boolean isValidCHFID() {
