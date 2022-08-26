@@ -87,7 +87,9 @@ public class AddServices extends ImisActivity {
                     if (!packageType.equals("S")) {
                         try {
                             JSONArray subServiceArr = sqlHandler.getSubServicesFromId(id);
+                            JSONArray subItemArr = sqlHandler.getSubItemFromId(id);
                             Log.e("subServices", subServiceArr.toString());
+                            Log.e("subItems", subItemArr.toString());
 
                             for (int i = 0; i < subServiceArr.length(); i++) {
                                 JSONObject obj = subServiceArr.getJSONObject(i);
@@ -102,13 +104,26 @@ public class AddServices extends ImisActivity {
 
                             }
 
+                            for (int i = 0; i < subItemArr.length(); i++) {
+                                JSONObject obj = subItemArr.getJSONObject(i);
+
+                                HashMap<String, String> sItem = new HashMap<>();
+                                sItem.put("Code", obj.getString("Code"));
+                                sItem.put("Name", obj.getString("Name"));
+                                sItem.put("Price", obj.getString("Price"));
+                                sItem.put("Quantity", "0");
+
+                                lvSServiceList.add(sItem);
+
+                            }
+
                             ssAdapter = new SimpleAdapter(AddServices.this, lvSServiceList, R.layout.lv_sservice,
                                     new String[]{"Code", "Name", "Price", "Quantity"},
                                     new int[]{R.id.tvLvCode, R.id.tvLvName, R.id.tvLvPrice, R.id.tvLvQuantity});
 
                             TextView text = new TextView(AddServices.this);
                             text.setText("Sub-Services");
-                            text.setTextSize(20);
+                            text.setTextSize(18);
 
                             ListView list = new ListView(AddServices.this);
                             list.setAdapter(ssAdapter);

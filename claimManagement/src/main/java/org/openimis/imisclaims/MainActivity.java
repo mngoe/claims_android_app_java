@@ -627,10 +627,6 @@ public class MainActivity extends ImisActivity {
                                         objItems.getString("ServiceID"));
                             }
                         }
-
-
-
-
                     }
 
                     runOnUiThread(() -> {
@@ -686,6 +682,7 @@ public class MainActivity extends ImisActivity {
 
                     runOnUiThread(() -> {
                         progressDialog.dismiss();
+                        Toast.makeText(MainActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
                     });
                     /*runOnUiThread(() -> {
                         if (checkRequirements()) {
@@ -737,12 +734,11 @@ public class MainActivity extends ImisActivity {
                             object.put("last_update_date", dateS);
 
                             getServices();
-                            /*try {
+                            try {
                                 DownLoadDiagnosesServicesItems(object);
-
                             } catch (IOException e) {
                                 e.printStackTrace();
-                            }*/
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -764,11 +760,11 @@ public class MainActivity extends ImisActivity {
                             object.put("last_update_date", dateS);
 
                             getServices();
-                            /*try {
+                            try {
                                 DownLoadDiagnosesServicesItems(object);
                             } catch (IOException e) {
                                 e.printStackTrace();
-                            }*/
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -814,7 +810,6 @@ public class MainActivity extends ImisActivity {
                             ob = new JSONObject(content[0]);
                             if (!String.valueOf(response.getStatusLine().getStatusCode()).equals("200")) {
                                 diagnoses = ob.getString("diagnoses");
-                                items = ob.getString("items");
                                 last_update_date = ob.getString("update_since_last");
                                 saveLastUpdateDate(last_update_date);
 
@@ -832,21 +827,23 @@ public class MainActivity extends ImisActivity {
                                 //sqlHandler.InsertReferences("0034", "paludisme", "D", "");
 
                                 //Insert Items
-                                JSONArray arrItems = null;
+                                /*JSONArray arrItems = null;
                                 JSONObject objItems = null;
                                 arrItems = new JSONArray(items);
                                 for (int i = 0; i < arrItems.length(); i++) {
                                     objItems = arrItems.getJSONObject(i);
                                     sqlHandler.InsertReferences(objItems.getString("code"), objItems.getString("name"), "I", objItems.getString("price"));
                                     sqlHandler.InsertMapping(objItems.getString("code"), objItems.getString("name"), "I");
-                                }
+                                }*/
+
+
                                 //sqlHandler.InsertReferences("0298", "paracetamol", "I", "1000");
                                 //sqlHandler.InsertMapping("0298", "paracetamol", "I");
 
 
                                 runOnUiThread(() -> {
                                     progressDialog.dismiss();
-                                    Toast.makeText(MainActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
+                                    getServices();
                                 });
 
                             } else {
@@ -913,7 +910,7 @@ public class MainActivity extends ImisActivity {
                     String error_occurred = null;
                     String error_message = null;
 
-                    String functionName = "claim/GetDiagnosesServicesItems";
+                    String functionName = "GetDiagnosesServicesItems";
 
                     try {
                         HttpResponse response = toRestApi.postToRestApi(object, functionName);
