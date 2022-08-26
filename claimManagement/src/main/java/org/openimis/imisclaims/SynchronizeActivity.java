@@ -27,6 +27,7 @@ public class SynchronizeActivity extends ImisActivity {
     private static final String LOG_TAG = "SYNCACTIVITY";
     private static final int PICK_FILE_REQUEST_CODE = 1;
     ArrayList<String> broadcastList;
+    ToRestApi toRestApi;
 
     TextView tvUploadClaims, tvZipClaims;
     RelativeLayout uploadClaims, zipClaims, importMasterData, downloadMasterData;
@@ -71,6 +72,7 @@ public class SynchronizeActivity extends ImisActivity {
             try {
                 object1.put("claim_administrator_code", global.getOfficerCode());
                 DownLoadInsureeNumbers(object1);
+                DownloadDiagnosesServicesItems();
             } catch (JSONException | IOException e) {
                 e.printStackTrace();
             }
@@ -286,6 +288,96 @@ public class SynchronizeActivity extends ImisActivity {
 
     public void ErrorDialogBox ( final String message){
         showDialog(message);
+    }
+
+    public void DownloadDiagnosesServicesItems (){
+        if (global.isNetworkAvailable()) {
+            String progress_message = getResources().getString(R.string.application);
+            progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
+            Thread thread = new Thread(() -> {
+
+                toRestApi = new ToRestApi();
+
+                String functionServices = "GetListServiceAllItems";
+                String functionItems = "GetListMainItemItems";
+                String api_version = "2";
+
+                try {
+                    String services = toRestApi.getFromRestApiVersion(functionServices,api_version);
+
+                    JSONArray arrServices;
+
+                    arrServices = new JSONArray(services);
+                    sqlHandler.ClearAll("tblServices");
+                    sqlHandler.ClearAll("tblSubServices");
+                    sqlHandler.ClearAll("tblSubItems");
+                    //Insert Services
+                    JSONObject objServices;
+                    for (int i = 0; i < arrServices.length(); i++) {
+                        objServices = arrServices.getJSONObject(i);
+                        sqlHandler.InsertService(objServices.getString("ServiceID"),
+                                objServices.getString("ServCode"),
+                                objServices.getString("ServName"), "S",
+                                objServices.getString("ServPrice"),
+                                objServices.getString("ServPackageType"));
+                        sqlHandler.InsertMapping(objServices.getString("ServCode"),
+                                objServices.getString("ServName"), "S");
+
+                        //JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
+                        //JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
+
+                        /*if(arrSubService != null || arrSubItem != null){
+
+                            //Insert SubServices
+                            JSONObject objSubServices;
+                            for (int s = 0; s < arrSubService.length(); s++) {
+                                objSubServices = arrSubService.getJSONObject(s);
+                                sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
+                                        objSubServices.getString("ServiceLinked"));
+                            }
+
+                            //Insert SubServices
+                            JSONObject objItems;
+                            for (int t = 0; t < arrSubItem.length(); t++) {
+                                objItems = arrSubItem.getJSONObject(t);
+                                sqlHandler.InsertSubItems(objItems.getString("ItemID"),
+                                        objItems.getString("ServiceID"));
+                            }
+                        }*/
+                    }
+
+                    String items = toRestApi.getFromRestApiVersion(functionItems,api_version);
+
+                    JSONArray arrItems;
+
+                    arrItems = new JSONArray(items);
+                    sqlHandler.ClearAll("tblItems");
+                    //Insert Services
+                    JSONObject objItems;
+                    for (int i = 0; i < arrItems.length(); i++) {
+                        objItems = arrItems.getJSONObject(i);
+                        sqlHandler.InsertItem(objItems.getString("ItemID"),
+                                objItems.getString("ItemCode"),
+                                objItems.getString("ItemName"),
+                                objItems.getString("ItemType"),
+                                objItems.getString("ItemPrice"));
+                        sqlHandler.InsertMapping(objItems.getString("ItemCode"),
+                                objItems.getString("ItemName"), "I");
+                    }
+
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(SynchronizeActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
+                    });
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> progressDialog.dismiss());
+                }
+            });
+            thread.start();
+        } else {
+            ErrorDialogBox(getResources().getString(R.string.CheckInternet));
+        }
     }
 
 }

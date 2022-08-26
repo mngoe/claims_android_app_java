@@ -607,10 +607,12 @@ public class MainActivity extends ImisActivity {
                         sqlHandler.InsertMapping(objServices.getString("ServCode"),
                                 objServices.getString("ServName"), "S");
 
-                        if(objServices.getString("ServPackageType").equals("P")){
+                        //JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
+                        //JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
+
+                        /*if(arrSubService != null || arrSubItem != null){
 
                             //Insert SubServices
-                            JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
                             JSONObject objSubServices;
                             for (int s = 0; s < arrSubService.length(); s++) {
                                 objSubServices = arrSubService.getJSONObject(s);
@@ -619,14 +621,13 @@ public class MainActivity extends ImisActivity {
                             }
 
                             //Insert SubServices
-                            JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
                             JSONObject objItems;
                             for (int t = 0; t < arrSubItem.length(); t++) {
                                 objItems = arrSubItem.getJSONObject(t);
                                 sqlHandler.InsertSubItems(objItems.getString("ItemID"),
                                         objItems.getString("ServiceID"));
                             }
-                        }
+                        }*/
                     }
 
                     runOnUiThread(() -> {
@@ -733,7 +734,6 @@ public class MainActivity extends ImisActivity {
                             String dateS = formatter.format(new Date(0));
                             object.put("last_update_date", dateS);
 
-                            getServices();
                             try {
                                 DownLoadDiagnosesServicesItems(object);
                             } catch (IOException e) {
@@ -760,11 +760,11 @@ public class MainActivity extends ImisActivity {
                             object.put("last_update_date", dateS);
 
                             getServices();
-                            try {
+                            /*try {
                                 DownLoadDiagnosesServicesItems(object);
                             } catch (IOException e) {
                                 e.printStackTrace();
-                            }
+                            }*/
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -808,7 +808,7 @@ public class MainActivity extends ImisActivity {
                         JSONObject ob = null;
                         try {
                             ob = new JSONObject(content[0]);
-                            if (!String.valueOf(response.getStatusLine().getStatusCode()).equals("200")) {
+                            if (String.valueOf(response.getStatusLine().getStatusCode()).equals("200")) {
                                 diagnoses = ob.getString("diagnoses");
                                 last_update_date = ob.getString("update_since_last");
                                 saveLastUpdateDate(last_update_date);
@@ -843,7 +843,6 @@ public class MainActivity extends ImisActivity {
 
                                 runOnUiThread(() -> {
                                     progressDialog.dismiss();
-                                    getServices();
                                 });
 
                             } else {
