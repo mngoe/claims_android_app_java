@@ -197,12 +197,13 @@ public class ClaimActivity extends ImisActivity {
 
         btnPost.setOnClickListener(v -> {
             if (!isValidData()) return;
-            if(sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("En cours")){
-                WriteJSON();
-                WriteXML();
-                ClearForm();
-                ShowDialog(getResources().getString(R.string.ClaimPosted));
-            }
+            /*if(sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("En cours")){
+
+            }*/
+            WriteJSON();
+            WriteXML();
+            ClearForm();
+            ShowDialog(getResources().getString(R.string.ClaimPosted));
         });
     }
 
@@ -468,10 +469,10 @@ public class ClaimActivity extends ImisActivity {
         }
 
         //vérifie le statut du numéro de chèque existe
-        if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("")) {
+        /*if (sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("")) {
             ShowDialog(etCHFID, getResources().getString(R.string.InexistCHFID));
             return false;
-        }
+        }*/
 
         if (!isValidCHFID()) {
             ShowDialog(etCHFID, getResources().getString(R.string.InvalidCHFID));

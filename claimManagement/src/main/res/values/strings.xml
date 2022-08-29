@@ -212,4 +212,5 @@
   <string name="PermissionsInfo">To work correctly, %1$s requires multiple permissions. Please allow them in next screen in order to use the application.</string>
     <string name="InexistCHFID">Wrong cheque number</string>
   <string name="CancelledCHFID">This cheque number was aborted</string>
+    <string name="downloadFail">Download data failed</string>
 </resources>

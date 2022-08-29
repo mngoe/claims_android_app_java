@@ -199,4 +199,5 @@
   <string name="application">Application</string>
   <string name="InexistCHFID">Numéro de chèque inexitant</string>
     <string name="CancelledCHFID">Ce numéro de chèque a été annulé</string>
+    <string name="downloadFail">Le téléchargement des données a échoué</string>
 </resources>

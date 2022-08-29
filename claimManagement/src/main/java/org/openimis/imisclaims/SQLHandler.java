@@ -99,6 +99,22 @@ public class SQLHandler extends SQLiteOpenHelper {
         return price;
     }
 
+    public String getPriceItem(String code) {
+        String price = "0";
+        try (Cursor c = db.query("tblItems", new String[]{"Price"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    price = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return price;
+    }
+
     public String getNameService(String code) {
         String name = "";
         try (Cursor c = db.query("tblServices", new String[]{"Name"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
@@ -148,7 +164,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     }
 
     public String getItemPrice(String code) {
-        return getPrice(code, "I");
+        return getPriceItem(code);
     }
 
     public String getServicePrice(String code) {
