@@ -1,10 +1,10 @@
 package org.openimis.imisclaims;
 
-import junit.framework.TestCase;
+import static org.junit.Assert.assertEquals;
 
 import org.junit.Test;
 
-public class ClaimManagementActivityTest extends TestCase {
+public class ClaimManagementActivityTest {
 
     @Test
     public void addition_isCorrect() throws Exception {
