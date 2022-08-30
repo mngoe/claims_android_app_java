@@ -26,15 +26,17 @@ public class AddServices extends ImisActivity {
     TextView tvCode, tvName;
     LinearLayout llSService;
     LinearLayout.LayoutParams layoutParams;
-    EditText etSQuantity, etSAmount, etSName;
+    EditText etSQuantity, etSAmount, etSName, etsSQuantity;
     Button btnAdd;
     AutoCompleteTextView etServices;
     int Pos;
     HashMap<String, String> oService;
     SimpleAdapter alAdapter;
-    SimpleAdapter ssAdapter;
+    SimpleAdapter ssAdapterServices;
+    SimpleAdapter ssAdapterItems;
 
     public static ArrayList<HashMap<String, String>> lvSServiceList;
+    public static ArrayList<HashMap<String, String>> lvSItemList;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -46,6 +48,7 @@ public class AddServices extends ImisActivity {
         }
 
         lvSServiceList = new ArrayList<>();
+        lvSItemList = new ArrayList<>();
 
         lvServices = findViewById(R.id.lvServices);
         tvCode = findViewById(R.id.tvCode);
@@ -59,7 +62,7 @@ public class AddServices extends ImisActivity {
         etServices = findViewById(R.id.etService);
         llSService = findViewById(R.id.llSService);
         layoutParams = new LinearLayout.LayoutParams
-                (LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+                (LinearLayout.LayoutParams.MATCH_PARENT, 200);
 
         ServiceAdapter serviceAdapter = new ServiceAdapter(this, sqlHandler);
 
@@ -79,15 +82,30 @@ public class AddServices extends ImisActivity {
                     oService = new HashMap<>();
                     oService.put("Code", Code);
                     oService.put("Name", Name);
+                    oService.put("PackageType",packageType);
 
                     etSQuantity.setText("1");
                     etSAmount.setText(sqlHandler.getServicePrice(Code));
                     etSName.setText(sqlHandler.getServiceName(Code));
 
                     if (!packageType.equals("S")) {
+
                         try {
-                            JSONArray subServiceArr = sqlHandler.getSubServicesFromId(id);
-                            JSONArray subItemArr = sqlHandler.getSubItemFromId(id);
+
+                            JSONArray subServicesIds = sqlHandler.getSubServicesId(id);
+                            JSONArray subServiceArr = new JSONArray();
+                            for(int i = 0; i < subServicesIds.length(); i++){
+                                JSONObject objService = sqlHandler.getService(subServicesIds.getJSONObject(i).getString("ServiceId"));
+                                subServiceArr.put(objService);
+                            }
+
+                            JSONArray subItemIds = sqlHandler.getSubItemsId(id);
+                            JSONArray subItemArr = new JSONArray();
+                            for(int i = 0; i < subItemIds.length(); i++){
+                                JSONObject objItem = sqlHandler.getItem(subItemIds.getJSONObject(i).getString("ItemId"));
+                                subItemArr.put(objItem);
+                            }
+
                             Log.e("subServices", subServiceArr.toString());
                             Log.e("subItems", subItemArr.toString());
 
@@ -104,6 +122,8 @@ public class AddServices extends ImisActivity {
 
                             }
 
+
+
                             for (int i = 0; i < subItemArr.length(); i++) {
                                 JSONObject obj = subItemArr.getJSONObject(i);
 
@@ -113,23 +133,48 @@ public class AddServices extends ImisActivity {
                                 sItem.put("Price", obj.getString("Price"));
                                 sItem.put("Quantity", "0");
 
-                                lvSServiceList.add(sItem);
+                                lvSItemList.add(sItem);
 
                             }
 
-                            ssAdapter = new SimpleAdapter(AddServices.this, lvSServiceList, R.layout.lv_sservice,
+
+                            ssAdapterServices = new SimpleAdapter(AddServices.this, lvSServiceList, R.layout.lv_sservice,
                                     new String[]{"Code", "Name", "Price", "Quantity"},
                                     new int[]{R.id.tvLvCode, R.id.tvLvName, R.id.tvLvPrice, R.id.tvLvQuantity});
 
-                            TextView text = new TextView(AddServices.this);
-                            text.setText("Sub-Services");
-                            text.setTextSize(18);
 
-                            ListView list = new ListView(AddServices.this);
-                            list.setAdapter(ssAdapter);
+                            ssAdapterItems = new SimpleAdapter(AddServices.this, lvSItemList, R.layout.lv_sservice,
+                                    new String[]{"Code", "Name", "Price", "Quantity"},
+                                    new int[]{R.id.tvLvCode, R.id.tvLvName, R.id.tvLvPrice, R.id.tvLvQuantity});
 
-                            llSService.addView(text);
-                            llSService.addView(list);
+                            TextView textServices = new TextView(AddServices.this);
+                            textServices.setText("Sub-Services");
+                            textServices.setPadding(0,0,0,10);
+                            textServices.setTextSize(18);
+
+                            TextView textItems = new TextView(AddServices.this);
+                            textItems.setText("Sub-Items");
+                            textItems.setPadding(0,20,0,10);
+                            textItems.setTextSize(18);
+
+                            ListView listServices = new ListView(AddServices.this);
+                            if(lvSServiceList.size() > 2){
+                                listServices.setLayoutParams(layoutParams);
+                            }
+                            listServices.setAdapter(ssAdapterServices);
+
+                            ListView listItems = new ListView(AddServices.this);
+                            if(lvSItemList.size() > 2){
+                                listItems.setLayoutParams(layoutParams);
+                            }
+                            listItems.setAdapter(ssAdapterItems);
+
+                            llSService.addView(textServices);
+                            llSService.addView(listServices);
+                            llSService.addView(textItems);
+                            llSService.addView(listItems);
+
+                            //etsSQuantity = findViewById(R.id.tvLvQuantity);
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -147,6 +192,11 @@ public class AddServices extends ImisActivity {
                 btnAdd.setEnabled(s != null && s.toString().trim().length() != 0
                         && etSQuantity.getText().toString().trim().length() != 0
                         && etSAmount.getText().toString().trim().length() != 0);
+
+                llSService.removeAllViews();
+                lvSServiceList.clear();
+                lvSItemList.clear();
+
             }
 
             @Override
@@ -212,8 +262,50 @@ public class AddServices extends ImisActivity {
                 HashMap<String, String> lvService = new HashMap<>();
                 lvService.put("Code", oService.get("Code"));
                 lvService.put("Name", oService.get("Name"));
-                Amount = etSAmount.getText().toString();
-                lvService.put("Price", Amount);
+                lvService.put("PackageType", oService.get("PackageType"));
+
+                if(lvSServiceList.size() != 0){
+
+                    float amount = Float.valueOf(etSAmount.getText().toString());
+                    JSONArray sServices = new JSONArray();
+                    JSONArray sItems = new JSONArray();
+
+
+                    for (int i=0; i < lvSServiceList.size();i++){
+
+                        JSONObject sService = new JSONObject();
+                        sService.put("Code",lvSServiceList.get(i).get("Code"));
+                        sService.put("Price",lvSServiceList.get(i).get("Price"));
+                        //sService.put("Quantity",etsSQuantity.getText().toString());
+
+                        sServices.put(sService);
+
+                        //amount = amount + (Float.valueOf(lvSServiceList.get(i).get("Price")) * Float.valueOf(etsSQuantity.getText().toString()) );
+
+                    }
+
+                    for (int i=0; i < lvSItemList.size();i++){
+
+                        JSONObject sItem = new JSONObject();
+                        sItem.put("Code",lvSItemList.get(i).get("Code"));
+                        sItem.put("Price",lvSItemList.get(i).get("Price"));
+                        //sItem.put("Quantity",etsSQuantity.getText().toString());
+
+                        sItems.put(sItem);
+
+                        //amount = amount + (Float.valueOf(lvSItemList.get(i).get("Price")) * Float.valueOf(etsSQuantity.getText().toString()));
+
+                    }
+                    //Float price = Float.valueOf(etSAmount.getText().toString()) + (qty*price);
+                    //Amount =
+                    lvService.put("Price",String.valueOf(amount));
+                    lvService.put("SubServices",sServices.toString());
+                    lvService.put("SubItems",sItems.toString());
+
+                }else{
+                    Amount = etSAmount.getText().toString();
+                    lvService.put("Price", Amount);
+                }
                 if (etSQuantity.getText().toString().length() == 0) Quantity = "1";
                 else Quantity = etSQuantity.getText().toString();
                 lvService.put("Quantity", Quantity);

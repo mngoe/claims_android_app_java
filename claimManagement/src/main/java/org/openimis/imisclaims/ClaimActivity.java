@@ -97,15 +97,15 @@ public class ClaimActivity extends ImisActivity {
         btnScan = (ImageButton) findViewById(R.id.btnScan);
         etHealthFacility = (EditText) findViewById(R.id.etHealthFacility);
         etClaimAdmin = (EditText) findViewById(R.id.etClaimAdmin);
-        etGuaranteeNo = (EditText) findViewById(R.id.etGuaranteeNo);
+        //etGuaranteeNo = (EditText) findViewById(R.id.etGuaranteeNo);
         etClaimCode = (EditText) findViewById(R.id.etClaimCode);
         etCHFID = (EditText) findViewById(R.id.etCHFID);
         tvItemTotal = (TextView) findViewById(R.id.tvItemTotal);
         tvServiceTotal = (TextView) findViewById(R.id.tvServiceTotal);
-        etDiagnosis1 = (AutoCompleteTextView) findViewById(R.id.etDiagnosis1);
-        etDiagnosis2 = (AutoCompleteTextView) findViewById(R.id.etDiagnosis2);
-        etDiagnosis3 = (AutoCompleteTextView) findViewById(R.id.etDiagnosis3);
-        etDiagnosis4 = (AutoCompleteTextView) findViewById(R.id.etDiagnosis4);
+        //etDiagnosis1 = (AutoCompleteTextView) findViewById(R.id.etDiagnosis1);
+        //etDiagnosis2 = (AutoCompleteTextView) findViewById(R.id.etDiagnosis2);
+        //etDiagnosis3 = (AutoCompleteTextView) findViewById(R.id.etDiagnosis3);
+        //etDiagnosis4 = (AutoCompleteTextView) findViewById(R.id.etDiagnosis4);
         rbEmergency = (RadioButton) findViewById(R.id.rbEmergency);
         rbReferral = (RadioButton) findViewById(R.id.rbReferral);
         rbOther = (RadioButton) findViewById(R.id.rbOther);
@@ -127,9 +127,9 @@ public class ClaimActivity extends ImisActivity {
                 }
             }
 
-            if (sqlHandler.getAdjustibility("GuaranteeNo").equals("N")) {
+            /*if (sqlHandler.getAdjustibility("GuaranteeNo").equals("N")) {
                 etGuaranteeNo.setVisibility(View.GONE);
-            }
+            }*/
 
             //Fetch if Healthfacility code is available
             /*SharedPreferences spHF = global.getDefaultSharedPreferences();
@@ -153,21 +153,21 @@ public class ClaimActivity extends ImisActivity {
         etDiagnosis.setThreshold(1);
         etDiagnosis.setOnItemClickListener(adapter);
 
-        etDiagnosis1.setAdapter(adapter);
-        etDiagnosis1.setThreshold(1);
-        etDiagnosis1.setOnItemClickListener(adapter);
+        //etDiagnosis1.setAdapter(adapter);
+        //etDiagnosis1.setThreshold(1);
+        //etDiagnosis1.setOnItemClickListener(adapter);
 
-        etDiagnosis2.setAdapter(adapter);
-        etDiagnosis2.setThreshold(1);
-        etDiagnosis2.setOnItemClickListener(adapter);
+        //etDiagnosis2.setAdapter(adapter);
+        //etDiagnosis2.setThreshold(1);
+        //etDiagnosis2.setOnItemClickListener(adapter);
 
-        etDiagnosis3.setAdapter(adapter);
-        etDiagnosis3.setThreshold(1);
-        etDiagnosis3.setOnItemClickListener(adapter);
+        //etDiagnosis3.setAdapter(adapter);
+        //etDiagnosis3.setThreshold(1);
+        //etDiagnosis3.setOnItemClickListener(adapter);
 
-        etDiagnosis4.setAdapter(adapter);
-        etDiagnosis4.setThreshold(1);
-        etDiagnosis4.setOnItemClickListener(adapter);
+        //etDiagnosis4.setAdapter(adapter);
+        //etDiagnosis4.setThreshold(1);
+        //etDiagnosis4.setOnItemClickListener(adapter);
 
         etStartDate.setOnTouchListener((v, event) -> {
             showDialog(StartDate_Dialog_ID);
@@ -323,7 +323,7 @@ public class ClaimActivity extends ImisActivity {
 
     private void ClearForm() {
         etClaimCode.setText("");
-        etGuaranteeNo.setText("");
+        //etGuaranteeNo .setText("");
         etCHFID.setText("");
         etStartDate.setText("");
         etEndDate.setText("");
@@ -333,10 +333,10 @@ public class ClaimActivity extends ImisActivity {
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
         TotalItemService = 0;
-        etDiagnosis1.setText("");
-        etDiagnosis2.setText("");
-        etDiagnosis3.setText("");
-        etDiagnosis4.setText("");
+        //etDiagnosis1.setText("");
+        //etDiagnosis2.setText("");
+        //etDiagnosis3.setText("");
+        //etDiagnosis4.setText("");
         rgVisitType.clearCheck();
         etClaimAdmin.requestFocus();
     }
@@ -349,10 +349,10 @@ public class ClaimActivity extends ImisActivity {
             etHealthFacility.setText(obj.getString("health_facility_code"));
             etClaimAdmin.setText(global.getOfficerCode());
 
-            String guaranteeNumber = obj.getString("guarantee_number");
+            /*String guaranteeNumber = obj.getString("guarantee_number");
             if (null == guaranteeNumber || "null".equals(guaranteeNumber))
                 etGuaranteeNo.setText("");
-            else etGuaranteeNo.setText(guaranteeNumber);
+            else etGuaranteeNo.setText(guaranteeNumber);*/
 
             etCHFID.setText(obj.getString("insurance_number"));
             if (!obj.getString("claim_status").equals("Rejected"))
@@ -362,10 +362,10 @@ public class ClaimActivity extends ImisActivity {
             etEndDate.setText(obj.getString("visit_date_to"));
 
             etDiagnosis.setText(sqlHandler.getDiseaseCode(obj.getString("main_dg")));
-            etDiagnosis1.setText(sqlHandler.getDiseaseCode(obj.getString("sec_dg_1")));
-            etDiagnosis2.setText(sqlHandler.getDiseaseCode(obj.getString("sec_dg_2")));
-            etDiagnosis3.setText(sqlHandler.getDiseaseCode(obj.getString("sec_dg_3")));
-            etDiagnosis4.setText(sqlHandler.getDiseaseCode(obj.getString("sec_dg_4")));
+            //etDiagnosis1.setText(sqlHandler.getDiseaseCode(obj.getString("sec_dg_1")));
+            //etDiagnosis2.setText(sqlHandler.getDiseaseCode(obj.getString("sec_dg_2")));
+            //etDiagnosis3.setText(sqlHandler.getDiseaseCode(obj.getString("sec_dg_3")));
+            //etDiagnosis4.setText(sqlHandler.getDiseaseCode(obj.getString("sec_dg_4")));
 
             switch (obj.getString("visit_type")) {
                 case "Emergency":
@@ -460,6 +460,11 @@ public class ClaimActivity extends ImisActivity {
 
         if (etClaimCode.getText().length() == 0) {
             ShowDialog(etClaimCode, getResources().getString(R.string.MissingClaimCode));
+            return false;
+        }
+
+        if (etClaimCode.getText().length() > 2) {
+            ShowDialog(etClaimCode, getResources().getString(R.string.InvalidClaimCode));
             return false;
         }
 
@@ -631,13 +636,13 @@ public class ClaimActivity extends ImisActivity {
 
             //ClaimCode
             serializer.startTag(null, "ClaimCode");
-            serializer.text(etClaimCode.getText().toString());
+            serializer.text(etCHFID.getText().toString() + etClaimCode.getText().toString());
             serializer.endTag(null, "ClaimCode");
 
             //GuaranteeNo
-            serializer.startTag(null, "GuaranteeNo");
-            serializer.text(etGuaranteeNo.getText().toString());
-            serializer.endTag(null, "GuaranteeNo");
+            //serializer.startTag(null, "GuaranteeNo");
+            //serializer.text("");
+            //serializer.endTag(null, "GuaranteeNo");
 
             //CHFID
             serializer.startTag(null, "CHFID");
@@ -670,24 +675,24 @@ public class ClaimActivity extends ImisActivity {
             serializer.endTag(null, "Total");
 
             //Diagnosis1
-            serializer.startTag(null, "ICDCode1");
-            serializer.text(etDiagnosis1.getText().toString());
-            serializer.endTag(null, "ICDCode1");
+            //serializer.startTag(null, "ICDCode1");
+            //serializer.text(etDiagnosis1.getText().toString());
+            //serializer.endTag(null, "ICDCode1");
 
             //Diagnosis2
-            serializer.startTag(null, "ICDCode2");
-            serializer.text(etDiagnosis2.getText().toString());
-            serializer.endTag(null, "ICDCode2");
+            //serializer.startTag(null, "ICDCode2");
+            ///serializer.text(etDiagnosis2.getText().toString());
+            //serializer.endTag(null, "ICDCode2");
 
             //Diagnosis3
-            serializer.startTag(null, "ICDCode3");
-            serializer.text(etDiagnosis3.getText().toString());
-            serializer.endTag(null, "ICDCode3");
+            //serializer.startTag(null, "ICDCode3");
+            //serializer.text(etDiagnosis3.getText().toString());
+            //serializer.endTag(null, "ICDCode3");
 
             //Diagnosis4
-            serializer.startTag(null, "ICDCode4");
-            serializer.text(etDiagnosis4.getText().toString());
-            serializer.endTag(null, "ICDCode4");
+            //serializer.startTag(null, "ICDCode4");
+            //serializer.text(etDiagnosis4.getText().toString());
+            //serializer.endTag(null, "ICDCode4");
 
             //VisitType
             serializer.startTag(null, "VisitType");
@@ -811,18 +816,18 @@ public class ClaimActivity extends ImisActivity {
             ClaimObject.put("ClaimDate", d);
             ClaimObject.put("HFCode", etHealthFacility.getText().toString());
             ClaimObject.put("ClaimAdmin", etClaimAdmin.getText().toString());
-            ClaimObject.put("ClaimCode", etClaimCode.getText().toString());
-            ClaimObject.put("GuaranteeNo", etGuaranteeNo.getText().toString());
+            ClaimObject.put("ClaimCode", etCHFID.getText().toString() + etClaimCode.getText().toString());
+            //ClaimObject.put("GuaranteeNo", etGuaranteeNo.getText().toString());
             ClaimObject.put("CHFID", etCHFID.getText().toString());
             ClaimObject.put("StartDate", etStartDate.getText().toString());
             ClaimObject.put("EndDate", etEndDate.getText().toString());
             ClaimObject.put("ICDCode", etDiagnosis.getText().toString());
             ClaimObject.put("Comment", "");
             ClaimObject.put("Total", "");
-            ClaimObject.put("ICDCode1", etDiagnosis1.getText().toString());
-            ClaimObject.put("ICDCode2", etDiagnosis2.getText().toString());
-            ClaimObject.put("ICDCode3", etDiagnosis3.getText().toString());
-            ClaimObject.put("ICDCode4", etDiagnosis4.getText().toString());
+            //ClaimObject.put("ICDCode1", etDiagnosis1.getText().toString());
+            //ClaimObject.put("ICDCode2", etDiagnosis2.getText().toString());
+            //ClaimObject.put("ICDCode3", etDiagnosis3.getText().toString());
+            //ClaimObject.put("ICDCode4", etDiagnosis4.getText().toString());
             ClaimObject.put("VisitType", Rb.getTag().toString());
 
             jsonObject.put("details", ClaimObject);
@@ -845,6 +850,11 @@ public class ClaimActivity extends ImisActivity {
                 ServiceObject.put("ServiceCode", lvServiceList.get(i).get("Code"));
                 ServiceObject.put("ServicePrice", lvServiceList.get(i).get("Price"));
                 ServiceObject.put("ServiceQuantity", lvServiceList.get(i).get("Quantity"));
+
+                if(!lvServiceList.get(i).get("PackageType").equals("S")){
+                    ServiceObject.put("SubServices", lvServiceList.get(i).get("SubServices"));
+                    ServiceObject.put("SubItems",lvServiceList.get(i).get("SubServices"));
+                }
 
                 ServicesArray.put(ServiceObject);
             }

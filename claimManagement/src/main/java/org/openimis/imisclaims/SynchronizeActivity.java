@@ -351,27 +351,29 @@ public class SynchronizeActivity extends ImisActivity {
                 sqlHandler.InsertMapping(objServices.getString("ServCode"),
                         objServices.getString("ServName"), "S");
 
-                //JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
-                //JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
+                if (objServices.has("SubService")){
+                    JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
 
-                        /*if(arrSubService != null || arrSubItem != null){
+                    //Insert SubServices
+                    JSONObject objSubServices;
+                    for (int s = 0; s < arrSubService.length(); s++) {
+                        objSubServices = arrSubService.getJSONObject(s);
+                        sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
+                                objSubServices.getString("ServiceLinked"));
+                    }
+                }
 
-                            //Insert SubServices
-                            JSONObject objSubServices;
-                            for (int s = 0; s < arrSubService.length(); s++) {
-                                objSubServices = arrSubService.getJSONObject(s);
-                                sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
-                                        objSubServices.getString("ServiceLinked"));
-                            }
+                if(objServices.has("SubItems")){
+                    JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
 
-                            //Insert SubServices
-                            JSONObject objItems;
-                            for (int t = 0; t < arrSubItem.length(); t++) {
-                                objItems = arrSubItem.getJSONObject(t);
-                                sqlHandler.InsertSubItems(objItems.getString("ItemID"),
-                                        objItems.getString("ServiceID"));
-                            }
-                        }*/
+                    //Insert SubItems
+                    JSONObject objItems;
+                    for (int t = 0; t < arrSubItem.length(); t++) {
+                        objItems = arrSubItem.getJSONObject(t);
+                        sqlHandler.InsertSubItems(objItems.getString("ItemID"),
+                                objItems.getString("ServiceID"));
+                    }
+                }
             }
 
         } catch (JSONException e) {

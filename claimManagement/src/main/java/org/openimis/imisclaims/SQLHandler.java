@@ -514,11 +514,11 @@ public class SQLHandler extends SQLiteOpenHelper {
         return resultSet;
     }
 
-    public JSONArray getSubServicesFromId(String id) {
+    public JSONArray getSubServicesId(String id) {
         String nullOverride="";
         JSONArray resultSet = new JSONArray();
         try {
-            String query = "SELECT * FROM tblServices WHERE Id = (SELECT ServiceId From tblSubServices WHERE ServiceLinked ="+ id +")";
+            String query = "SELECT ServiceId FROM tblSubServices WHERE ServiceLinked = "+ id;
             Cursor cursor1 = db.rawQuery(query, null);
             cursor1.moveToFirst();
             // looping through all rows
@@ -547,11 +547,11 @@ public class SQLHandler extends SQLiteOpenHelper {
         return resultSet;
     }
 
-    public JSONArray getSubItemFromId(String id) {
+    public JSONArray getSubItemsId(String id) {
         String nullOverride="";
         JSONArray resultSet = new JSONArray();
         try {
-            String query = "SELECT * FROM tblItems WHERE Id = (SELECT ItemId From tblSubItems WHERE ServiceId ="+ id +")";
+            String query = "SELECT ItemId FROM tblSubItems WHERE ServiceId = "+ id;
             Cursor cursor1 = db.rawQuery(query, null);
             cursor1.moveToFirst();
             // looping through all rows
@@ -568,8 +568,8 @@ public class SQLHandler extends SQLiteOpenHelper {
                         e.printStackTrace();
                         Log.d("Tag Name", e.getMessage());
                     }
+                    resultSet.put(rowObject);
                 }
-                resultSet.put(rowObject);
                 cursor1.moveToNext();
             }
             cursor1.close();
@@ -618,6 +618,39 @@ public class SQLHandler extends SQLiteOpenHelper {
         JSONObject resultSet = new JSONObject();
         try {
             String query = "SELECT * FROM tblServices WHERE Id = "+ serviceId;
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet = rowObject;
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONObject getItem(String itemId) {
+        String nullOverride="";
+        JSONObject resultSet = new JSONObject();
+        try {
+            String query = "SELECT * FROM tblItems WHERE Id = "+ itemId;
             Cursor cursor1 = db.rawQuery(query, null);
             cursor1.moveToFirst();
             // looping through all rows

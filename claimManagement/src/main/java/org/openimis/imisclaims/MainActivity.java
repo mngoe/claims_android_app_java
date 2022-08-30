@@ -608,27 +608,32 @@ public class MainActivity extends ImisActivity {
                             sqlHandler.InsertMapping(objServices.getString("ServCode"),
                                     objServices.getString("ServName"), "S");
 
-                            //JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
-                            //JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
+                            if (objServices.has("SubService")) {
 
-                        /*if(arrSubService != null || arrSubItem != null){
+                                JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
 
-                            //Insert SubServices
-                            JSONObject objSubServices;
-                            for (int s = 0; s < arrSubService.length(); s++) {
-                                objSubServices = arrSubService.getJSONObject(s);
-                                sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
-                                        objSubServices.getString("ServiceLinked"));
+                                //Insert SubServices
+                                JSONObject objSubServices;
+                                for (int s = 0; s < arrSubService.length(); s++) {
+                                    objSubServices = arrSubService.getJSONObject(s);
+                                    sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
+                                            objSubServices.getString("ServiceLinked"));
+                                }
                             }
 
-                            //Insert SubServices
-                            JSONObject objItems;
-                            for (int t = 0; t < arrSubItem.length(); t++) {
-                                objItems = arrSubItem.getJSONObject(t);
-                                sqlHandler.InsertSubItems(objItems.getString("ItemID"),
-                                        objItems.getString("ServiceID"));
+                            if (objServices.has("SubItems")) {
+
+                                JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
+
+                                //Insert SubItems
+                                JSONObject objItems;
+                                for (int t = 0; t < arrSubItem.length(); t++) {
+                                    objItems = arrSubItem.getJSONObject(t);
+                                    sqlHandler.InsertSubItems(objItems.getString("ItemID"),
+                                            objItems.getString("ServiceID"));
+                                }
+
                             }
-                        }*/
                         }
 
                         runOnUiThread(() -> {
@@ -766,12 +771,12 @@ public class MainActivity extends ImisActivity {
                             String dateS = formatter.format(new Date(0));
                             object.put("last_update_date", dateS);
 
-                            getServices();
-                            /*try {
+                            //getServices();
+                            try {
                                 DownLoadDiagnosesServicesItems(object);
                             } catch (IOException e) {
                                 e.printStackTrace();
-                            }*/
+                            }
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
