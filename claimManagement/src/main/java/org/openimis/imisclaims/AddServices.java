@@ -22,7 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class AddServices extends ImisActivity {
-    ListView lvServices;
+    ListView lvServices, listServices;
     TextView tvCode, tvName;
     LinearLayout llSService;
     LinearLayout.LayoutParams layoutParams;
@@ -34,6 +34,7 @@ public class AddServices extends ImisActivity {
     SimpleAdapter alAdapter;
     SimpleAdapter ssAdapterServices;
     SimpleAdapter ssAdapterItems;
+    float sServicePrice;
 
     public static ArrayList<HashMap<String, String>> lvSServiceList;
     public static ArrayList<HashMap<String, String>> lvSItemList;
@@ -89,6 +90,8 @@ public class AddServices extends ImisActivity {
                     etSName.setText(sqlHandler.getServiceName(Code));
 
                     if (!packageType.equals("S")) {
+                        etSAmount.setText("0");
+                        sServicePrice = 0;
 
                         try {
 
@@ -157,7 +160,7 @@ public class AddServices extends ImisActivity {
                             textItems.setPadding(0,20,0,10);
                             textItems.setTextSize(18);
 
-                            ListView listServices = new ListView(AddServices.this);
+                            listServices = new ListView(AddServices.this);
                             if(lvSServiceList.size() > 2){
                                 listServices.setLayoutParams(layoutParams);
                             }
@@ -174,7 +177,15 @@ public class AddServices extends ImisActivity {
                             llSService.addView(textItems);
                             llSService.addView(listItems);
 
-                            //etsSQuantity = findViewById(R.id.tvLvQuantity);
+
+                            //if (packageType.equals("F")){
+
+                                //if ( qty > 1 ){
+                                //qty=1;
+                                //
+                                //sServicePrice = sServicePrice + (qty * price);
+
+                            //}
 
                         } catch (JSONException e) {
                             e.printStackTrace();
@@ -270,8 +281,14 @@ public class AddServices extends ImisActivity {
                     JSONArray sServices = new JSONArray();
                     JSONArray sItems = new JSONArray();
 
+                    /*for (int i = 0; i < listServices.getCount(); i++){
 
-                    for (int i=0; i < lvSServiceList.size();i++){
+                        Object obj = listServices.getAdapter().getItem(i);
+                        Log.i("Object", obj.toString());
+                    }*/
+
+
+                    for (int i=0 ; i < lvSServiceList.size(); i++){
 
                         JSONObject sService = new JSONObject();
                         sService.put("Code",lvSServiceList.get(i).get("Code"));
