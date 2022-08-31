@@ -143,7 +143,7 @@ public class MainActivity extends ImisActivity {
         //DownloadMasterDialog();
 
         if (checkRequirements()) {
-            onAllRequirementsMet();
+            //onAllRequirementsMet();
         }
     }
 
