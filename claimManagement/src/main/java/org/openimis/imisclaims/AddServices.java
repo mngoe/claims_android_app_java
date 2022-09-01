@@ -37,10 +37,10 @@ public class AddServices extends ImisActivity {
     CustomAdapter ssAdapterServicesItems;
     float sServicePrice;
     public ArrayList<EditModel> editModelArrayListServices;
-    public ArrayList<EditModel> editModelArrayListItems;
 
     public static ArrayList<HashMap<String, String>> lvSServiceList;
     public static ArrayList<HashMap<String, String>> lvSItemList;
+    public static String packageType;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -82,7 +82,7 @@ public class AddServices extends ImisActivity {
                     final int descColumnIndex = cursor.getColumnIndexOrThrow("Name");
                     String Code = cursor.getString(itemColumnIndex);
                     String Name = cursor.getString(descColumnIndex);
-                    String packageType = sqlHandler.getPackageType(Code);
+                    packageType = sqlHandler.getPackageType(Code);
                     String id = sqlHandler.getId(Code);
 
                     oService = new HashMap<>();
@@ -104,6 +104,7 @@ public class AddServices extends ImisActivity {
                             JSONArray subServiceArr = new JSONArray();
                             for(int i = 0; i < subServicesIds.length(); i++){
                                 JSONObject objService = sqlHandler.getService(subServicesIds.getJSONObject(i).getString("ServiceId"));
+                                objService.put("QuantityMax", sqlHandler.getSubServiceQty(subServicesIds.getJSONObject(i).getString("ServiceId")));
                                 subServiceArr.put(objService);
                             }
 
@@ -111,6 +112,7 @@ public class AddServices extends ImisActivity {
                             JSONArray subItemArr = new JSONArray();
                             for(int i = 0; i < subItemIds.length(); i++){
                                 JSONObject objItem = sqlHandler.getItem(subItemIds.getJSONObject(i).getString("ItemId"));
+                                objItem.put("QuantityMax", sqlHandler.getSubItemQty(subItemIds.getJSONObject(i).getString("ItemId")));
                                 subItemArr.put(objItem);
                             }
 
@@ -122,6 +124,7 @@ public class AddServices extends ImisActivity {
                                 sService.put("Name", obj.getString("Name"));
                                 sService.put("Price", obj.getString("Price"));
                                 sService.put("Quantity", "0");
+                                sService.put("QtyMax",obj.getString("QuantityMax"));
 
                                 lvSServiceList.add(sService);
 
@@ -135,6 +138,7 @@ public class AddServices extends ImisActivity {
                                 sItem.put("Name", obj.getString("Name"));
                                 sItem.put("Price", obj.getString("Price"));
                                 sItem.put("Quantity", "0");
+                                sItem.put("QtyMax",obj.getString("QuantityMax"));
 
                                 lvSItemList.add(sItem);
 
@@ -318,6 +322,7 @@ public class AddServices extends ImisActivity {
             editModel.setName(lvSServiceList.get(i).get("Name"));
             editModel.setQty(lvSServiceList.get(i).get("Quantity"));
             editModel.setPrice(lvSServiceList.get(i).get("Price"));
+            editModel.setQtyMax(lvSServiceList.get(i).get("QtyMax"));
             list.add(editModel);
         }
 
@@ -327,6 +332,7 @@ public class AddServices extends ImisActivity {
             editModel.setName(lvSItemList.get(i).get("Name"));
             editModel.setQty(lvSItemList.get(i).get("Quantity"));
             editModel.setPrice(lvSItemList.get(i).get("Price"));
+            editModel.setQtyMax(lvSItemList.get(i).get("QtyMax"));
             list.add(editModel);
         }
 

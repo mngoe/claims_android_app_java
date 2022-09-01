@@ -6,6 +6,15 @@ public class EditModel {
     private String name;
     private String price;
     private String qty;
+    private String qtyMax;
+
+    public String getQtyMax() {
+        return qtyMax;
+    }
+
+    public void setQtyMax(String qtyMax) {
+        this.qtyMax = qtyMax;
+    }
 
     public String getCode() {
         return code;

@@ -617,7 +617,7 @@ public class MainActivity extends ImisActivity {
                                 for (int s = 0; s < arrSubService.length(); s++) {
                                     objSubServices = arrSubService.getJSONObject(s);
                                     sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
-                                            objSubServices.getString("ServiceLinked"));
+                                            objSubServices.getString("ServiceLinked"),objSubServices.getString("qty"));
                                 }
                             }
 
@@ -626,11 +626,11 @@ public class MainActivity extends ImisActivity {
                                 JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
 
                                 //Insert SubItems
-                                JSONObject objItems;
+                                JSONObject objSubItems;
                                 for (int t = 0; t < arrSubItem.length(); t++) {
-                                    objItems = arrSubItem.getJSONObject(t);
-                                    sqlHandler.InsertSubItems(objItems.getString("ItemID"),
-                                            objItems.getString("ServiceID"));
+                                    objSubItems = arrSubItem.getJSONObject(t);
+                                    sqlHandler.InsertSubItems(objSubItems.getString("ItemID"),
+                                            objSubItems.getString("ServiceID"), objSubItems.getString("qty"));
                                 }
 
                             }

@@ -24,8 +24,8 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code text, Name text, Type text, Price text);";
     private static final String CreateTableServices = "CREATE TABLE IF NOT EXISTS tblServices(Id text, Code text, Name text, Type text, Price text, PackageType text);";
     private static final String CreateTableItems = "CREATE TABLE IF NOT EXISTS tblItems(Id text, Code text, Name text, Type text, Price text);";
-    private static final String CreateTableSubServices = "CREATE TABLE IF NOT EXISTS tblSubServices(ServiceId text, ServiceLinked text);";
-    private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text);";
+    private static final String CreateTableSubServices = "CREATE TABLE IF NOT EXISTS tblSubServices(ServiceId text, ServiceLinked text, Quantity text);";
+    private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text, Quantity text);";
     //private static final String CreateTableDateUpdates = "CREATE TABLE tblDateUpdates(Id INTEGER PRIMARY KEY AUTOINCREMENT, last_update_date text);";
 
     Global global;
@@ -234,11 +234,12 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void InsertSubServices(String ServiceId, String ServiceLinked) {
+    public void InsertSubServices(String ServiceId, String ServiceLinked, String qty) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("ServiceId", ServiceId);
             cv.put("ServiceLinked", ServiceLinked);
+            cv.put("Quantity", qty);
 
             db.insert("tblSubServices", null, cv);
         } catch (Exception e) {
@@ -246,11 +247,12 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void InsertSubItems(String ItemId, String ServiceId) {
+    public void InsertSubItems(String ItemId, String ServiceId, String Qty) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("ItemId", ItemId);
             cv.put("ServiceId", ServiceId);
+            cv.put("Quantity", Qty);
 
             db.insert("tblSubItems", null, cv);
         } catch (Exception e) {
@@ -737,5 +739,41 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
 
         return Statut;
+    }
+
+    public String getSubServiceQty(String ServId) {
+        String qty = "";
+        try {
+            String query = "SELECT Quantity FROM tblSubServices WHERE ServiceId = " + ServId;
+            Cursor cursor1 = db.rawQuery(query, null);
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    qty = cursor1.getString(0);
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            return qty;
+        }
+
+        return qty;
+    }
+
+    public String getSubItemQty(String ItemId) {
+        String qty = "";
+        try {
+            String query = "SELECT Quantity FROM tblSubItems WHERE ItemId = " + ItemId;
+            Cursor cursor1 = db.rawQuery(query, null);
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    qty = cursor1.getString(0);
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            return qty;
+        }
+
+        return qty;
     }
 }

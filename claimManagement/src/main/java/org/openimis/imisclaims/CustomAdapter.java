@@ -9,6 +9,7 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -89,6 +90,9 @@ public class CustomAdapter extends BaseAdapter {
 
                 if(!holder.editQty.getText().toString().equals("")){
                     editModelArrayList.get(position).setQty(holder.editQty.getText().toString());
+
+                }else{
+                    editModelArrayList.get(position).setQty("0");
                 }
 
             }
@@ -97,6 +101,26 @@ public class CustomAdapter extends BaseAdapter {
             public void afterTextChanged(Editable editable) {
 
                 float amount = 0;
+
+                int qtyMax = Integer.valueOf(editModelArrayList.get(position).getQtyMax());
+
+                if(!holder.editQty.getText().toString().equals("")){
+
+                    if (AddServices.packageType.equals("F")){
+                        if(Float.valueOf(holder.editQty.getText().toString()) > qtyMax){
+                            Toast.makeText(context, context.getResources().getString(R.string.qtyAlert) + " " + qtyMax, Toast.LENGTH_LONG).show();
+                            holder.editQty.setText(String.valueOf(qtyMax));
+                        }
+                    }else if (AddServices.packageType.equals("P")){
+                        if(Float.valueOf(holder.editQty.getText().toString()) != qtyMax && Float.valueOf(holder.editQty.getText().toString()) != 0 ){
+                            Toast.makeText(context, context.getResources().getString(R.string.qtyAlertAsk) + " " + qtyMax, Toast.LENGTH_LONG).show();
+                            holder.editQty.setText(String.valueOf(qtyMax));
+                        }
+                    }
+
+                }
+
+
 
                 for(int i = 0 ; i < editModelArrayList.size(); i++){
 
