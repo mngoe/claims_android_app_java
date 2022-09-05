@@ -24,7 +24,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -143,7 +142,7 @@ public class MainActivity extends ImisActivity {
         //DownloadMasterDialog();
 
         if (checkRequirements()) {
-            //onAllRequirementsMet();
+            onAllRequirementsMet();
         }
     }
 
@@ -208,10 +207,10 @@ public class MainActivity extends ImisActivity {
             startActivity(intent);
         } else if (id == R.id.nav_Refresh_Map) {
             doLoggedIn(this::confirmRefreshMap);
-            Log.e("SubServices", sqlHandler.getSubServices().toString());
-            Log.e("SubItems", sqlHandler.getSubItems().toString());
-            Log.e("Services", sqlHandler.getServices().toString());
-            Log.e("Items", sqlHandler.getItems().toString());
+            //Log.e("SubServices", sqlHandler.getSubServices().toString());
+            //Log.e("SubItems", sqlHandler.getSubItems().toString());
+            //Log.e("Services", sqlHandler.getServices().toString());
+            //Log.e("Items", sqlHandler.getItems().toString());
         } else if (id == R.id.nav_claim) {
             Intent intent = new Intent(this, ClaimActivity.class);
             startActivity(intent);
