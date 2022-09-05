@@ -219,7 +219,7 @@
   <string name="NoItemMapped">Aucun prod. méd. lié trouvé</string>
   <string name="MappedItemMissing">Pour ajouter un élément à la prestation, veuillez cliquer sur le menu et sélectionner l\'option \"lier des prod. méd.\"</string>
   <string name="NoServiceMapped">Aucun soin liée trouvé</string>
-  <string name="MappedServiceMissing">Pour ajouter un soin à la prestation, veuillez cliquer sur le menu et sélectionner l\'option \"lier des soins\".</string>
+  <string name="MappedServiceMissing">Pour ajouter un soin à la prestation, veuillez cliquer sur le menu et sélectionner l\'option \"lier des services médicaux\".</string>
   <string name="Statistics">Statistiques</string>
   <string name="GetStats">Demande de statistiques</string>
   <string name="Go">Aller</string>
@@ -369,7 +369,7 @@
   <string name="Question2">Vous a-t-on demandé un paiement à la formation par le personnel ?</string>
   <string name="Question3">Vous a-t-on prescrit des médicaments ?</string>
   <string name="Question4">Avez-vous obtenu des médicaments de la formation sanitaire ?</string>
-  <string name="Assessment">Dans quelle mesure êtes-vous satisfait des soins que vous avez reçus à la formation sanitaire ? Taux sur une échelle de 1 à 5 (1 = non satisfait ; 5 = très satisfait)</string>
+  <string name="Assessment">Dans quelle mesure êtes-vous satisfait des servicaux médicaux que vous avez reçus à la formation sanitaire ? Taux sur une échelle de 1 à 5 (1 = non satisfait ; 5 = très satisfait)</string>
   <string name="UploadingFeedback">Téléversement des retours d\'information ...</string>
   <string name="UploadAllFeedback">Télécharger tous les retours</string>
   <string name="MissingOfficer">Veuillez entrer le code de l\'agent</string>
@@ -596,6 +596,4 @@
   <string name="Forbidden"></string>
   <string name="UnknownError"></string>
   <string name="NotFound"></string>
-  <string name="qtyAlert">La quantité maximale pour ce produit est de </string>
-  <string name="qtyAlertAsk">La quantité demandée pour ce produit est de</string>
 </resources>
