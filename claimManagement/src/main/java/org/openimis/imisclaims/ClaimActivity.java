@@ -852,8 +852,7 @@ public class ClaimActivity extends ImisActivity {
                 ServiceObject.put("ServiceQuantity", lvServiceList.get(i).get("Quantity"));
 
                 if(!lvServiceList.get(i).get("PackageType").equals("S")){
-                    ServiceObject.put("SubServices", lvServiceList.get(i).get("SubServices"));
-                    ServiceObject.put("SubItems",lvServiceList.get(i).get("SubServices"));
+                    ServiceObject.put("SubServicesItems", lvServiceList.get(i).get("SubServicesItems"));
                 }
 
                 ServicesArray.put(ServiceObject);

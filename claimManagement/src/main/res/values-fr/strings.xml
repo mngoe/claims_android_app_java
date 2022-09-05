@@ -596,4 +596,6 @@
   <string name="Forbidden"></string>
   <string name="UnknownError"></string>
   <string name="NotFound"></string>
+  <string name="qtyAlert">La quantité maximale pour ce produit est de </string>
+  <string name="qtyAlertAsk">La quantité demandée pour ce produit est de</string>
 </resources>
