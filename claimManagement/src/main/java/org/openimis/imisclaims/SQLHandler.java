@@ -24,8 +24,8 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code text, Name text, Type text, Price text);";
     private static final String CreateTableServices = "CREATE TABLE IF NOT EXISTS tblServices(Id text, Code text, Name text, Type text, Price text, PackageType text);";
     private static final String CreateTableItems = "CREATE TABLE IF NOT EXISTS tblItems(Id text, Code text, Name text, Type text, Price text);";
-    private static final String CreateTableSubServices = "CREATE TABLE IF NOT EXISTS tblSubServices(ServiceId text, ServiceLinked text);";
-    private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text);";
+    private static final String CreateTableSubServices = "CREATE TABLE IF NOT EXISTS tblSubServices(ServiceId text, ServiceLinked text, Quantity text);";
+    private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text, Quantity text);";
     //private static final String CreateTableDateUpdates = "CREATE TABLE tblDateUpdates(Id INTEGER PRIMARY KEY AUTOINCREMENT, last_update_date text);";
 
     Global global;
@@ -99,6 +99,22 @@ public class SQLHandler extends SQLiteOpenHelper {
         return price;
     }
 
+    public String getPriceItem(String code) {
+        String price = "0";
+        try (Cursor c = db.query("tblItems", new String[]{"Price"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    price = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return price;
+    }
+
     public String getNameService(String code) {
         String name = "";
         try (Cursor c = db.query("tblServices", new String[]{"Name"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
@@ -148,7 +164,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     }
 
     public String getItemPrice(String code) {
-        return getPrice(code, "I");
+        return getPriceItem(code);
     }
 
     public String getServicePrice(String code) {
@@ -218,11 +234,12 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void InsertSubServices(String ServiceId, String ServiceLinked) {
+    public void InsertSubServices(String ServiceId, String ServiceLinked, String qty) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("ServiceId", ServiceId);
             cv.put("ServiceLinked", ServiceLinked);
+            cv.put("Quantity", qty);
 
             db.insert("tblSubServices", null, cv);
         } catch (Exception e) {
@@ -230,11 +247,12 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void InsertSubItems(String ItemId, String ServiceId) {
+    public void InsertSubItems(String ItemId, String ServiceId, String Qty) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("ItemId", ItemId);
             cv.put("ServiceId", ServiceId);
+            cv.put("Quantity", Qty);
 
             db.insert("tblSubItems", null, cv);
         } catch (Exception e) {
@@ -498,11 +516,11 @@ public class SQLHandler extends SQLiteOpenHelper {
         return resultSet;
     }
 
-    public JSONArray getSubServicesFromId(String id) {
+    public JSONArray getSubServicesId(String id) {
         String nullOverride="";
         JSONArray resultSet = new JSONArray();
         try {
-            String query = "SELECT * FROM tblServices WHERE Id = (SELECT ServiceId From tblSubServices WHERE ServiceLinked ="+ id +")";
+            String query = "SELECT ServiceId FROM tblSubServices WHERE ServiceLinked = "+ id;
             Cursor cursor1 = db.rawQuery(query, null);
             cursor1.moveToFirst();
             // looping through all rows
@@ -531,11 +549,11 @@ public class SQLHandler extends SQLiteOpenHelper {
         return resultSet;
     }
 
-    public JSONArray getSubItemFromId(String id) {
+    public JSONArray getSubItemsId(String id) {
         String nullOverride="";
         JSONArray resultSet = new JSONArray();
         try {
-            String query = "SELECT * FROM tblItems WHERE Id = (SELECT ItemId From tblSubItems WHERE ServiceId ="+ id +")";
+            String query = "SELECT ItemId FROM tblSubItems WHERE ServiceId = "+ id;
             Cursor cursor1 = db.rawQuery(query, null);
             cursor1.moveToFirst();
             // looping through all rows
@@ -552,8 +570,8 @@ public class SQLHandler extends SQLiteOpenHelper {
                         e.printStackTrace();
                         Log.d("Tag Name", e.getMessage());
                     }
+                    resultSet.put(rowObject);
                 }
-                resultSet.put(rowObject);
                 cursor1.moveToNext();
             }
             cursor1.close();
@@ -602,6 +620,39 @@ public class SQLHandler extends SQLiteOpenHelper {
         JSONObject resultSet = new JSONObject();
         try {
             String query = "SELECT * FROM tblServices WHERE Id = "+ serviceId;
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet = rowObject;
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONObject getItem(String itemId) {
+        String nullOverride="";
+        JSONObject resultSet = new JSONObject();
+        try {
+            String query = "SELECT * FROM tblItems WHERE Id = "+ itemId;
             Cursor cursor1 = db.rawQuery(query, null);
             cursor1.moveToFirst();
             // looping through all rows
@@ -688,5 +739,41 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
 
         return Statut;
+    }
+
+    public String getSubServiceQty(String ServId) {
+        String qty = "";
+        try {
+            String query = "SELECT Quantity FROM tblSubServices WHERE ServiceId = " + ServId;
+            Cursor cursor1 = db.rawQuery(query, null);
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    qty = cursor1.getString(0);
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            return qty;
+        }
+
+        return qty;
+    }
+
+    public String getSubItemQty(String ItemId) {
+        String qty = "";
+        try {
+            String query = "SELECT Quantity FROM tblSubItems WHERE ItemId = " + ItemId;
+            Cursor cursor1 = db.rawQuery(query, null);
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    qty = cursor1.getString(0);
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            return qty;
+        }
+
+        return qty;
     }
 }
