@@ -944,9 +944,9 @@ public class MainActivity extends ImisActivity {
                                 last_update_date = ob.getString("update_since_last");
                                 saveLastUpdateDate(last_update_date);
 
-                                sqlHandler.ClearAll("tblReferences");
-                                sqlHandler.ClearMapping("S");
-                                sqlHandler.ClearMapping("I");
+                                //sqlHandler.ClearAll("tblReferences");
+                                //sqlHandler.ClearMapping("S");
+                                //sqlHandler.ClearMapping("I");
                                 //Insert Diagnosese
                                 JSONArray arrDiagnoses;
                                 JSONObject objDiagnoses;
@@ -957,24 +957,24 @@ public class MainActivity extends ImisActivity {
                                 }
 
                                 //Insert Services
-                                JSONArray arrServices;
+                                /*JSONArray arrServices;
                                 JSONObject objServices;
                                 arrServices = new JSONArray(services);
                                 for (int i = 0; i < arrServices.length(); i++) {
                                     objServices = arrServices.getJSONObject(i);
                                     sqlHandler.InsertReferences(objServices.getString("code"), objServices.getString("name"), "S", objServices.getString("price"));
                                     sqlHandler.InsertMapping(objServices.getString("code"), objServices.getString("name"), "S");
-                                }
+                                }*/
 
                                 //Insert Items
-                                JSONArray arrItems;
+                                /*JSONArray arrItems;
                                 JSONObject objItems;
                                 arrItems = new JSONArray(items);
                                 for (int i = 0; i < arrItems.length(); i++) {
                                     objItems = arrItems.getJSONObject(i);
                                     sqlHandler.InsertReferences(objItems.getString("code"), objItems.getString("name"), "I", objItems.getString("price"));
                                     sqlHandler.InsertMapping(objItems.getString("code"), objItems.getString("name"), "I");
-                                }
+                                }*/
 
                                 runOnUiThread(() -> {
                                     progressDialog.dismiss();
