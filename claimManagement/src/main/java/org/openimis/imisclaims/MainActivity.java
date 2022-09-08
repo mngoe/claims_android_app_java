@@ -921,7 +921,7 @@ public class MainActivity extends ImisActivity {
                     String error_occurred = null;
                     String error_message = null;
 
-                    String functionName = "GetDiagnosesServicesItems";
+                    String functionName = "claim/GetDiagnosesServicesItems";
 
                     try {
                         HttpResponse response = toRestApi.postToRestApi(object, functionName);
