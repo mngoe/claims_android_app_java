@@ -1165,7 +1165,7 @@ public class MainActivity extends ImisActivity {
     public void externalStorageAccessDialog() {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this)
                 .setTitle(R.string.ExternalStorageAccess)
-                .setMessage(getResources().getString(R.string.ExternalStorageAccessInfo, getResources().getString(R.string.app_name_claims)))
+                .setMessage(getResources().getString(R.string.ExternalStorageAccessInfo, getResources().getString(R.string.app_name_claim)))
                 .setCancelable(false)
                 .setPositiveButton(R.string.Ok,
                         (dialog, id) -> {
@@ -1186,7 +1186,7 @@ public class MainActivity extends ImisActivity {
     public void permissionsDialog() {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this)
                 .setTitle(R.string.Permissions)
-                .setMessage(getResources().getString(R.string.PermissionsInfo, getResources().getString(R.string.app_name_claims)))
+                .setMessage(getResources().getString(R.string.PermissionsInfo, getResources().getString(R.string.app_name_claim)))
                 .setCancelable(false)
                 .setPositiveButton(R.string.Ok,
                         (dialog, id) -> ActivityCompat.requestPermissions(this, global.getPermissions(), REQUEST_PERMISSIONS_CODE))
