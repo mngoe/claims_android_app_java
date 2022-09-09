@@ -1,5 +1,6 @@
 package org.openimis.imisclaims;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.text.Editable;
@@ -19,6 +20,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import org.openimis.imisclaims.tools.Log;
+
 import java.util.HashMap;
 
 public class AddServices extends ImisActivity {
@@ -227,6 +230,7 @@ public class AddServices extends ImisActivity {
             public void afterTextChanged(Editable s) {
             }
         });
+        btnAdd = findViewById(R.id.btnAdd);
 
         alAdapter = new SimpleAdapter(AddServices.this, ClaimActivity.lvServiceList, R.layout.lvitem,
                 new String[]{"Code", "Name", "Price", "Quantity"},
@@ -234,82 +238,173 @@ public class AddServices extends ImisActivity {
 
         lvServices.setAdapter(alAdapter);
 
-        btnAdd = findViewById(R.id.btnAdd);
-        btnAdd.setEnabled(false);
-        btnAdd.setOnClickListener(v -> {
-            try {
+        if (isIntentReadonly()) {
+            disableView(etSQuantity);
+            disableView(etSAmount);
+            disableView(etServices);
+            disableView(btnAdd);
+        } else {
+            ServiceAdapter serviceAdapter = new ServiceAdapter(this, sqlHandler);
+            etServices.setAdapter(serviceAdapter);
+            etServices.setThreshold(1);
+            etServices.setOnItemClickListener((parent, view, position, l) -> {
+                if (position >= 0) {
 
-                if (oService == null) return;
+                    Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+                    final int itemColumnIndex = cursor.getColumnIndexOrThrow("Code");
+                    final int descColumnIndex = cursor.getColumnIndexOrThrow("Name");
+                    String Code = cursor.getString(itemColumnIndex);
+                    String Name = cursor.getString(descColumnIndex);
 
-                llSService.removeAllViews();
+                    llSService.removeAllViews();
 
-                String Amount, Quantity;
+                    String Amount, Quantity;
 
-                HashMap<String, String> lvService = new HashMap<>();
-                lvService.put("Code", oService.get("Code"));
-                lvService.put("Name", oService.get("Name"));
-                lvService.put("PackageType", oService.get("PackageType"));
+                    HashMap<String, String> lvService = new HashMap<>();
+                    lvService.put("Code", oService.get("Code"));
+                    lvService.put("Name", oService.get("Name"));
+                    lvService.put("PackageType", oService.get("PackageType"));
 
-                if(lvSServiceList.size() != 0){
+                    if(lvSServiceList.size() != 0){
 
-                    float amount = Float.valueOf(etSAmount.getText().toString());
-                    JSONArray sServicesItems = new JSONArray();
+                        float amount = Float.valueOf(etSAmount.getText().toString());
+                        JSONArray sServicesItems = new JSONArray();
 
-                    for (int i = 0; i < CustomAdapter.editModelArrayList.size(); i++){
+                        for (int i = 0; i < CustomAdapter.editModelArrayList.size(); i++){
 
-                        JSONObject sService = new JSONObject();
-                        sService.put("Code",CustomAdapter.editModelArrayList.get(i).getCode());
-                        sService.put("Quantity",CustomAdapter.editModelArrayList.get(i).getQty());
-                        sService.put("Price",CustomAdapter.editModelArrayList.get(i).getPrice());
+                            JSONObject sService = new JSONObject();
+                            sService.put("Code",CustomAdapter.editModelArrayList.get(i).getCode());
+                            sService.put("Quantity",CustomAdapter.editModelArrayList.get(i).getQty());
+                            sService.put("Price",CustomAdapter.editModelArrayList.get(i).getPrice());
 
-                        sServicesItems.put(sService);
+                            sServicesItems.put(sService);
 
+                        }
+
+                        lvService.put("Price",String.valueOf(amount));
+                        lvService.put("SubServicesItems",sServicesItems.toString());
+
+                    }else{
+                        Amount = etSAmount.getText().toString();
+                        lvService.put("Price", Amount);
                     }
+                    if (etSQuantity.getText().toString().length() == 0) Quantity = "1";
+                    else Quantity = etSQuantity.getText().toString();
+                    lvService.put("Quantity", Quantity);
+                    ClaimActivity.lvServiceList.add(lvService);
 
-                    lvService.put("Price",String.valueOf(amount));
-                    lvService.put("SubServicesItems",sServicesItems.toString());
-
-                }else{
-                    Amount = etSAmount.getText().toString();
-                    lvService.put("Price", Amount);
                 }
-                if (etSQuantity.getText().toString().length() == 0) Quantity = "1";
-                else Quantity = etSQuantity.getText().toString();
-                lvService.put("Quantity", Quantity);
-                ClaimActivity.lvServiceList.add(lvService);
+            });
 
-                alAdapter.notifyDataSetChanged();
+            etServices.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    btnAdd.setEnabled(s != null && s.toString().trim().length() != 0
+                            && etSQuantity.getText().toString().trim().length() != 0
+                            && etSAmount.getText().toString().trim().length() != 0);
+                }
+
 
                 etServices.setText("");
                 etSAmount.setText("");
                 etSQuantity.setText("");
                 etSName.setText("");
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
-            } catch (Exception e) {
-                Log.d("AddLvError", e.getMessage());
-            }
-        });
+                @Override
+                public void afterTextChanged(Editable s) {
+                }
+            });
 
-        lvServices.setOnItemLongClickListener((parent, view, position, id) -> {
-            try {
-                Pos = position;
-                HideAllDeleteButtons();
+            etSQuantity.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    btnAdd.setEnabled(s != null && s.toString().trim().length() != 0
+                            && etServices.getText().toString().trim().length() != 0
+                            && etSAmount.getText().toString().trim().length() != 0);
+                }
 
-                Button d = view.findViewById(R.id.btnDelete);
-                d.setVisibility(View.VISIBLE);
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
-                d.setOnClickListener(v -> {
-                    ClaimActivity.lvServiceList.remove(Pos);
-                    HideAllDeleteButtons();
+                @Override
+                public void afterTextChanged(Editable s) {
+                }
+            });
+
+            etSAmount.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    btnAdd.setEnabled(s != null && s.toString().trim().length() != 0
+                            && etSQuantity.getText().toString().trim().length() != 0
+                            && etServices.getText().toString().trim().length() != 0);
+                }
+
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                }
+            });
+
+            btnAdd.setEnabled(false);
+            btnAdd.setOnClickListener(v -> {
+                try {
+
+                    if (oService == null) return;
+
+                    String Amount, Quantity;
+
+                    HashMap<String, String> lvService = new HashMap<>();
+                    lvService.put("Code", oService.get("Code"));
+                    lvService.put("Name", oService.get("Name"));
+                    Amount = etSAmount.getText().toString();
+                    lvService.put("Price", Amount);
+                    if (etSQuantity.getText().toString().length() == 0) Quantity = "1";
+                    else Quantity = etSQuantity.getText().toString();
+                    lvService.put("Quantity", Quantity);
+                    ClaimActivity.lvServiceList.add(lvService);
+
                     alAdapter.notifyDataSetChanged();
-                });
-            } catch (Exception e) {
-                Log.d("ErrorOnLongClick", e.getMessage());
-            }
-            return true;
-        });
 
+                    etServices.setText("");
+                    etSAmount.setText("");
+                    etSQuantity.setText("");
 
+                } catch (Exception e) {
+                    Log.d("AddLvError", e.getMessage());
+                }
+            });
+
+            lvServices.setOnItemLongClickListener((parent, view, position, id) -> {
+                try {
+                    Pos = position;
+                    HideAllDeleteButtons();
+
+                    Button d = view.findViewById(R.id.btnDelete);
+                    d.setVisibility(View.VISIBLE);
+
+                    d.setOnClickListener(v -> {
+                        ClaimActivity.lvServiceList.remove(Pos);
+                        HideAllDeleteButtons();
+                        alAdapter.notifyDataSetChanged();
+                    });
+                } catch (Exception e) {
+                    Log.d("ErrorOnLongClick", e.getMessage());
+                }
+                return true;
+            });
+        }
+    }
+
+    private boolean isIntentReadonly() {
+        Intent intent = getIntent();
+        return intent.getBooleanExtra(ClaimActivity.EXTRA_READONLY, false);
     }
 
     private ArrayList<EditModel> populateListServicesItems(){
