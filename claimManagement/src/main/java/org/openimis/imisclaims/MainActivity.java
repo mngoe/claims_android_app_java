@@ -477,7 +477,7 @@ public class MainActivity extends ImisActivity {
             String progress_message = getResources().getString(R.string.application);
             progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
             Thread thread = new Thread(() -> {
-                String admins;
+                String controls;
 
                 String functionName = "claim/GetClaimAdmins";
                 try {
@@ -486,18 +486,20 @@ public class MainActivity extends ImisActivity {
                     JSONObject ob;
 
                     ob = new JSONObject(content);
-                    admins = ob.getString("claim_admins");
+                    controls = ob.getString("claim_admins");
                     sqlHandler.ClearAll("tblClaimAdmins");
-                    //Insert Diagnosese
-                    JSONArray arrAdmins;
-                    JSONObject objAdmins;
-                    arrAdmins = new JSONArray(admins);
-                    for (int i = 0; i < arrAdmins.length(); i++) {
-                        objAdmins = arrAdmins.getJSONObject(i);
-                        String lastName = objAdmins.getString("lastName");
-                        String otherNames = objAdmins.getString("otherNames");
+
+                    JSONArray arrControls;
+                    JSONObject objControls;
+                    arrControls = new JSONArray(controls);
+                    for (int i = 0; i < arrControls.length(); i++) {
+                        objControls = arrControls.getJSONObject(i);
+                        String lastName = objControls.getString("lastName");
+                        String otherNames = objControls.getString("otherNames");
+                        String hfCode = objControls.getString("hfCode");
                         String name = lastName + " " + otherNames;
-                        sqlHandler.InsertClaimAdmins(objAdmins.getString("claimAdminCode"), name);
+                        sqlHandler.InsertClaimAdmins(objControls.getString("claimAdminCode"),
+                                hfCode, name);
                     }
                     //sqlHandler.ClearAll("tblClaimAdmins");
 
@@ -716,20 +718,22 @@ public class MainActivity extends ImisActivity {
     }
 
 
-    public void validateClaimAdminCode(final String ClaimCode) {
-        if (ClaimCode.equals("")) {
+    public void validateClaimAdminCode(final String claimAdminCode) {
+        if (claimAdminCode.equals("")) {
             Toast.makeText(getBaseContext(), R.string.MissingClaimAdmin, Toast.LENGTH_LONG).show();
             ClaimAdminDialogBox();
         } else {
-            String ClaimName = sqlHandler.getClaimAdmin(ClaimCode);
+            String ClaimName = sqlHandler.getClaimAdminInfo(claimAdminCode, SQLHandler.CA_NAME_COLUMN);
+            String HealthFacilityName = sqlHandler.getClaimAdminInfo(claimAdminCode, SQLHandler.CA_HF_CODE_COLUMN);
             if (ClaimName.equals("")) {
                 Toast.makeText(MainActivity.this, getResources().getString(R.string.invalidClaimAdminCode), Toast.LENGTH_LONG).show();
                 ClaimAdminDialogBox();
             } else {
                 if (!sqlHandler.getAdjustibility("ClaimAdministrator").equals("N")) {
-                    global.setOfficerCode(ClaimCode);
+                    global.setOfficerCode(claimAdminCode);
                     global.setOfficerName(ClaimName);
-                    AdminName = (TextView) findViewById(R.id.AdminName);
+                    global.setOfficerHealthFacility(HealthFacilityName);
+                    AdminName = findViewById(R.id.AdminName);
                     AdminName.setText(global.getOfficeName());
                     Cursor c = sqlHandler.getMapping("I");
                     if (c.getCount() == 0) {

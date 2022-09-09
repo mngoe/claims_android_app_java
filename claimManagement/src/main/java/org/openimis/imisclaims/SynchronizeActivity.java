@@ -528,8 +528,9 @@ public class SynchronizeActivity extends ImisActivity {
                 objAdmins = arrAdmins.getJSONObject(i);
                 String lastName = objAdmins.getString("lastName");
                 String otherNames = objAdmins.getString("otherNames");
+                String hfCode = objAdmins.getString("hfCode");
                 String name = lastName + " " + otherNames;
-                sqlHandler.InsertClaimAdmins(objAdmins.getString("claimAdminCode"), name);
+                sqlHandler.InsertClaimAdmins(objAdmins.getString("claimAdminCode"),hfCode, name);
             }
 
         } catch (JSONException e) {

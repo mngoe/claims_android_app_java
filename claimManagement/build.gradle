@@ -3,7 +3,9 @@ import java.time.format.DateTimeFormatter
 
 apply plugin: 'com.android.application'
 
-// Apply custom flavours
+def keystorePropertiesFile= rootProject.file("key.properties")
+def keystoreProperties = new Properties()
+keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 
 static def getDate() {
     LocalDateTime date = LocalDateTime.now()
@@ -21,21 +23,31 @@ repositories {
 
 android {
     compileSdk 30
-    buildToolsVersion '27.0.3'
 
     defaultConfig {
         applicationId "org.openimis.imisclaims"
         minSdkVersion 21
         targetSdkVersion 30
-        versionCode 3
+        versionCode 4
         versionName "2.0.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         useLibrary 'org.apache.http.legacy'
     }
+
+    signingConfigs {
+        release {
+            keyAlias keystoreProperties['keyAlias']
+            keyPassword keystoreProperties['keyPassword']
+            storeFile file(keystoreProperties['storeFile'])
+            storePassword keystoreProperties['storePassword']
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release
         }
         debug {
             debuggable true
@@ -50,6 +62,7 @@ android {
         resValue "string", "ReleaseDateValue", getDate()
         buildConfigField "String", "API_BASE_URL", '"http://3.238.179.83:89/reposApi/"'
         buildConfigField "String", "RAR_PASSWORD", '")(#$1HsD"'
+        buildConfigField "String", "API_VERSION", '"3"'
     }
 
     productFlavors {
@@ -65,7 +78,7 @@ android {
             applicationIdSuffix ".demoRelease"
             buildConfigField "String", "APP_DIR", '"IMIS-DEMORELEASE"'
             resValue "string", "app_name_claims", "Claims Release"
-            buildConfigField "String", "API_BASE_URL", '"https://release.openimis.org/rest/"'
+            buildConfigField "String", "API_BASE_URL", '"https://legacy-release.s1.openimis.org/rest/"'
             dimension 'std'
         }
 
@@ -142,17 +155,17 @@ android {
         demoRelease.java.srcDir 'src/demoRelease/java'
         demoRelease.res.srcDir 'src/demoRelease/res'
 
-        chfDev.java.srcDir 'src/chfDev/java'
-        chfDev.res.srcDir 'src/chfDev/res'
+        chfDev.java.srcDir 'src/chf/java'
+        chfDev.res.srcDir 'src/chf/res'
 
-        chfProd.java.srcDir 'src/chfDev/java'
-        chfProd.res.srcDir 'src/chfProd/res'
+        chfProd.java.srcDir 'src/chf/java'
+        chfProd.res.srcDir 'src/chf/res'
 
-        mvDev.java.srcDir 'src/mvDev/java'
-        mvDev.res.srcDir 'src/mvDev/res'
+        mvDev.java.srcDir 'src/mv/java'
+        mvDev.res.srcDir 'src/mv/res'
 
-        bephaDev.java.srcDir 'src/bephaDev/java'
-        bephaDev.res.srcDir 'src/bephaDev/res'
+        bephaDev.java.srcDir 'src/bepha/java'
+        bephaDev.res.srcDir 'src/bepha/res'
 
         niger.java.srcDir 'src/niger/java'
         niger.res.srcDir 'src/niger/res'
@@ -172,12 +185,9 @@ android {
         exclude 'META-INF/DEPENDENCIES'
 
     }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
 }
 
+// Apply custom flavours
 if(file('custom-flavours.gradle').exists()){
     apply from: 'custom-flavours.gradle'
 }
@@ -186,13 +196,16 @@ dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
     implementation 'com.android.support:support-annotations:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:2.0.4'
-    implementation 'com.google.zxing:core:3.3.0'
+    implementation 'com.google.zxing:core:3.5.0'
     implementation 'com.embarkmobile:zxing-android-minimal:1.2.1@aar'
-    implementation 'commons-io:commons-io:2.11.0'
+    implementation 'commons-io:commons-io:20030203.000550'
+    //noinspection GradleCompatible
     implementation 'com.android.support:design:28.0.0'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    implementation group: 'com.squareup.picasso', name: 'picasso', version: '2.5.2'
-    implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '1.2.7'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation "com.android.support.test:runner:1.0.2"
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation group: 'com.squareup.picasso', name: 'picasso', version: '2.71828'
+    implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '1.3.2'
 
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
