@@ -1,12 +1,11 @@
 package org.openimis.imisclaims;
 
-import android.content.Context;
 import android.content.Intent;
+import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.app.JobIntentService;
 import android.util.Log;
 
-import org.apache.http.HttpResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -20,6 +19,8 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+
+import org.apache.http.HttpResponse;
 
 public class SynchronizeService extends JobIntentService {
     private static final int JOB_ID = 6541259; //Random unique Job id
@@ -150,10 +151,9 @@ public class SynchronizeService extends JobIntentService {
 
             if (claimResponseCode == ClaimResponse.Success) {
                 moveClaimToSubdirectory(claimCode, "AcceptedClaims");
+            } else if (claimResponseCode == ClaimResponse.Rejected) {
+                moveClaimToSubdirectory(claimCode, "RejectedClaims");
             } else {
-                if (claimResponseCode == ClaimResponse.Rejected) {
-                    moveClaimToSubdirectory(claimCode, "RejectedClaims");
-                }
                 result.put(String.format(claimResponseLine, claimCode, claimResponse.getString("message")));
             }
         }
@@ -228,8 +228,7 @@ public class SynchronizeService extends JobIntentService {
     }
 
     private File[] getListOfFilesForClaim(File directory, String claimCode) {
-        //Example file structure: "Claim_hfcode_claimcode_date.xml"
-        String regex = String.format("(%s|%s).+_%s_.*", claimJsonPrefix, claimXmlPrefix, claimCode);
+        String regex = ".+_.+_" + claimCode + "_";
         return getListOfFilesMatching(directory, regex);
     }
 

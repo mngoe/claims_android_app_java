@@ -1,16 +1,11 @@
 workflows:
   simple-workflow:
     name: Native Android
-<<<<<<< HEAD
     max_build_duration: 120
     scripts:
       - |
         # give permission test
         chmod +x gradlew
-=======
-    max_build_duration: 60
-    scripts:
->>>>>>> develop
       - name: Run tests
         script: ./gradlew test
       - name: Build debug apk
@@ -20,69 +15,4 @@ workflows:
     publishing:
       email:
         recipients:
-<<<<<<< HEAD
           - j.bilongo@ynote.africa
-=======
-          - j.bilongo@ynote.africa
-
-  
-  android-workflow:
-    name: Android Test
-    max_build_duration: 120
-    scripts:
-      - name: Launch emulator
-        script: |
-          cd $ANDROID_HOME/tools
-          emulator -avd emulator &
-          adb wait-for-device
-      - name: Test
-        script: |
-          set -e
-          ./gradlew connectedAndroidTest
-          adb logcat -d > emulator.log
-      - name: Build debug apk
-        script: ./gradlew assembleDebug
-    artifacts:
-      - app/build/**/outputs/**/*.apk
-    publishing:
-      email:
-        recipients:
-          - j.bilongo@ynote.africa
-
-    
-
-
-  release-workflow:
-    name: Release native Android
-    max_build_duration: 120
-    environment:
-      vars:
-        CM_KEYSTORE: tmp/keystore_name.keystore # Add encrypted keystore file
-        CM_KEYSTORE_PASSWORD: neckva@2022 # Add encrypted keystore password
-        CM_KEY_ALIAS_PASSWORD: neckva@2022 # Add encrypted alias password
-        CM_KEY_ALIAS_USERNAME: keystore_name # Add alias name
-    scripts: # Add the build configurations here
-        # ...
-        - |
-          # set up release keystore
-          echo $CM_KEYSTORE | base64 --decode > /tmp/keystore.keystore
-          cat >> "$CM_BUILD_DIR/key.properties" <<EOF
-          storePassword=$CM_KEYSTORE_PASSWORD
-          keyPassword=$CM_KEY_ALIAS_PASSWORD
-          keyAlias=$CM_KEY_ALIAS_USERNAME
-          storeFile=claims_android_app_java\tmp\keystore_name.keystore
-          EOF
-
-        - name: Run tests
-          script: ./gradlew test
-        - name: Build release apk
-          script: ./gradlew assembleRelease
-    artifacts:
-      - app/build/**/outputs/**/*.apk
-    publishing:
-      email:
-        recipients:
-          - j.bilongo@ynote.africa
-
-
->>>>>>> develop

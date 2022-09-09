@@ -4,9 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.DatePickerDialog;
 import android.app.Dialog;
-import android.app.ProgressDialog;
-import android.content.ContentValues;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.os.Environment;
@@ -42,10 +41,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
-import java.util.UUID;
 
 public class ClaimActivity extends ImisActivity {
-    private static final String LOG_TAG = "CLAIM";
     private static final int REQUEST_QR_SCAN_CODE = 1;
     static final int StartDate_Dialog_ID = 0;
     static final int EndDate_Dialog_ID = 1;
@@ -57,16 +54,13 @@ public class ClaimActivity extends ImisActivity {
 
     public static ArrayList<HashMap<String, String>> lvItemList;
     public static ArrayList<HashMap<String, String>> lvServiceList;
-    public static final String EXTRA_CLAIM_DATA = "claim";
-    public static final String EXTRA_CLAIM_UUID = "claimUUID";
-    public static final String EXTRA_READONLY = "readonly";
 
     private int year, month, day;
     String FileName;
     File ClaimFile;
     int TotalItemService;
 
-    EditText etStartDate, etEndDate,  etClaimCode, etHealthFacility, etCHFID, etClaimAdmin, etGuaranteeNo;
+    EditText etStartDate, etEndDate, etHealthFacility, etClaimCode, etCHFID, etClaimAdmin, etGuaranteeNo;
     AutoCompleteTextView etDiagnosis, etDiagnosis1, etDiagnosis2, etDiagnosis3, etDiagnosis4;
     TextView tvItemTotal, tvServiceTotal;
     Button btnPost, btnNew;
@@ -88,7 +82,7 @@ public class ClaimActivity extends ImisActivity {
         isSDCardAvailable();
 
         if (!global.isNetworkAvailable()) {
-            setTitle(getResources().getString(R.string.app_name_claim) + "-" + getResources().getString(R.string.OfflineMode));
+            setTitle(getResources().getString(R.string.app_name_claims) + "-" + getResources().getString(R.string.OfflineMode));
             setTitleColor(getResources().getColor(R.color.Red));
         }
 
@@ -117,11 +111,6 @@ public class ClaimActivity extends ImisActivity {
         rbOther = (RadioButton) findViewById(R.id.rbOther);
         rgVisitType = (RadioGroup) findViewById(R.id.rgVisitType);
 
-        // hfCode and adminCode not editable
-        etHealthFacility.setEnabled(false);
-        etHealthFacility.setKeyListener(null);
-        etClaimAdmin.setEnabled(false);
-        etClaimAdmin.setKeyListener(null);
 
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
@@ -135,17 +124,22 @@ public class ClaimActivity extends ImisActivity {
             } else {
                 if (global.getOfficerCode() != null) {
                     etClaimAdmin.setText(global.getOfficerCode());
-                    etHealthFacility.setText(global.getOfficerHealthFacility());
                 }
             }
 
-            if (sqlHandler.getAdjustibility("GuaranteeNo").equals("N")) {
+            /*if (sqlHandler.getAdjustibility("GuaranteeNo").equals("N")) {
                 etGuaranteeNo.setVisibility(View.GONE);
-            }
-            if (sqlHandler.getAdjustibility("ClaimAdministrator").equals("N")) {
-                etClaimAdmin.setVisibility(View.GONE);
-            }
+            }*/
 
+            //Fetch if Healthfacility code is available
+            /*SharedPreferences spHF = global.getDefaultSharedPreferences();
+            String HF = spHF.getString("HF", "");
+            if (HF.length() > 0) {
+                etHealthFacility.setText(HF);
+                etClaimAdmin.requestFocus();
+            } else {
+                etHealthFacility.requestFocus();
+            }*/
         } else {
             try {
                 fillForm(new JSONObject(claim));
@@ -198,27 +192,18 @@ public class ClaimActivity extends ImisActivity {
             Intent scanIntent = new Intent(this, com.google.zxing.client.android.CaptureActivity.class);
             scanIntent.setAction("com.google.zxing.client.android.SCAN");
             scanIntent.putExtra("SCAN_MODE", "QR_CODE_MODE");
-            startActivityForResult(scanIntent, REQUEST_QR_SCAN_CODE);
+            startActivityForResult(scanIntent, 1);
         });
 
         btnPost.setOnClickListener(v -> {
-            progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.Processing));
-            runOnNewThread(
-                    () -> isValidData() && saveClaim(),
-                    () -> runOnUiThread(() -> {
-                        ClearForm();
-                        progressDialog.dismiss();
-                        showDialog(getResources().getString(R.string.ClaimPosted), ((dialog, which) -> {
-                            Intent intent = getIntent();
-                            if (intent.hasExtra(EXTRA_CLAIM_UUID)) {
-                                finish();
-                            }
-                        }));
-                    }),
-                    () -> {
-                    },
-                    500
-            );
+            if (!isValidData()) return;
+            /*if(sqlHandler.getStatutInsureeNumber(etCHFID.getText().toString()).equals("En cours")){
+
+            }*/
+            WriteJSON();
+            WriteXML();
+            ClearForm();
+            ShowDialog(getResources().getString(R.string.ClaimPosted));
         });
     }
 
@@ -361,9 +346,8 @@ public class ClaimActivity extends ImisActivity {
             String newClaimNumber = getResources().getString(R.string.restoredClaimNoPrefix) + obj.getString("claim_number");
             etClaimCode.setText(newClaimNumber);
 
+            etHealthFacility.setText(obj.getString("health_facility_code"));
             etClaimAdmin.setText(global.getOfficerCode());
-            etHealthFacility.setText(global.getOfficerHealthFacility());
-
 
             /*String guaranteeNumber = obj.getString("guarantee_number");
             if (null == guaranteeNumber || "null".equals(guaranteeNumber))
@@ -480,7 +464,7 @@ public class ClaimActivity extends ImisActivity {
         }
 
         if (etClaimCode.getText().length() > 2) {
-            ShowDialog(etClaimCode, getResources().getString(R.string.invalidClaimAdminCode));
+            ShowDialog(etClaimCode, getResources().getString(R.string.InvalidClaimCode));
             return false;
         }
 
@@ -890,72 +874,12 @@ public class ClaimActivity extends ImisActivity {
         }
     }
 
-    private boolean saveClaim() {
-        Intent intent = getIntent();
-        String claimUUID;
-        if (intent.hasExtra(EXTRA_CLAIM_UUID)) {
-            claimUUID = intent.getStringExtra(EXTRA_CLAIM_UUID);
-        } else {
-            claimUUID = UUID.randomUUID().toString();
-        }
-
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd", Locale.US);
-        Calendar cal = Calendar.getInstance();
-        String claimDate = format.format(cal.getTime());
-
-        int SelectedId;
-        SelectedId = rgVisitType.getCheckedRadioButtonId();
-        RadioButton selectedTypeButton;
-        selectedTypeButton = findViewById(SelectedId);
-        String visitType = selectedTypeButton.getTag().toString();
-
-        ContentValues claimCV = new ContentValues();
-
-        claimCV.put("ClaimUUID", claimUUID);
-        claimCV.put("ClaimDate", claimDate);
-        claimCV.put("HFCode", etHealthFacility.getText().toString());
-        claimCV.put("ClaimAdmin", etClaimAdmin.getText().toString());
-        claimCV.put("ClaimCode", etClaimCode.getText().toString());
-        claimCV.put("GuaranteeNumber", etGuaranteeNo.getText().toString());
-        claimCV.put("InsureeNumber", etInsureeNumber.getText().toString());
-        claimCV.put("StartDate", etStartDate.getText().toString());
-        claimCV.put("EndDate", etEndDate.getText().toString());
-        claimCV.put("ICDCode", etDiagnosis.getText().toString());
-        claimCV.put("Comment", "");
-        claimCV.put("Total", "");
-        claimCV.put("ICDCode1", etDiagnosis1.getText().toString());
-        claimCV.put("ICDCode2", etDiagnosis2.getText().toString());
-        claimCV.put("ICDCode3", etDiagnosis3.getText().toString());
-        claimCV.put("ICDCode4", etDiagnosis4.getText().toString());
-        claimCV.put("VisitType", visitType);
-
-        ArrayList<ContentValues> claimItemCVs = new ArrayList<>(lvItemList.size());
-        for (int i = 0; i < lvItemList.size(); i++) {
-            ContentValues claimItemCV = new ContentValues();
-
-            claimItemCV.put("ClaimUUID", claimUUID);
-            claimItemCV.put("ItemCode", lvItemList.get(i).get("Code"));
-            claimItemCV.put("ItemPrice", lvItemList.get(i).get("Price"));
-            claimItemCV.put("ItemQuantity", lvItemList.get(i).get("Quantity"));
-
-            claimItemCVs.add(claimItemCV);
-        }
-
-        ArrayList<ContentValues> claimServiceCVs = new ArrayList<>(lvServiceList.size());
-        for (int i = 0; i < lvServiceList.size(); i++) {
-            ContentValues claimServiceCV = new ContentValues();
-
-            claimServiceCV.put("ClaimUUID", claimUUID);
-            claimServiceCV.put("ServiceCode", lvServiceList.get(i).get("Code"));
-            claimServiceCV.put("ServicePrice", lvServiceList.get(i).get("Price"));
-            claimServiceCV.put("ServiceQuantity", lvServiceList.get(i).get("Quantity"));
-
-            claimServiceCVs.add(claimServiceCV);
-        }
-
-        sqlHandler.saveClaim(claimCV, claimItemCVs, claimServiceCVs);
-        return true;
+    @Override
+    protected void onStop() {
+        super.onStop();
+        SharedPreferences HF = global.getDefaultSharedPreferences();
+        SharedPreferences.Editor editor = HF.edit();
+        editor.putString("HF", etHealthFacility.getText().toString());
+        editor.apply();
     }
-}
-
 }

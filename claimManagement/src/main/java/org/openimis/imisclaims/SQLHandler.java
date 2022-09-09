@@ -7,7 +7,6 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteFullException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -16,14 +15,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class SQLHandler extends SQLiteOpenHelper {
-    public static final String CA_NAME_COLUMN = "Name";
-    public static final String CA_HF_CODE_COLUMN = "HFCode";
     public static final String DB_NAME_MAPPING = Global.getGlobal().getSubdirectory("Databases") + "/" + "Mapping.db3";
     public static final String DB_NAME_DATA = Global.getGlobal().getSubdirectory("Databases") + "/" + "ImisData.db3";
     private static final String CreateTableMapping = "CREATE TABLE IF NOT EXISTS tblMapping(Code text,Name text,Type text);";
     private static final String CreateTableControls = "CREATE TABLE IF NOT EXISTS tblControls(FieldName text, Adjustibility text);";
+    private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Code text, Name text);";
     private static final String CreateTableInsureeNumbers = "CREATE TABLE IF NOT EXISTS tblInsureeNumbers(Number text, Statut text);";
-    private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Code text, HFCode text ,Name text);";
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code text, Name text, Type text, Price text);";
     private static final String CreateTableServices = "CREATE TABLE IF NOT EXISTS tblServices(Id text, Code text, Name text, Type text, Price text, PackageType text);";
     private static final String CreateTableItems = "CREATE TABLE IF NOT EXISTS tblItems(Id text, Code text, Name text, Type text, Price text);";
@@ -274,12 +271,11 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void InsertClaimAdmins(String Code, String hfCode, String Name) {
+    public void InsertClaimAdmins(String Code, String Name) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("Code", Code);
             cv.put("Name", Name);
-            cv.put("hfCode", hfCode);
             db.insert("tblClaimAdmins", null, cv);
         } catch (Exception e) {
             e.printStackTrace();
@@ -358,26 +354,26 @@ public class SQLHandler extends SQLiteOpenHelper {
     }
 
     public String getAdjustibility(String FieldName) {
-        String adjustability = "M";
+        String adjustibility = "M";
         Cursor cursor = null;
         try {
-            String query = "SELECT Adjustability FROM tblControls WHERE FieldName = '" + FieldName + "'";
+            String query = "SELECT Adjustibility FROM tblControls WHERE FieldName = '" + FieldName + "'";
             cursor = db.rawQuery(query, null);
             // looping through all rows
             if (cursor.moveToFirst()) {
                 do {
-                    adjustability = cursor.getString(0);
+                    adjustibility = cursor.getString(0);
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {
-            return adjustability;
+            return adjustibility;
         } finally {
             if (cursor != null) {
                 cursor.close();
             }
         }
 
-        return adjustability;
+        return adjustibility;
     }
 
     public boolean checkIfAny(String table) {
@@ -403,21 +399,22 @@ public class SQLHandler extends SQLiteOpenHelper {
         return any;
     }
 
-    public String getClaimAdminInfo(String Code, String column) {
-        String Info = "";
-        String query = "SELECT " + column + " FROM tblClaimAdmins WHERE upper(Code) like '" + Code.toUpperCase() + "'";
-        try (Cursor cursor1 = db.rawQuery(query, null)){
+    public String getClaimAdmin(String Code) {
+        String Name = "";
+        try {
+            String query = "SELECT Name FROM tblClaimAdmins WHERE upper(Code) like '" + Code.toUpperCase() + "'";
+            Cursor cursor1 = db.rawQuery(query, null);
             // looping through all rows
             if (cursor1.moveToFirst()) {
                 do {
-                    Info = cursor1.getString(0);
+                    Name = cursor1.getString(0);
                 } while (cursor1.moveToNext());
             }
         } catch (Exception e) {
-            return Info;
+            return Name;
         }
 
-        return Info;
+        return Name;
     }
 
     public JSONArray getServices() {
@@ -778,35 +775,5 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
 
         return qty;
-    }
-
-    public void saveClaim(@NonNull ContentValues claimDetails, @NonNull Iterable<ContentValues> claimItems, @NonNull Iterable<ContentValues> claimServices) {
-        if (checkIfExists("tblClaimDetails", "ClaimUUID = ?", claimDetails.getAsString("ClaimUUID"))) {
-            updateClaim(claimDetails, claimItems, claimServices);
-        } else {
-            insertClaim(claimDetails, claimItems, claimServices);
-        }
-
-    }
-
-    public void updateClaim(ContentValues claimDetails, Iterable<ContentValues> claimItems, Iterable<ContentValues> claimServices) {
-        try {
-            db.beginTransaction();
-            String claimUUID = claimDetails.getAsString("ClaimUUID");
-            db.update("tblClaimDetails", claimDetails, "ClaimUUID = ?", new String[]{claimUUID});
-            db.delete("tblClaimItems", "ClaimUUID = ?", new String[]{claimUUID});
-            db.delete("tblClaimServices", "ClaimUUID = ?", new String[]{claimUUID});
-            for (ContentValues claimItem : claimItems) {
-                db.insert("tblClaimItems", null, claimItem);
-            }
-            for (ContentValues claimService : claimServices) {
-                db.insert("tblClaimServices", null, claimService);
-            }
-            db.setTransactionSuccessful();
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "Error while inserting claim", e);
-        } finally {
-            db.endTransaction();
-        }
     }
 }
