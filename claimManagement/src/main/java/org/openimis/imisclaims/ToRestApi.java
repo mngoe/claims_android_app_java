@@ -1,9 +1,7 @@
 package org.openimis.imisclaims;
 
 import static org.openimis.imisclaims.BuildConfig.API_BASE_URL;
-
 import android.util.Log;
-
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -12,8 +10,19 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+import org.openimis.imisclaims.tools.Log;
 
 import java.io.IOException;
+<<<<<<< HEAD
+=======
+import java.net.HttpURLConnection;
+import static org.openimis.imisclaims.BuildConfig.API_VERSION;
+import static java.lang.Math.min;
+
+import android.content.Context;
+>>>>>>> fabe0cc76d31372d70d385f43a19bdcd98b8215d
 
 public class ToRestApi {
     private final Token token;
@@ -73,8 +82,13 @@ public class ToRestApi {
             httpPost.setEntity(postingString);
             HttpResponse response = httpClient.execute(httpPost);
             int responseCode = response.getStatusLine().getStatusCode();
+<<<<<<< HEAD
             Log.i("HTTP_POST", uri + functionName + " - " + responseCode);
             Log.i("Object", object.toString());
+=======
+            String responsePhrase = response.getStatusLine().getReasonPhrase();
+            Log.i(LOG_TAG, String.format("response: %d %s", responseCode, responsePhrase));
+>>>>>>> fabe0cc76d31372d70d385f43a19bdcd98b8215d
             return response;
         } catch (IOException e) {
             e.printStackTrace();
@@ -114,4 +128,22 @@ public class ToRestApi {
             return null;
         }
     }
+<<<<<<< HEAD
+=======
+
+    public String getHttpError(Context context, int httpResponseCode) {
+        if (httpResponseCode == HttpURLConnection.HTTP_OK || httpResponseCode == HttpURLConnection.HTTP_CREATED) {
+            return null;
+        } else if (httpResponseCode == HttpURLConnection.HTTP_NOT_FOUND) {
+            return context.getResources().getString(R.string.NotFound);
+        } else if (httpResponseCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+            return context.getResources().getString(R.string.Unauthorized);
+        } else if (httpResponseCode == HttpURLConnection.HTTP_FORBIDDEN) {
+            return context.getResources().getString(R.string.Forbidden);
+        } else {
+            return context.getResources().getString(R.string.SomethingWentWrongServer);
+        }
+    }
+
+>>>>>>> fabe0cc76d31372d70d385f43a19bdcd98b8215d
 }

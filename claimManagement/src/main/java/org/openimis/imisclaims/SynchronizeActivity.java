@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import android.view.MenuItem;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -20,12 +19,20 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import org.openimis.imisclaims.tools.Log;
+import org.openimis.imisclaims.tools.StorageManager;
+import org.openimis.imisclaims.util.StreamUtils;
+import org.openimis.imisclaims.util.UriUtils;
+
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 
 public class SynchronizeActivity extends ImisActivity {
     private static final String LOG_TAG = "SYNCACTIVITY";
     private static final int PICK_FILE_REQUEST_CODE = 1;
+    private static final int REQUEST_EXPORT_XML_FILE = 2;
     ArrayList<String> broadcastList;
     ToRestApi toRestApi;
 
@@ -33,6 +40,7 @@ public class SynchronizeActivity extends ImisActivity {
     RelativeLayout uploadClaims, zipClaims, importMasterData, downloadMasterData;
 
     ProgressDialog pd;
+    Uri exportUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,11 +104,16 @@ public class SynchronizeActivity extends ImisActivity {
 
         switch (action) {
             case SynchronizeService.ACTION_CLAIM_COUNT_RESULT:
-                tvUploadClaims.setText(String.valueOf(intent.getIntExtra(SynchronizeService.EXTRA_CLAIM_COUNT_PENDING, 0)));
-                tvZipClaims.setText(String.valueOf(intent.getIntExtra(SynchronizeService.EXTRA_CLAIM_COUNT_PENDING_XML, 0)));
+                tvUploadClaims.setText(String.valueOf(intent.getIntExtra(SynchronizeService.EXTRA_CLAIM_COUNT_ENTERED, 0)));
+                tvZipClaims.setText(String.valueOf(intent.getIntExtra(SynchronizeService.EXTRA_CLAIM_COUNT_ENTERED, 0)));
                 break;
             case SynchronizeService.ACTION_EXPORT_SUCCESS:
-                showDialog(getResources().getString(R.string.ZipXMLCreated));
+                exportUri = Uri.parse(intent.getStringExtra(SynchronizeService.EXTRA_EXPORT_URI));
+                showDialog(getResources().getString(R.string.XmlExportCreated),
+                        (dialog, which) -> StorageManager.of(this).requestCreateFile(
+                                REQUEST_EXPORT_XML_FILE,
+                                "application/octet-stream",
+                                UriUtils.getDisplayName(this, exportUri)));
                 break;
             case SynchronizeService.ACTION_SYNC_SUCCESS:
                 try {
@@ -144,12 +157,28 @@ public class SynchronizeActivity extends ImisActivity {
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        if (requestCode == PICK_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK) {
+        if (requestCode == PICK_FILE_REQUEST_CODE && resultCode == Activity.RESULT_OK && data != null) {
             Uri selectedFile = data.getData();
             pd = ProgressDialog.show(this, "", getResources().getString(R.string.Processing));
             MasterDataService.importMasterData(this, selectedFile);
         } else if (requestCode == PICK_FILE_REQUEST_CODE && resultCode == Activity.RESULT_CANCELED) {
             showToast(R.string.importMasterDataCanceled);
+        } else if (requestCode == REQUEST_EXPORT_XML_FILE) {
+            if (resultCode == Activity.RESULT_OK && data != null) {
+                Uri outputFileUri = data.getData();
+                try (InputStream is = getContentResolver().openInputStream(exportUri);
+                     OutputStream os = getContentResolver().openOutputStream(outputFileUri)) {
+                    StreamUtils.bufferedStreamCopy(is, os);
+                } catch (IOException e) {
+                    Log.e(LOG_TAG, "Copying XML export failed", e);
+                }
+            } else {
+                showDialog(getResources().getString(R.string.XmlExportRetry),
+                        (dialog, which) -> StorageManager.of(this).requestCreateFile(
+                                REQUEST_EXPORT_XML_FILE,
+                                "application/octet-stream",
+                                UriUtils.getDisplayName(this, exportUri)));
+            }
         }
     }
 
@@ -191,99 +220,6 @@ public class SynchronizeActivity extends ImisActivity {
     public void exportClaims() {
         pd = ProgressDialog.show(this, "", getResources().getString(R.string.Processing));
         SynchronizeService.exportClaims(this);
-    }
-
-    public void DownLoadInsureeNumbers(final JSONObject object) throws IOException {
-
-        ToRestApi toRestApi = new ToRestApi();
-
-        final String[] content = new String[1];
-        final HttpResponse[] resp = {null};
-        if (global.isNetworkAvailable()) {
-            String progress_message = getResources().getString(R.string.InsuranceNumber);
-            progressDialog = ProgressDialog.show(this, getResources().getString(R.string.Checking_For_Updates), progress_message);
-            Thread thread = new Thread() {
-                public void run() {
-                    String insureeNumbers = null;
-                    String error_occurred = null;
-                    String error_message = null;
-
-                    String functionName = "claim/GetInsureeNumbers";
-
-                    try {
-                        HttpResponse response = toRestApi.postToRestApi(object, functionName);
-                        resp[0] = response;
-                        HttpEntity respEntity = response.getEntity();
-                        if (respEntity != null) {
-                            final String[] code = {null};
-                            // EntityUtils to get the response content
-
-                            content[0] = EntityUtils.toString(respEntity);
-
-                        }
-
-                        JSONObject ob = null;
-                        try {
-                            ob = new JSONObject(content[0]);
-                            if (String.valueOf(response.getStatusLine().getStatusCode()).equals("200")) {
-                                insureeNumbers = ob.getString("insureeNumbers");
-
-                                sqlHandler.ClearAll("tblInsureeNumbers");
-
-                                //Insert InsureeNumbers
-                                JSONArray arrInsureeNumbers = null;
-                                JSONObject objInsureeNumbers = null;
-                                arrInsureeNumbers = new JSONArray(insureeNumbers);
-                                for (int i = 0; i < arrInsureeNumbers.length(); i++) {
-                                    objInsureeNumbers = arrInsureeNumbers.getJSONObject(i);
-                                    sqlHandler.InsertInsureeNumber(objInsureeNumbers.getString("number"), objInsureeNumbers.getString("statut"));
-                                }
-
-                                runOnUiThread(() -> {
-                                    progressDialog.dismiss();
-                                    Toast.makeText(SynchronizeActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
-                                });
-
-                            } else {
-                                error_occurred = ob.getString("error_occured");
-                                if (error_occurred.equals("true")) {
-                                    error_message = ob.getString("error_message");
-
-                                    final String finalError_message = error_message;
-                                    runOnUiThread(() -> {
-                                        progressDialog.dismiss();
-                                        Toast.makeText(SynchronizeActivity.this, finalError_message, Toast.LENGTH_LONG).show();
-                                    });
-                                } else {
-                                    runOnUiThread(() -> {
-                                        progressDialog.dismiss();
-                                        Toast.makeText(SynchronizeActivity.this, getResources().getString(R.string.SomethingWentWrongServer), Toast.LENGTH_LONG).show();
-                                    });
-                                }
-                            }
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                            runOnUiThread(() -> {
-                                progressDialog.dismiss();
-                            });
-                            Toast.makeText(SynchronizeActivity.this, String.valueOf(e), Toast.LENGTH_LONG).show();
-
-                        }
-                    } catch (Exception e) {
-                        runOnUiThread(() -> {
-                            progressDialog.dismiss();
-                            Toast.makeText(SynchronizeActivity.this, resp[0].getStatusLine().getStatusCode() + "-" + getResources().getString(R.string.SomethingWentWrongServer), Toast.LENGTH_LONG).show();
-                        });
-                    }
-                }
-            };
-
-            thread.start();
-        } else {
-            runOnUiThread(() -> progressDialog.dismiss());
-            ErrorDialogBox(getResources().getString(R.string.CheckInternet));
-        }
-
     }
 
     public void ErrorDialogBox(final String message) {
@@ -528,8 +464,9 @@ public class SynchronizeActivity extends ImisActivity {
                 objAdmins = arrAdmins.getJSONObject(i);
                 String lastName = objAdmins.getString("lastName");
                 String otherNames = objAdmins.getString("otherNames");
+                String hfCode = objAdmins.getString("hfCode");
                 String name = lastName + " " + otherNames;
-                sqlHandler.InsertClaimAdmins(objAdmins.getString("claimAdminCode"), name);
+                sqlHandler.InsertClaimAdmins(objAdmins.getString("claimAdminCode"), hfCode, name);
             }
 
         } catch (JSONException e) {

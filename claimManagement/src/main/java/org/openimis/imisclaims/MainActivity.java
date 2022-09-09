@@ -11,7 +11,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Vibrator;
@@ -40,6 +39,7 @@ import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.openimis.imisclaims.claimlisting.ClaimListingActivity;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -58,7 +58,7 @@ public class MainActivity extends ImisActivity {
 
     TextView accepted_count;
     TextView rejected_count;
-    TextView pending_count;
+    TextView entered_Count;
     TextView AdminName;
     DrawerLayout drawer;
     TextView loginText;
@@ -77,7 +77,7 @@ public class MainActivity extends ImisActivity {
         if (SynchronizeService.ACTION_CLAIM_COUNT_RESULT.equals(action)) {
             accepted_count.setText(String.valueOf(intent.getIntExtra(SynchronizeService.EXTRA_CLAIM_COUNT_ACCEPTED, 0)));
             rejected_count.setText(String.valueOf(intent.getIntExtra(SynchronizeService.EXTRA_CLAIM_COUNT_REJECTED, 0)));
-            pending_count.setText(String.valueOf(intent.getIntExtra(SynchronizeService.EXTRA_CLAIM_COUNT_PENDING, 0)));
+            entered_Count.setText(String.valueOf(intent.getIntExtra(SynchronizeService.EXTRA_CLAIM_COUNT_ENTERED, 0)));
         }
     }
 
@@ -132,25 +132,25 @@ public class MainActivity extends ImisActivity {
 
         accepted_count = findViewById(R.id.accepted_count);
         rejected_count = findViewById(R.id.rejected_count);
-        pending_count = findViewById(R.id.pending_count);
+        entered_Count = findViewById(R.id.entered_count);
 
         accepted_count.setText("0");
         rejected_count.setText("0");
-        pending_count.setText("0");
+        entered_Count.setText("0");
 
         AdminName = findViewById(R.id.AdminName);
 
         //DownloadMasterDialog();
 
         if (checkRequirements()) {
-            //onAllRequirementsMet();
+            onAllRequirementsMet();
         }
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        SynchronizeService.getClaimCount(this);
+        refreshCount();
     }
 
     @Override
@@ -208,12 +208,13 @@ public class MainActivity extends ImisActivity {
             startActivity(intent);
         } else if (id == R.id.nav_Refresh_Map) {
             doLoggedIn(this::confirmRefreshMap);
-            Log.e("SubServices", sqlHandler.getSubServices().toString());
-            Log.e("SubItems", sqlHandler.getSubItems().toString());
-            Log.e("Services", sqlHandler.getServices().toString());
-            Log.e("Items", sqlHandler.getItems().toString());
+            //Log.e("SubServices", sqlHandler.getSubServices().toString());
+            //Log.e("SubItems", sqlHandler.getSubItems().toString());
+            //Log.e("Services", sqlHandler.getServices().toString());
+            //Log.e("Items", sqlHandler.getItems().toString());
         } else if (id == R.id.nav_claim) {
-            Intent intent = new Intent(this, ClaimActivity.class);
+            //Intent intent = new Intent(this, ClaimActivity.class);
+            Intent intent = new Intent(this, ClaimListingActivity.class);
             startActivity(intent);
         } else if (id == R.id.nav_Reports) {
             Intent intent = new Intent(getApplicationContext(), Report.class);
@@ -298,7 +299,7 @@ public class MainActivity extends ImisActivity {
                 if (!sql.checkIfAny("tblControls")) {
                     CriticalErrorDialogBox(getResources().getString(R.string.noControls) + " " + getResources().getString(R.string.provideExtractOrInternet));
                 } else if (!sql.checkIfAny("tblClaimAdmins")) {
-                    if (sql.getAdjustibility("ClaimAdministrator").equals("M"))
+                    if (sql.getAdjustability("ClaimAdministrator").equals("M"))
                         CriticalErrorDialogBox(getResources().getString(R.string.noAdmins) + " " + getResources().getString(R.string.provideExtractOrInternet));
                 } else {
                     ClaimAdminDialogBox();
@@ -356,7 +357,7 @@ public class MainActivity extends ImisActivity {
                     if (getControls()) {
                         try {
                             if (global.getOfficerCode() == null || global.getOfficerCode().equals("")) {
-                                if (!sqlHandler.getAdjustibility("ClaimAdministrator").equals("N")) {
+                                if (!sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
                                     ClaimAdminDialogBox();
                                 }
                             }
@@ -405,7 +406,8 @@ public class MainActivity extends ImisActivity {
     }
 
     public void refreshCount() {
-        SynchronizeService.getClaimCount(this);
+        if (sqlHandler.checkTableExists("tblClaimDetails"))
+            SynchronizeService.getClaimCount(this);
     }
 
     public boolean checkDataBase() {
@@ -490,15 +492,18 @@ public class MainActivity extends ImisActivity {
                     admins = ob.getString("claim_admins");
                     sqlHandler.ClearAll("tblClaimAdmins");
                     //Insert Diagnosese
-                    JSONArray arrAdmins;
-                    JSONObject objAdmins;
-                    arrAdmins = new JSONArray(admins);
-                    for (int i = 0; i < arrAdmins.length(); i++) {
-                        objAdmins = arrAdmins.getJSONObject(i);
-                        String lastName = objAdmins.getString("lastName");
-                        String otherNames = objAdmins.getString("otherNames");
+
+                    JSONArray arrControls;
+                    JSONObject objControls;
+                    arrControls = new JSONArray(admins);
+                    for (int i = 0; i < arrControls.length(); i++) {
+                        objControls = arrControls.getJSONObject(i);
+                        String lastName = objControls.getString("lastName");
+                        String otherNames = objControls.getString("otherNames");
+                        String hfCode = objControls.getString("hfCode");
                         String name = lastName + " " + otherNames;
-                        sqlHandler.InsertClaimAdmins(objAdmins.getString("claimAdminCode"), name);
+                        sqlHandler.InsertClaimAdmins(objControls.getString("claimAdminCode"),
+                                hfCode, name);
                     }
                     //sqlHandler.ClearAll("tblClaimAdmins");
 
@@ -522,61 +527,6 @@ public class MainActivity extends ImisActivity {
         return true;
     }
 
-    //joseph
-    public boolean getChequeNumbers() {
-        if (global.isNetworkAvailable()) {
-            String progress_message = getResources().getString(R.string.application);
-            progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
-            Thread thread = new Thread(() -> {
-                String chequeNumbers;
-
-                String functionName = "GetListChequeItems ";
-                try {
-                    String content = toRestApi.getFromRestApi(functionName);
-
-                    JSONObject ob;
-
-                    ob = new JSONObject(content);
-                    chequeNumbers = ob.getString("chequeNumbers");
-                    sqlHandler.ClearAll("tblChequeNumbers");
-                    //Insert Diagnosese
-                    JSONArray arrControls;
-                    JSONObject objControls;
-                    arrControls = new JSONArray(chequeNumbers);
-                    for (int i = 0; i < arrControls.length(); i++) {
-                        objControls = arrControls.getJSONObject(i);
-                        sqlHandler.InsertInsureeNumber(objControls.getString("number"), objControls.getString("statut"));
-                    }
-
-                    //sqlHandler.ClearAll("tblInsureeNumbers");
-
-                    //sqlHandler.InsertInsureeNumber("2022", "Disponible");
-                    //sqlHandler.InsertInsureeNumber("2021", "Non disponible");
-                    //sqlHandler.InsertInsureeNumber("2020", "Annulé");
-
-                    runOnUiThread(() -> {
-                        progressDialog.dismiss();
-                        getServices();
-                    });
-                    runOnUiThread(() -> {
-                        if (checkRequirements()) {
-                            onAllRequirementsMet();
-                        }
-                    });
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    runOnUiThread(() -> progressDialog.dismiss());
-                }
-            });
-            thread.start();
-        } else {
-            ErrorDialogBox(getResources().getString(R.string.CheckInternet));
-            return false;
-        }
-        return true;
-    }
-
-    //joseph
     public boolean getServices() {
         if (global.isNetworkAvailable()) {
             String progress_message = getResources().getString(R.string.application);
@@ -717,18 +667,19 @@ public class MainActivity extends ImisActivity {
     }
 
 
-    public void validateClaimAdminCode(final String ClaimCode) {
-        if (ClaimCode.equals("")) {
+    public void validateClaimAdminCode(final String claimAdminCode) {
+        if (claimAdminCode.equals("")) {
             Toast.makeText(getBaseContext(), R.string.MissingClaimAdmin, Toast.LENGTH_LONG).show();
             ClaimAdminDialogBox();
         } else {
-            String ClaimName = sqlHandler.getClaimAdmin(ClaimCode);
+            String ClaimName = sqlHandler.getClaimAdminInfo(claimAdminCode,SQLHandler.CA_NAME_COLUMN);
             if (ClaimName.equals("")) {
                 Toast.makeText(MainActivity.this, getResources().getString(R.string.invalidClaimAdminCode), Toast.LENGTH_LONG).show();
                 ClaimAdminDialogBox();
             } else {
-                if (!sqlHandler.getAdjustibility("ClaimAdministrator").equals("N")) {
-                    global.setOfficerCode(ClaimCode);
+
+                if (!sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
+                    global.setOfficerCode(claimAdminCode);
                     global.setOfficerName(ClaimName);
                     AdminName = (TextView) findViewById(R.id.AdminName);
                     AdminName.setText(global.getOfficeName());
@@ -1163,31 +1114,10 @@ public class MainActivity extends ImisActivity {
         return true;
     }
 
-    public void externalStorageAccessDialog() {
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this)
-                .setTitle(R.string.ExternalStorageAccess)
-                .setMessage(getResources().getString(R.string.ExternalStorageAccessInfo, getResources().getString(R.string.app_name_claims)))
-                .setCancelable(false)
-                .setPositiveButton(R.string.Ok,
-                        (dialog, id) -> {
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R) {
-                                Intent intent = new Intent(ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
-                                startActivityForResult(intent, REQUEST_ALL_FILES_ACCESS_CODE);
-                            }
-                        })
-                .setNegativeButton(R.string.ForceClose,
-                        (dialog, id) -> {
-                            dialog.cancel();
-                            finish();
-                        });
-
-        alertDialogBuilder.show();
-    }
-
     public void permissionsDialog() {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this)
                 .setTitle(R.string.Permissions)
-                .setMessage(getResources().getString(R.string.PermissionsInfo, getResources().getString(R.string.app_name_claims)))
+                .setMessage(getResources().getString(R.string.PermissionsInfo, getResources().getString(R.string.app_name_claim)))
                 .setCancelable(false)
                 .setPositiveButton(R.string.Ok,
                         (dialog, id) -> ActivityCompat.requestPermissions(this, global.getPermissions(), REQUEST_PERMISSIONS_CODE))
@@ -1201,20 +1131,13 @@ public class MainActivity extends ImisActivity {
     }
 
     public boolean checkRequirements() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            if (!Environment.isExternalStorageManager()) {
-                externalStorageAccessDialog();
-                return false;
-            }
-        }
-
         if (!hasPermissions(this, global.getPermissions())) {
             permissionsDialog();
             return false;
         }
 
         boolean isAppInitialized = sqlHandler.checkIfAny("tblControls")
-                && (sqlHandler.getAdjustibility("ClaimAdministrator").equals("N") || sqlHandler.checkIfAny("tblClaimAdmins") || sqlHandler.checkIfAny("tblInsureeNumbers"));
+                && (sqlHandler.getAdjustability("ClaimAdministrator").equals("N") || sqlHandler.checkIfAny("tblClaimAdmins"));
         if (!isAppInitialized) {
             if (global.isNetworkAvailable()) {
                 sqlHandler.createOrOpenDatabases();
@@ -1231,7 +1154,7 @@ public class MainActivity extends ImisActivity {
     }
 
     public void onAllRequirementsMet() {
-        if (sqlHandler.getAdjustibility("ClaimAdministrator").equals("N")) {
+        if (!sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
             ClaimAdminDialogBox();
         }
         refreshCount();
