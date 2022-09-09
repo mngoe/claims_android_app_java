@@ -24,6 +24,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -142,7 +143,7 @@ public class MainActivity extends ImisActivity {
         //DownloadMasterDialog();
 
         if (checkRequirements()) {
-            onAllRequirementsMet();
+            //onAllRequirementsMet();
         }
     }
 
@@ -207,10 +208,10 @@ public class MainActivity extends ImisActivity {
             startActivity(intent);
         } else if (id == R.id.nav_Refresh_Map) {
             doLoggedIn(this::confirmRefreshMap);
-            //Log.e("SubServices", sqlHandler.getSubServices().toString());
-            //Log.e("SubItems", sqlHandler.getSubItems().toString());
-            //Log.e("Services", sqlHandler.getServices().toString());
-            //Log.e("Items", sqlHandler.getItems().toString());
+            Log.e("SubServices", sqlHandler.getSubServices().toString());
+            Log.e("SubItems", sqlHandler.getSubItems().toString());
+            Log.e("Services", sqlHandler.getServices().toString());
+            Log.e("Items", sqlHandler.getItems().toString());
         } else if (id == R.id.nav_claim) {
             Intent intent = new Intent(this, ClaimActivity.class);
             startActivity(intent);
@@ -921,7 +922,7 @@ public class MainActivity extends ImisActivity {
                     String error_occurred = null;
                     String error_message = null;
 
-                    String functionName = "claim/GetDiagnosesServicesItems";
+                    String functionName = "GetDiagnosesServicesItems";
 
                     try {
                         HttpResponse response = toRestApi.postToRestApi(object, functionName);
@@ -944,9 +945,9 @@ public class MainActivity extends ImisActivity {
                                 last_update_date = ob.getString("update_since_last");
                                 saveLastUpdateDate(last_update_date);
 
-                                //sqlHandler.ClearAll("tblReferences");
-                                //sqlHandler.ClearMapping("S");
-                                //sqlHandler.ClearMapping("I");
+                                sqlHandler.ClearAll("tblReferences");
+                                sqlHandler.ClearMapping("S");
+                                sqlHandler.ClearMapping("I");
                                 //Insert Diagnosese
                                 JSONArray arrDiagnoses;
                                 JSONObject objDiagnoses;
@@ -957,24 +958,24 @@ public class MainActivity extends ImisActivity {
                                 }
 
                                 //Insert Services
-                                /*JSONArray arrServices;
+                                JSONArray arrServices;
                                 JSONObject objServices;
                                 arrServices = new JSONArray(services);
                                 for (int i = 0; i < arrServices.length(); i++) {
                                     objServices = arrServices.getJSONObject(i);
                                     sqlHandler.InsertReferences(objServices.getString("code"), objServices.getString("name"), "S", objServices.getString("price"));
                                     sqlHandler.InsertMapping(objServices.getString("code"), objServices.getString("name"), "S");
-                                }*/
+                                }
 
                                 //Insert Items
-                                /*JSONArray arrItems;
+                                JSONArray arrItems;
                                 JSONObject objItems;
                                 arrItems = new JSONArray(items);
                                 for (int i = 0; i < arrItems.length(); i++) {
                                     objItems = arrItems.getJSONObject(i);
                                     sqlHandler.InsertReferences(objItems.getString("code"), objItems.getString("name"), "I", objItems.getString("price"));
                                     sqlHandler.InsertMapping(objItems.getString("code"), objItems.getString("name"), "I");
-                                }*/
+                                }
 
                                 runOnUiThread(() -> {
                                     progressDialog.dismiss();
@@ -1165,7 +1166,7 @@ public class MainActivity extends ImisActivity {
     public void externalStorageAccessDialog() {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this)
                 .setTitle(R.string.ExternalStorageAccess)
-                .setMessage(getResources().getString(R.string.ExternalStorageAccessInfo, getResources().getString(R.string.app_name_claim)))
+                .setMessage(getResources().getString(R.string.ExternalStorageAccessInfo, getResources().getString(R.string.app_name_claims)))
                 .setCancelable(false)
                 .setPositiveButton(R.string.Ok,
                         (dialog, id) -> {
@@ -1186,7 +1187,7 @@ public class MainActivity extends ImisActivity {
     public void permissionsDialog() {
         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(this)
                 .setTitle(R.string.Permissions)
-                .setMessage(getResources().getString(R.string.PermissionsInfo, getResources().getString(R.string.app_name_claim)))
+                .setMessage(getResources().getString(R.string.PermissionsInfo, getResources().getString(R.string.app_name_claims)))
                 .setCancelable(false)
                 .setPositiveButton(R.string.Ok,
                         (dialog, id) -> ActivityCompat.requestPermissions(this, global.getPermissions(), REQUEST_PERMISSIONS_CODE))
