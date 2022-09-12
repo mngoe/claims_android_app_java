@@ -1,7 +1,5 @@
 package org.openimis.imisclaims;
 
-import static android.provider.Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION;
-
 import android.Manifest;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
@@ -23,7 +21,6 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -673,14 +670,16 @@ public class MainActivity extends ImisActivity {
             ClaimAdminDialogBox();
         } else {
             String ClaimName = sqlHandler.getClaimAdminInfo(claimAdminCode,SQLHandler.CA_NAME_COLUMN);
+            String HealthFacilityName = sqlHandler.getClaimAdminInfo(claimAdminCode, SQLHandler.CA_HF_CODE_COLUMN);
             if (ClaimName.equals("")) {
                 Toast.makeText(MainActivity.this, getResources().getString(R.string.invalidClaimAdminCode), Toast.LENGTH_LONG).show();
                 ClaimAdminDialogBox();
             } else {
 
-                if (!sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
+                if (sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
                     global.setOfficerCode(claimAdminCode);
                     global.setOfficerName(ClaimName);
+                    global.setOfficerHealthFacility(HealthFacilityName);
                     AdminName = (TextView) findViewById(R.id.AdminName);
                     AdminName.setText(global.getOfficeName());
                     Cursor c = sqlHandler.getMapping("I");
@@ -711,7 +710,7 @@ public class MainActivity extends ImisActivity {
                     Cursor c = sqlHandler.getMapping("I");
                     if (c.getCount() == 0) {
                         try {
-                                /* if(!getLastUpdateDate().equals("")){
+                                /*if(!getLastUpdateDate().equals("")){
                                      //String date = getLastUpdateDate().substring(0, getLastUpdateDate().indexOf("."));
                                        object.put("last_update_date",getLastUpdateDate());
                                 }*///object.put("last_update_date","2019/02/12");
@@ -873,7 +872,7 @@ public class MainActivity extends ImisActivity {
                     String error_occurred = null;
                     String error_message = null;
 
-                    String functionName = "GetDiagnosesServicesItems";
+                    String functionName = "claim/GetDiagnosesServicesItems";
 
                     try {
                         HttpResponse response = toRestApi.postToRestApi(object, functionName);
@@ -1041,7 +1040,7 @@ public class MainActivity extends ImisActivity {
                                 arrServices = new JSONArray(services);
                                 for (int i = 0; i < arrServices.length(); i++) {
                                     objServices = arrServices.getJSONObject(i);
-                                    //sql.InsertReferences(objServices.getString("code").toString(), objServices.getString("name").toString(), "S", objServices.getString("price").toString());
+                                    //sqlHandler.InsertReferences(objServices.getString("code").toString(), objServices.getString("name").toString(), "S", objServices.getString("price").toString());
                                     sqlHandler.InsertMapping(objServices.getString("code"), objServices.getString("name"), "S");
                                 }
 
@@ -1154,7 +1153,7 @@ public class MainActivity extends ImisActivity {
     }
 
     public void onAllRequirementsMet() {
-        if (!sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
+        if (sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
             ClaimAdminDialogBox();
         }
         refreshCount();

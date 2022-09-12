@@ -1,16 +1,23 @@
 package org.openimis.imisclaims;
 
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.app.JobIntentService;
 import android.support.v4.content.FileProvider;
 import android.util.Xml;
 
+import org.apache.http.HttpResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.openimis.imisclaims.tools.Log;
+import org.openimis.imisclaims.tools.StorageManager;
+import org.openimis.imisclaims.util.FileUtils;
+import org.openimis.imisclaims.util.XmlUtils;
+import org.openimis.imisclaims.util.ZipUtils;
+import org.xmlpull.v1.XmlSerializer;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,14 +27,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-
-import org.apache.http.HttpResponse;
-import org.openimis.imisclaims.tools.Log;
-import org.openimis.imisclaims.tools.StorageManager;
-import org.openimis.imisclaims.util.FileUtils;
-import org.openimis.imisclaims.util.XmlUtils;
-import org.openimis.imisclaims.util.ZipUtils;
-import org.xmlpull.v1.XmlSerializer;
 
 public class SynchronizeService extends JobIntentService {
     private static final int JOB_ID = 6541259; //Random unique Job id
@@ -157,12 +156,6 @@ public class SynchronizeService extends JobIntentService {
             int claimResponseCode = claimResponse.getInt("response");
 
             if (claimResponseCode == ClaimResponse.Success) {
-<<<<<<< HEAD
-                moveClaimToSubdirectory(claimCode, "AcceptedClaims");
-            } else if (claimResponseCode == ClaimResponse.Rejected) {
-                moveClaimToSubdirectory(claimCode, "RejectedClaims");
-            } else {
-=======
                 sqlHandler.insertClaimUploadStatus(claimUUID, date, SQLHandler.CLAIM_UPLOAD_STATUS_ACCEPTED, null);
             } else {
                 if (claimResponseCode == ClaimResponse.Rejected) {
@@ -170,7 +163,6 @@ public class SynchronizeService extends JobIntentService {
                 } else {
                     sqlHandler.insertClaimUploadStatus(claimUUID, date, SQLHandler.CLAIM_UPLOAD_STATUS_ERROR, claimResponse.getString("message"));
                 }
->>>>>>> fabe0cc76d31372d70d385f43a19bdcd98b8215d
                 result.put(String.format(claimResponseLine, claimCode, claimResponse.getString("message")));
             }
         }
@@ -282,58 +274,6 @@ public class SynchronizeService extends JobIntentService {
         return errorMessage;
     }
 
-<<<<<<< HEAD
-    private void moveClaimToSubdirectory(String claimCode, String subDirectory) {
-        File pendingDirectory = new File(global.getMainDirectory());
-        File[] files = getListOfFilesForClaim(pendingDirectory, claimCode);
-        for (File f : files) {
-            moveFileToSubdirectory(f, subDirectory);
-        }
-    }
-
-    private File[] getListOfFilesPrefix(File directory, String prefix) {
-        FilenameFilter filter = (dir, filename) -> filename.startsWith(prefix);
-        return directory.listFiles(filter);
-    }
-
-    private File[] getListOfFilesForClaim(File directory, String claimCode) {
-        String regex = ".+_.+_" + claimCode + "_";
-        return getListOfFilesMatching(directory, regex);
-    }
-
-    private File[] getListOfFilesMatching(File directory, String regex) {
-        FilenameFilter filter = (dir, filename) -> filename.matches(regex);
-        return directory.listFiles(filter);
-    }
-
-    private int getFilesCountPrefix(File directory, String prefix) {
-        File[] listOfFiles = getListOfFilesPrefix(directory, prefix);
-        return listOfFiles != null ? listOfFiles.length : 0;
-    }
-
-    private void moveFileToSubdirectory(File file, String subdirectory) {
-        if (!file.renameTo(new File(global.getSubdirectory(subdirectory), file.getName()))) {
-            Log.e(LOG_TAG, String.format("Moving a file to %s failed: %s", subdirectory, file.getAbsolutePath()));
-        }
-    }
-
-    private JSONArray loadClaims(List<File> files) {
-        try {
-            JSONArray claims = new JSONArray();
-            for (File claimFile : files) {
-                String claim = global.getFileText(claimFile);
-                JSONObject claimObject = new JSONObject(claim);
-                claims.put(claimObject);
-            }
-            return claims;
-        } catch (JSONException e) {
-            Log.e(LOG_TAG, "Error while loading claims", e);
-            return new JSONArray();
-        }
-    }
-
-=======
->>>>>>> fabe0cc76d31372d70d385f43a19bdcd98b8215d
     private void broadcastSyncSuccess(JSONArray claimResponse) {
         Intent successIntent = new Intent(ACTION_SYNC_SUCCESS);
         successIntent.putExtra(EXTRA_CLAIM_RESPONSE, claimResponse.toString());

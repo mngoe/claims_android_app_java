@@ -143,8 +143,12 @@ public class ClaimActivity extends ImisActivity {
         btnPost.setOnClickListener(v -> {
 
             progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.Processing));
+            if (!isValidData()) {
+                progressDialog.dismiss();
+                return;
+            }
             runOnNewThread(
-                    () -> isValidData() && saveClaim(),
+                    () -> saveClaim(),
                     () -> runOnUiThread(() -> {
                         ClearForm();
                         progressDialog.dismiss();
@@ -164,7 +168,7 @@ public class ClaimActivity extends ImisActivity {
         if (sqlHandler.getAdjustability("GuaranteeNo").equals("N")) {
             etGuaranteeNo.setVisibility(View.GONE);
         }
-        if (sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
+        if (!sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
             etClaimAdmin.setVisibility(View.GONE);
         }
 
@@ -358,15 +362,15 @@ public class ClaimActivity extends ImisActivity {
 
     private void disableForm() {
         disableView(etClaimCode);
-        disableView(etGuaranteeNo);
+        //disableView(etGuaranteeNo);
         disableView(etInsureeNumber);
         disableView(etStartDate);
         disableView(etEndDate);
         disableView(etDiagnosis);
-        disableView(etDiagnosis1);
-        disableView(etDiagnosis2);
-        disableView(etDiagnosis3);
-        disableView(etDiagnosis4);
+        //disableView(etDiagnosis1);
+        //disableView(etDiagnosis2);
+        //disableView(etDiagnosis3);
+        //disableView(etDiagnosis4);
         disableView(rgVisitType);
         disableView(etClaimCode);
         disableView(btnPost);
@@ -473,9 +477,9 @@ public class ClaimActivity extends ImisActivity {
                         }
                         etHealthFacility.setText(claimDetails.getString("HFCode"));
 
-                        if (etGuaranteeNo.getVisibility() != View.GONE) {
+                        /*if (etGuaranteeNo.getVisibility() != View.GONE) {
                             etGuaranteeNo.setText(claimDetails.getString("GuaranteeNumber"));
-                        }
+                        }*/
 
                         etInsureeNumber.setText(claimDetails.getString("InsureeNumber"));
                         etStartDate.setText(claimDetails.getString("StartDate"));
@@ -529,6 +533,12 @@ public class ClaimActivity extends ImisActivity {
                                 service.put("Code", serviceJson.getString("ServiceCode"));
                                 service.put("Price", serviceJson.getString("ServicePrice"));
                                 service.put("Quantity", serviceJson.getString("ServiceQuantity"));
+                                service.put("PackageType", serviceJson.getString("ServicePackageType"));
+
+
+                                if(!serviceJson.getString("ServiceQuantity").equals("S")){
+                                    service.put("SubServicesItems", serviceJson.getString("SubServicesItems"));
+                                }
 
                                 lvServiceList.add(service);
                             }
@@ -730,9 +740,9 @@ public class ClaimActivity extends ImisActivity {
             claimServiceCV.put("ServicePrice", lvServiceList.get(i).get("Price"));
             claimServiceCV.put("ServiceQuantity", lvServiceList.get(i).get("Quantity"));
 
-                if(!lvServiceList.get(i).get("PackageType").equals("S")){
-                    claimServiceCV.put("SubServicesItems", lvServiceList.get(i).get("SubServicesItems"));
-                }
+            if (!lvServiceList.get(i).get("PackageType").equals("S")) {
+                claimServiceCV.put("SubServicesItems", lvServiceList.get(i).get("SubServicesItems"));
+            }
 
             claimServiceCVs.add(claimServiceCV);
         }

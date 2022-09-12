@@ -20,7 +20,7 @@ repositories {
 }
 
 android {
-    compileSdkVersion 32
+    compileSdk 32
     buildToolsVersion '33.0.0'
 
     defaultConfig {
@@ -60,6 +60,7 @@ android {
         resValue "string", "ReleaseDateValue", getDate()
         buildConfigField "String", "API_BASE_URL", '"http://3.238.179.83:89/reposApi/"'
         buildConfigField "String", "RAR_PASSWORD", '")(#$1HsD"'
+        buildConfigField "String", "API_VERSION", '"3"'
     }
 
     productFlavors {
@@ -202,10 +203,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation group: 'com.squareup.picasso', name: 'picasso', version: '2.71828'
     implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '1.2.7'
-
-    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
-    testImplementation 'junit:junit:4.12'
 
 }

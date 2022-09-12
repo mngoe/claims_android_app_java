@@ -1,5 +1,7 @@
 package org.openimis.imisclaims;
 
+import static org.openimis.imisclaims.BuildConfig.API_BASE_URL;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -39,8 +41,6 @@ import java.io.ByteArrayInputStream;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import static org.openimis.imisclaims.BuildConfig.API_BASE_URL;
 
 public class EnquireActivity extends ImisActivity {
     public static final String LOG_TAG = "ENQUIRE";
@@ -322,7 +322,7 @@ public class EnquireActivity extends ImisActivity {
                     } else if (JsonUtils.isStringEmpty(jsonObject, "photoPath", true)) {
                         String photo_url_str = API_BASE_URL + jsonObject.getString("photoPath");
                         iv.setImageResource(R.drawable.person);
-                        Picasso.with(getApplicationContext())
+                        Picasso.get()
                                 .load(photo_url_str)
                                 .placeholder(R.drawable.person)
                                 .error(R.drawable.person).into(iv);

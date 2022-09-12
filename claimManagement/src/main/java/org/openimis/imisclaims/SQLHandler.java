@@ -17,10 +17,6 @@ import org.openimis.imisclaims.tools.Log;
 
 import java.util.Locale;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
 public class SQLHandler extends SQLiteOpenHelper {
 
     private static final String LOG_TAG = "SQLHELPER";
@@ -51,7 +47,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code TEXT, Name TEXT, Type TEXT, Price TEXT);";
     private static final String createTableClaimDetails = "CREATE TABLE IF NOT EXISTS tblClaimDetails(ClaimUUID TEXT, ClaimDate TEXT, HFCode TEXT, ClaimAdmin TEXT, ClaimCode TEXT, GuaranteeNumber TEXT, InsureeNumber TEXT, StartDate TEXT, EndDate TEXT, ICDCode TEXT, Comment TEXT, Total TEXT, ICDCode1 TEXT, ICDCode2 TEXT, ICDCode3 TEXT, ICDCode4 TEXT, VisitType TEXT);";
     private static final String createTableClaimItems = "CREATE TABLE IF NOT EXISTS tblClaimItems(ClaimUUID TEXT, ItemCode TEXT, ItemPrice TEXT, ItemQuantity TEXT);";
-    private static final String createTableClaimServices = "CREATE TABLE IF NOT EXISTS tblClaimServices(ClaimUUID TEXT, ServiceCode TEXT, ServicePrice TEXT, ServiceQuantity TEXT, ServicePackageType);";
+    private static final String createTableClaimServices = "CREATE TABLE IF NOT EXISTS tblClaimServices(ClaimUUID TEXT, ServiceCode TEXT, ServicePrice TEXT, ServiceQuantity TEXT, ServicePackageType TEXT, SubServicesItems TEXT);";
     private static final String createTableClaimUploadStatus = "CREATE TABLE IF NOT EXISTS tblClaimUploadStatus(ClaimUUID TEXT, UploadDate TEXT, UploadStatus TEXT, UploadMessage TEXT);";
 
     public final String REFERENCE_UNKNOWN;
@@ -863,7 +859,7 @@ public class SQLHandler extends SQLiteOpenHelper {
 
     public JSONObject getClaim(String claimUUID) {
         JSONArray claimDetails = getQueryResultAsJsonArray("tblClaimDetails",
-                new String[]{"ClaimUUID", "ClaimDate", "HFCode", "ClaimAdmin", "ClaimCode", "GuaranteeNumber", "InsureeNumber", "StartDate", "EndDate", "ICDCode", "Comment", "Total", "ICDCode1", "ICDCode2", "ICDCode3", "ICDCode4", "VisitType"},
+                new String[]{"ClaimUUID", "ClaimDate", "HFCode", "ClaimAdmin", "ClaimCode", "InsureeNumber", "StartDate", "EndDate", "ICDCode", "Comment", "Total", "ICDCode1", "ICDCode2", "ICDCode3", "ICDCode4", "VisitType"},
                 "LOWER(ClaimUUID) = ?",
                 new String[]{claimUUID.toLowerCase(Locale.ROOT)});
 
@@ -933,7 +929,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     public JSONArray getClaimServices(String claimUUID) {
         return getQueryResultAsJsonArray(
                 "tblClaimServices",
-                new String[]{"ServiceCode", "ServicePrice", "ServiceQuantity","ServicePackageType"},
+                new String[]{"ServiceCode", "ServicePrice", "ServiceQuantity","ServicePackageType","SubServicesItems"},
                 "ClaimUUID = ?",
                 new String[]{claimUUID}
         );
