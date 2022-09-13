@@ -1,5 +1,6 @@
 package org.openimis.imisclaims;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.text.Editable;
@@ -68,13 +69,27 @@ public class AddServices extends ImisActivity {
         layoutParams = new LinearLayout.LayoutParams
                 (LinearLayout.LayoutParams.MATCH_PARENT, 300);
 
-        ServiceAdapter serviceAdapter = new ServiceAdapter(this, sqlHandler);
+        btnAdd = findViewById(R.id.btnAdd);
 
-        amount = 0;
+        alAdapter = new SimpleAdapter(AddServices.this, ClaimActivity.lvServiceList, R.layout.lvitem,
+                new String[]{"Code", "Name", "Price", "Quantity"},
+                new int[]{R.id.tvLvCode, R.id.tvLvName, R.id.tvLvPrice, R.id.tvLvQuantity});
 
-        etServices.setAdapter(serviceAdapter);
-        etServices.setThreshold(1);
-        etServices.setOnItemClickListener((parent, view, position, l) -> {
+        lvServices.setAdapter(alAdapter);
+
+        if (isIntentReadonly()) {
+            disableView(etSQuantity);
+            disableView(etSAmount);
+            disableView(etServices);
+            disableView(btnAdd);
+        } else {
+            ServiceAdapter serviceAdapter = new ServiceAdapter(this, sqlHandler);
+
+            amount = 0;
+
+            etServices.setAdapter(serviceAdapter);
+            etServices.setThreshold(1);
+            etServices.setOnItemClickListener((parent, view, position, l) -> {
                 if (position >= 0) {
 
                     Cursor cursor = (Cursor) parent.getItemAtPosition(position);
@@ -88,7 +103,7 @@ public class AddServices extends ImisActivity {
                     oService = new HashMap<>();
                     oService.put("Code", Code);
                     oService.put("Name", Name);
-                    oService.put("PackageType",packageType);
+                    oService.put("PackageType", packageType);
 
                     etSQuantity.setText("1");
                     etSAmount.setText(sqlHandler.getServicePrice(Code));
@@ -102,7 +117,7 @@ public class AddServices extends ImisActivity {
 
                             JSONArray subServicesIds = sqlHandler.getSubServicesId(id);
                             JSONArray subServiceArr = new JSONArray();
-                            for(int i = 0; i < subServicesIds.length(); i++){
+                            for (int i = 0; i < subServicesIds.length(); i++) {
                                 JSONObject objService = sqlHandler.getService(subServicesIds.getJSONObject(i).getString("ServiceId"));
                                 objService.put("QuantityMax", sqlHandler.getSubServiceQty(subServicesIds.getJSONObject(i).getString("ServiceId")));
                                 subServiceArr.put(objService);
@@ -110,7 +125,7 @@ public class AddServices extends ImisActivity {
 
                             JSONArray subItemIds = sqlHandler.getSubItemsId(id);
                             JSONArray subItemArr = new JSONArray();
-                            for(int i = 0; i < subItemIds.length(); i++){
+                            for (int i = 0; i < subItemIds.length(); i++) {
                                 JSONObject objItem = sqlHandler.getItem(subItemIds.getJSONObject(i).getString("ItemId"));
                                 objItem.put("QuantityMax", sqlHandler.getSubItemQty(subItemIds.getJSONObject(i).getString("ItemId")));
                                 subItemArr.put(objItem);
@@ -124,7 +139,7 @@ public class AddServices extends ImisActivity {
                                 sService.put("Name", obj.getString("Name"));
                                 sService.put("Price", obj.getString("Price"));
                                 sService.put("Quantity", "0");
-                                sService.put("QtyMax",obj.getString("QuantityMax"));
+                                sService.put("QtyMax", obj.getString("QuantityMax"));
 
                                 lvSServiceList.add(sService);
 
@@ -138,22 +153,22 @@ public class AddServices extends ImisActivity {
                                 sItem.put("Name", obj.getString("Name"));
                                 sItem.put("Price", obj.getString("Price"));
                                 sItem.put("Quantity", "0");
-                                sItem.put("QtyMax",obj.getString("QuantityMax"));
+                                sItem.put("QtyMax", obj.getString("QuantityMax"));
 
                                 lvSItemList.add(sItem);
 
                             }
 
                             editModelArrayListServices = populateListServicesItems();
-                            ssAdapterServicesItems = new CustomAdapter(AddServices.this,editModelArrayListServices);
+                            ssAdapterServicesItems = new CustomAdapter(AddServices.this, editModelArrayListServices);
 
                             TextView textServices = new TextView(AddServices.this);
                             textServices.setText("Sub-Services & Items");
-                            textServices.setPadding(0,0,0,10);
+                            textServices.setPadding(0, 0, 0, 10);
                             textServices.setTextSize(18);
 
                             listServices = new ListView(AddServices.this);
-                            if((lvSServiceList.size() + lvSItemList.size()) > 4){
+                            if ((lvSServiceList.size() + lvSItemList.size()) > 4) {
                                 listServices.setLayoutParams(layoutParams);
                             }
                             listServices.setAdapter(ssAdapterServicesItems);
@@ -164,159 +179,155 @@ public class AddServices extends ImisActivity {
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                    }else {
+                    } else {
                         llSService.removeAllViews();
                     }
                 }
 
-        });
+            });
 
+            etServices.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    btnAdd.setEnabled(s != null && s.toString().trim().length() != 0
+                            && etSQuantity.getText().toString().trim().length() != 0
+                            && etSAmount.getText().toString().trim().length() != 0);
 
-        etServices.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                btnAdd.setEnabled(s != null && s.toString().trim().length() != 0
-                        && etSQuantity.getText().toString().trim().length() != 0
-                        && etSAmount.getText().toString().trim().length() != 0);
+                    llSService.removeAllViews();
+                    lvSServiceList.clear();
+                    lvSItemList.clear();
 
-                llSService.removeAllViews();
-                lvSServiceList.clear();
-                lvSItemList.clear();
-
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
-
-        etSQuantity.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                btnAdd.setEnabled(s != null && s.toString().trim().length() != 0
-                        && etServices.getText().toString().trim().length() != 0
-                        && etSAmount.getText().toString().trim().length() != 0);
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
-
-        etSAmount.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                btnAdd.setEnabled(s != null && s.toString().trim().length() != 0
-                        && etSQuantity.getText().toString().trim().length() != 0
-                        && etServices.getText().toString().trim().length() != 0);
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-            }
-        });
-
-        alAdapter = new SimpleAdapter(AddServices.this, ClaimActivity.lvServiceList, R.layout.lvitem,
-                new String[]{"Code", "Name", "Price", "Quantity"},
-                new int[]{R.id.tvLvCode, R.id.tvLvName, R.id.tvLvPrice, R.id.tvLvQuantity});
-
-        lvServices.setAdapter(alAdapter);
-
-        btnAdd = findViewById(R.id.btnAdd);
-        btnAdd.setEnabled(false);
-        btnAdd.setOnClickListener(v -> {
-            try {
-
-                if (oService == null) return;
-
-                llSService.removeAllViews();
-
-                String Amount, Quantity;
-
-                HashMap<String, String> lvService = new HashMap<>();
-                lvService.put("Code", oService.get("Code"));
-                lvService.put("Name", oService.get("Name"));
-                lvService.put("PackageType", oService.get("PackageType"));
-
-                if(lvSServiceList.size() != 0){
-
-                    float amount = Float.valueOf(etSAmount.getText().toString());
-                    JSONArray sServicesItems = new JSONArray();
-
-                    for (int i = 0; i < CustomAdapter.editModelArrayList.size(); i++){
-
-                        JSONObject sService = new JSONObject();
-                        sService.put("Code",CustomAdapter.editModelArrayList.get(i).getCode());
-                        sService.put("Quantity",CustomAdapter.editModelArrayList.get(i).getQty());
-                        sService.put("Price",CustomAdapter.editModelArrayList.get(i).getPrice());
-
-                        sServicesItems.put(sService);
-
-                    }
-
-                    lvService.put("Price",String.valueOf(amount));
-                    lvService.put("SubServicesItems",sServicesItems.toString());
-
-                }else{
-                    Amount = etSAmount.getText().toString();
-                    lvService.put("Price", Amount);
                 }
-                if (etSQuantity.getText().toString().length() == 0) Quantity = "1";
-                else Quantity = etSQuantity.getText().toString();
-                lvService.put("Quantity", Quantity);
-                ClaimActivity.lvServiceList.add(lvService);
 
-                alAdapter.notifyDataSetChanged();
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
-                etServices.setText("");
-                etSAmount.setText("");
-                etSQuantity.setText("");
-                etSName.setText("");
+                @Override
+                public void afterTextChanged(Editable s) {
+                }
+            });
 
-            } catch (Exception e) {
-                Log.d("AddLvError", e.getMessage());
-            }
-        });
+            etSQuantity.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    btnAdd.setEnabled(s != null && s.toString().trim().length() != 0
+                            && etServices.getText().toString().trim().length() != 0
+                            && etSAmount.getText().toString().trim().length() != 0);
+                }
 
-        lvServices.setOnItemLongClickListener((parent, view, position, id) -> {
-            try {
-                Pos = position;
-                HideAllDeleteButtons();
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
 
-                Button d = view.findViewById(R.id.btnDelete);
-                d.setVisibility(View.VISIBLE);
+                @Override
+                public void afterTextChanged(Editable s) {
+                }
+            });
 
-                d.setOnClickListener(v -> {
-                    ClaimActivity.lvServiceList.remove(Pos);
-                    HideAllDeleteButtons();
+            etSAmount.addTextChangedListener(new TextWatcher() {
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                    btnAdd.setEnabled(s != null && s.toString().trim().length() != 0
+                            && etSQuantity.getText().toString().trim().length() != 0
+                            && etServices.getText().toString().trim().length() != 0);
+                }
+
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                }
+            });
+
+            btnAdd.setEnabled(false);
+            btnAdd.setOnClickListener(v -> {
+                try {
+
+                    llSService.removeAllViews();
+
+                    if (oService == null) return;
+
+                    String Amount, Quantity;
+
+                    HashMap<String, String> lvService = new HashMap<>();
+                    lvService.put("Code", oService.get("Code"));
+                    lvService.put("Name", oService.get("Name"));
+                    lvService.put("PackageType",oService.get("PackageType"));
+
+                    //add subservices & items
+                    if (lvSServiceList.size() != 0) {
+                        float amount = Float.valueOf(etSAmount.getText().toString());
+                        JSONArray sServicesItems = new JSONArray();
+
+                        for (int i = 0; i < CustomAdapter.editModelArrayList.size(); i++) {
+
+                            JSONObject sService = new JSONObject();
+                            sService.put("Code", CustomAdapter.editModelArrayList.get(i).getCode());
+                            sService.put("Quantity", CustomAdapter.editModelArrayList.get(i).getQty());
+                            sService.put("Price", CustomAdapter.editModelArrayList.get(i).getPrice());
+
+                            sServicesItems.put(sService);
+
+                        }
+
+                        lvService.put("Price", String.valueOf(amount));
+                        lvService.put("SubServicesItems", sServicesItems.toString());
+
+                    } else {
+                        Amount = etSAmount.getText().toString();
+                        lvService.put("Price", Amount);
+                    }
+                    if (etSQuantity.getText().toString().length() == 0) Quantity = "1";
+                    else Quantity = etSQuantity.getText().toString();
+                    lvService.put("Quantity", Quantity);
+                    ClaimActivity.lvServiceList.add(lvService);
+
                     alAdapter.notifyDataSetChanged();
-                });
-            } catch (Exception e) {
-                Log.d("ErrorOnLongClick", e.getMessage());
-            }
-            return true;
-        });
 
+                    etServices.setText("");
+                    etSAmount.setText("");
+                    etSQuantity.setText("");
+                    etSName.setText("");
 
+                } catch (Exception e) {
+                    Log.d("AddLvError", e.getMessage());
+                }
+            });
+
+            lvServices.setOnItemLongClickListener((parent, view, position, id) -> {
+                try {
+                    Pos = position;
+                    HideAllDeleteButtons();
+
+                    Button d = view.findViewById(R.id.btnDelete);
+                    d.setVisibility(View.VISIBLE);
+
+                    d.setOnClickListener(v -> {
+                        ClaimActivity.lvServiceList.remove(Pos);
+                        HideAllDeleteButtons();
+                        alAdapter.notifyDataSetChanged();
+                    });
+                } catch (Exception e) {
+                    Log.d("ErrorOnLongClick", e.getMessage());
+                }
+                return true;
+            });
+        }
     }
 
-    private ArrayList<EditModel> populateListServicesItems(){
+    private boolean isIntentReadonly() {
+        Intent intent = getIntent();
+        return intent.getBooleanExtra(ClaimActivity.EXTRA_READONLY, false);
+    }
+
+    private ArrayList<EditModel> populateListServicesItems() {
 
         ArrayList<EditModel> list = new ArrayList<>();
 
-        for(int i = 0; i < lvSServiceList.size(); i++){
+        for (int i = 0; i < lvSServiceList.size(); i++) {
             EditModel editModel = new EditModel();
             editModel.setCode(lvSServiceList.get(i).get("Code"));
             editModel.setName(lvSServiceList.get(i).get("Name"));
@@ -326,7 +337,7 @@ public class AddServices extends ImisActivity {
             list.add(editModel);
         }
 
-        for(int i = 0; i < lvSItemList.size(); i++){
+        for (int i = 0; i < lvSItemList.size(); i++) {
             EditModel editModel = new EditModel();
             editModel.setCode(lvSItemList.get(i).get("Code"));
             editModel.setName(lvSItemList.get(i).get("Name"));
