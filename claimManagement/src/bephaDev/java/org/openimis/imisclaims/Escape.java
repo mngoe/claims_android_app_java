@@ -7,9 +7,9 @@ public class Escape {
             return false;
         }
 
-        /*if (InsureeNumber.length() != 6){
+        if (InsureeNumber.length() != 6){
             return false;
-        }*/
+        }
 
         return true;
     }
