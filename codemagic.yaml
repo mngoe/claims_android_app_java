@@ -9,7 +9,7 @@ workflows:
       - name: Run tests
         script: ./gradlew test
       - name: Build debug apk
-        script: ./gradlew assembleDebug
+        script: ./gradlew assembleDebug --warning-mode all
     artifacts:
       - app/build/**/outputs/**/*.apk
     publishing:
