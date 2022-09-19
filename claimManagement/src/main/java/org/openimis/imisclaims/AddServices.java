@@ -268,6 +268,7 @@ public class AddServices extends ImisActivity {
                             sService.put("Code", CustomAdapter.editModelArrayList.get(i).getCode());
                             sService.put("Quantity", CustomAdapter.editModelArrayList.get(i).getQty());
                             sService.put("Price", CustomAdapter.editModelArrayList.get(i).getPrice());
+                            sService.put("Type", CustomAdapter.editModelArrayList.get(i).getType());
 
                             sServicesItems.put(sService);
 
@@ -334,6 +335,7 @@ public class AddServices extends ImisActivity {
             editModel.setQty(lvSServiceList.get(i).get("Quantity"));
             editModel.setPrice(lvSServiceList.get(i).get("Price"));
             editModel.setQtyMax(lvSServiceList.get(i).get("QtyMax"));
+            editModel.setType("S");
             list.add(editModel);
         }
 
@@ -344,6 +346,7 @@ public class AddServices extends ImisActivity {
             editModel.setQty(lvSItemList.get(i).get("Quantity"));
             editModel.setPrice(lvSItemList.get(i).get("Price"));
             editModel.setQtyMax(lvSItemList.get(i).get("QtyMax"));
+            editModel.setType("I");
             list.add(editModel);
         }
 

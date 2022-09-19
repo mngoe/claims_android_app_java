@@ -536,7 +536,7 @@ public class ClaimActivity extends ImisActivity {
                                 service.put("PackageType", serviceJson.getString("ServicePackageType"));
 
 
-                                if(!serviceJson.getString("ServiceQuantity").equals("S")){
+                                if(!serviceJson.getString("ServicePackageType").equals("S")){
                                     service.put("SubServicesItems", serviceJson.getString("SubServicesItems"));
                                 }
 
