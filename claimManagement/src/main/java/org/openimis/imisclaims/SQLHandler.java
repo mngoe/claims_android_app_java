@@ -906,7 +906,16 @@ public class SQLHandler extends SQLiteOpenHelper {
                 JSONObject resultClaim = new JSONObject();
                 resultClaim.put("details", claim);
                 resultClaim.put("items", getClaimItems(ClaimUUID));
-                resultClaim.put("services", getClaimServices(ClaimUUID));
+
+                JSONArray claimServices = getClaimServices(ClaimUUID);
+
+                for(int j = 0; j<claimServices.length(); j++){
+                    JSONObject service = claimServices.getJSONObject(j);
+                    String subServices = service.getString("SubServicesItems");
+                    JSONArray subServicesItems = new JSONArray(subServices);
+                    service.put("SubServicesItems",subServicesItems);
+                }
+                resultClaim.put("services", claimServices);
                 result.put(resultClaim);
             }
         } catch (Exception e) {

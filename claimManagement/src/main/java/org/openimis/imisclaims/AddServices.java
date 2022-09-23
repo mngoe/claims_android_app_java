@@ -260,7 +260,7 @@ public class AddServices extends ImisActivity {
                     //add subservices & items
                     if (lvSServiceList.size() != 0) {
                         float amount = Float.valueOf(etSAmount.getText().toString());
-                        JSONArray sServicesItems = new JSONArray();
+                        JSONArray subServiceItems = new JSONArray();
 
                         for (int i = 0; i < CustomAdapter.editModelArrayList.size(); i++) {
 
@@ -270,12 +270,11 @@ public class AddServices extends ImisActivity {
                             sService.put("Price", CustomAdapter.editModelArrayList.get(i).getPrice());
                             sService.put("Type", CustomAdapter.editModelArrayList.get(i).getType());
 
-                            sServicesItems.put(sService);
-
+                            subServiceItems.put(sService);
                         }
 
                         lvService.put("Price", String.valueOf(amount));
-                        lvService.put("SubServicesItems", sServicesItems.toString());
+                        lvService.put("SubServicesItems", String.valueOf(subServiceItems));
 
                     } else {
                         Amount = etSAmount.getText().toString();
