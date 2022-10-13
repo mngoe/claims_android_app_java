@@ -4,9 +4,5 @@
 		android:icon="@drawable/addservices"
 		android:title="@string/AddServices">
 	</item>
-	<item android:id="@+id/mnuAddItems"
-		android:icon="@drawable/additems"
-		android:title="@string/AddItems">
-	</item>
 </menu>
     

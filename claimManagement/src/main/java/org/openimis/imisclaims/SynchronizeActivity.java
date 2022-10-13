@@ -295,7 +295,7 @@ public class SynchronizeActivity extends ImisActivity {
                     for (int s = 0; s < arrSubService.length(); s++) {
                         objSubServices = arrSubService.getJSONObject(s);
                         sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
-                                objSubServices.getString("ServiceLinked"), objSubServices.getString("qty"));
+                                objSubServices.getString("ServiceLinked"), objSubServices.getString("qty"), objSubServices.getString("price"));
                     }
                 }
 
@@ -307,7 +307,7 @@ public class SynchronizeActivity extends ImisActivity {
                     for (int t = 0; t < arrSubItem.length(); t++) {
                         objSubItems = arrSubItem.getJSONObject(t);
                         sqlHandler.InsertSubItems(objSubItems.getString("ItemID"),
-                                objSubItems.getString("ServiceID"), objSubItems.getString("qty"));
+                                objSubItems.getString("ServiceID"), objSubItems.getString("qty"), objSubItems.getString("price"));
                     }
                 }
             }
@@ -381,6 +381,8 @@ public class SynchronizeActivity extends ImisActivity {
             JSONObject ob = null;
             ob = new JSONObject(content[0]);
             String diagnoses = ob.getString("diagnoses");
+            String services = ob.getString("services");
+            String items = ob.getString("items");
 
             sqlHandler.ClearAll("tblReferences");
 
@@ -391,6 +393,25 @@ public class SynchronizeActivity extends ImisActivity {
                 objDiagnoses = arrDiagnoses.getJSONObject(i);
                 sqlHandler.InsertReferences(objDiagnoses.getString("code"), objDiagnoses.getString("name"), "D", "");
             }
+
+            //Insert Services references
+            JSONArray arrServices;
+            JSONObject objServices;
+            arrServices = new JSONArray(services);
+            for (int i = 0; i < arrServices.length(); i++) {
+                objServices = arrServices.getJSONObject(i);
+                sqlHandler.InsertReferences(objServices.getString("code"), objServices.getString("name"), "S", objServices.getString("price"));
+            }
+
+            //Insert Items references
+            JSONArray arrItems;
+            JSONObject objItems;
+            arrItems = new JSONArray(items);
+            for (int i = 0; i < arrItems.length(); i++) {
+                objItems = arrItems.getJSONObject(i);
+                sqlHandler.InsertReferences(objItems.getString("code"), objItems.getString("name"), "I", objItems.getString("price"));
+            }
+
         } catch (IOException | JSONException e) {
             e.printStackTrace();
             return false;

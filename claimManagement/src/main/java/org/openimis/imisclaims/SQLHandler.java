@@ -36,8 +36,8 @@ public class SQLHandler extends SQLiteOpenHelper {
 
     private static final String CreateTableServices = "CREATE TABLE IF NOT EXISTS tblServices(Id text, Code text, Name text, Type text, Price text, PackageType text);";
     private static final String CreateTableItems = "CREATE TABLE IF NOT EXISTS tblItems(Id text, Code text, Name text, Type text, Price text);";
-    private static final String CreateTableSubServices = "CREATE TABLE IF NOT EXISTS tblSubServices(ServiceId text, ServiceLinked text, Quantity text);";
-    private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text, Quantity text);";
+    private static final String CreateTableSubServices = "CREATE TABLE IF NOT EXISTS tblSubServices(ServiceId text, ServiceLinked text, Quantity text, Price text);";
+    private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text, Quantity text, Price text);";
 
 
     private static final String CreateTableMapping = "CREATE TABLE IF NOT EXISTS tblMapping(Code TEXT,Name TEXT,Type TEXT);";
@@ -260,12 +260,13 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void InsertSubServices(String ServiceId, String ServiceLinked, String qty) {
+    public void InsertSubServices(String ServiceId, String ServiceLinked, String qty, String price) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("ServiceId", ServiceId);
             cv.put("ServiceLinked", ServiceLinked);
             cv.put("Quantity", qty);
+            cv.put("Price", price);
 
             db.insert("tblSubServices", null, cv);
         } catch (Exception e) {
@@ -273,12 +274,13 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void InsertSubItems(String ItemId, String ServiceId, String Qty) {
+    public void InsertSubItems(String ItemId, String ServiceId, String Qty, String price) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("ItemId", ItemId);
             cv.put("ServiceId", ServiceId);
             cv.put("Quantity", Qty);
+            cv.put("Price", price);
 
             db.insert("tblSubItems", null, cv);
         } catch (Exception e) {
@@ -554,11 +556,11 @@ public class SQLHandler extends SQLiteOpenHelper {
         return resultSet;
     }
 
-    public JSONArray getSubServicesId(String id) {
+    public JSONArray getSubServicesIds(String id) {
         String nullOverride="";
         JSONArray resultSet = new JSONArray();
         try {
-            String query = "SELECT ServiceId FROM tblSubServices WHERE ServiceLinked = "+ id;
+            String query = "SELECT * FROM tblSubServices WHERE ServiceLinked = "+ id;
             Cursor cursor1 = db.rawQuery(query, null);
             cursor1.moveToFirst();
             // looping through all rows
@@ -591,7 +593,7 @@ public class SQLHandler extends SQLiteOpenHelper {
         String nullOverride="";
         JSONArray resultSet = new JSONArray();
         try {
-            String query = "SELECT ItemId FROM tblSubItems WHERE ServiceId = "+ id;
+            String query = "SELECT * FROM tblSubItems WHERE ServiceId = "+ id;
             Cursor cursor1 = db.rawQuery(query, null);
             cursor1.moveToFirst();
             // looping through all rows
@@ -608,8 +610,8 @@ public class SQLHandler extends SQLiteOpenHelper {
                         e.printStackTrace();
                         Log.d("Tag Name", e.getMessage());
                     }
-                    resultSet.put(rowObject);
                 }
+                resultSet.put(rowObject);
                 cursor1.moveToNext();
             }
             cursor1.close();

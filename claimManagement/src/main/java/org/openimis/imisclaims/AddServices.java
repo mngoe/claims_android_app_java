@@ -115,11 +115,12 @@ public class AddServices extends ImisActivity {
 
                         try {
 
-                            JSONArray subServicesIds = sqlHandler.getSubServicesId(id);
+                            JSONArray subServices = sqlHandler.getSubServicesIds(id);
                             JSONArray subServiceArr = new JSONArray();
-                            for (int i = 0; i < subServicesIds.length(); i++) {
-                                JSONObject objService = sqlHandler.getService(subServicesIds.getJSONObject(i).getString("ServiceId"));
-                                objService.put("QuantityMax", sqlHandler.getSubServiceQty(subServicesIds.getJSONObject(i).getString("ServiceId")));
+                            for (int i = 0; i < subServices.length(); i++) {
+                                JSONObject objService = sqlHandler.getService(subServices.getJSONObject(i).getString("ServiceId"));
+                                objService.put("QuantityMax", subServices.getJSONObject(i).getString("Quantity"));
+                                objService.put("Price", subServices.getJSONObject(i).getString("Price"));
                                 subServiceArr.put(objService);
                             }
 
@@ -127,7 +128,8 @@ public class AddServices extends ImisActivity {
                             JSONArray subItemArr = new JSONArray();
                             for (int i = 0; i < subItemIds.length(); i++) {
                                 JSONObject objItem = sqlHandler.getItem(subItemIds.getJSONObject(i).getString("ItemId"));
-                                objItem.put("QuantityMax", sqlHandler.getSubItemQty(subItemIds.getJSONObject(i).getString("ItemId")));
+                                objItem.put("QuantityMax", subItemIds.getJSONObject(i).getString("Quantity"));
+                                objItem.put("Price", subItemIds.getJSONObject(i).getString("Price"));
                                 subItemArr.put(objItem);
                             }
 

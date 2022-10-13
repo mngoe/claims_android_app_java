@@ -543,6 +543,7 @@ public class MainActivity extends ImisActivity {
                         sqlHandler.ClearAll("tblServices");
                         sqlHandler.ClearAll("tblSubServices");
                         sqlHandler.ClearAll("tblSubItems");
+                        sqlHandler.ClearMapping("S");
                         //Insert Services
                         JSONObject objServices;
                         for (int i = 0; i < arr.length(); i++) {
@@ -564,7 +565,7 @@ public class MainActivity extends ImisActivity {
                                 for (int s = 0; s < arrSubService.length(); s++) {
                                     objSubServices = arrSubService.getJSONObject(s);
                                     sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
-                                            objSubServices.getString("ServiceLinked"),objSubServices.getString("qty"));
+                                            objSubServices.getString("ServiceLinked"),objSubServices.getString("qty"),objSubServices.getString("price"));
                                 }
                             }
 
@@ -577,7 +578,7 @@ public class MainActivity extends ImisActivity {
                                 for (int t = 0; t < arrSubItem.length(); t++) {
                                     objSubItems = arrSubItem.getJSONObject(t);
                                     sqlHandler.InsertSubItems(objSubItems.getString("ItemID"),
-                                            objSubItems.getString("ServiceID"), objSubItems.getString("qty"));
+                                            objSubItems.getString("ServiceID"), objSubItems.getString("qty"),objSubItems.getString("price"));
                                 }
 
                             }
@@ -627,6 +628,7 @@ public class MainActivity extends ImisActivity {
 
                     arr = new JSONArray(items);
                     sqlHandler.ClearAll("tblItems");
+                    sqlHandler.ClearMapping("I");
                     //Insert Services
                     JSONObject objItems;
                     for (int i = 0; i < arr.length(); i++) {
@@ -748,6 +750,7 @@ public class MainActivity extends ImisActivity {
                 public void run() {
                     String diagnoses = null;
                     String items = null;
+                    String services = null;
                     String last_update_date = null;
                     String error_occurred = null;
                     String error_message = null;
@@ -773,6 +776,8 @@ public class MainActivity extends ImisActivity {
                             if (String.valueOf(response.getStatusLine().getStatusCode()).equals("200")) {
                                 diagnoses = ob.getString("diagnoses");
                                 last_update_date = ob.getString("update_since_last");
+                                services = ob.getString("services");
+                                items = ob.getString("items");
                                 saveLastUpdateDate(last_update_date);
 
                                 sqlHandler.ClearAll("tblReferences");
@@ -786,22 +791,24 @@ public class MainActivity extends ImisActivity {
                                     objDiagnoses = arrDiagnoses.getJSONObject(i);
                                     sqlHandler.InsertReferences(objDiagnoses.getString("code"), objDiagnoses.getString("name"), "D", "");
                                 }
-                                //sqlHandler.InsertReferences("0034", "paludisme", "D", "");
+
+                                //Insert Services
+                                JSONArray arrServices = null;
+                                JSONObject objServices = null;
+                                arrServices = new JSONArray(services);
+                                for (int i = 0; i < arrServices.length(); i++) {
+                                    objServices = arrServices.getJSONObject(i);
+                                    sqlHandler.InsertReferences(objServices.getString("code"), objServices.getString("name"), "S", objServices.getString("price"));
+                                }
 
                                 //Insert Items
-                                /*JSONArray arrItems = null;
+                                JSONArray arrItems = null;
                                 JSONObject objItems = null;
                                 arrItems = new JSONArray(items);
                                 for (int i = 0; i < arrItems.length(); i++) {
                                     objItems = arrItems.getJSONObject(i);
                                     sqlHandler.InsertReferences(objItems.getString("code"), objItems.getString("name"), "I", objItems.getString("price"));
-                                    sqlHandler.InsertMapping(objItems.getString("code"), objItems.getString("name"), "I");
-                                }*/
-
-
-                                //sqlHandler.InsertReferences("0298", "paracetamol", "I", "1000");
-                                //sqlHandler.InsertMapping("0298", "paracetamol", "I");
-
+                                }
 
                                 runOnUiThread(() -> {
                                     progressDialog.dismiss();
@@ -896,8 +903,9 @@ public class MainActivity extends ImisActivity {
                                 saveLastUpdateDate(last_update_date);
 
                                 sqlHandler.ClearAll("tblReferences");
-                                sqlHandler.ClearMapping("S");
-                                sqlHandler.ClearMapping("I");
+                                //sqlHandler.ClearMapping("S");
+                                //sqlHandler.ClearMapping("I");
+
                                 //Insert Diagnosese
                                 JSONArray arrDiagnoses;
                                 JSONObject objDiagnoses;
@@ -914,7 +922,6 @@ public class MainActivity extends ImisActivity {
                                 for (int i = 0; i < arrServices.length(); i++) {
                                     objServices = arrServices.getJSONObject(i);
                                     sqlHandler.InsertReferences(objServices.getString("code"), objServices.getString("name"), "S", objServices.getString("price"));
-                                    sqlHandler.InsertMapping(objServices.getString("code"), objServices.getString("name"), "S");
                                 }
 
                                 //Insert Items
@@ -924,20 +931,19 @@ public class MainActivity extends ImisActivity {
                                 for (int i = 0; i < arrItems.length(); i++) {
                                     objItems = arrItems.getJSONObject(i);
                                     sqlHandler.InsertReferences(objItems.getString("code"), objItems.getString("name"), "I", objItems.getString("price"));
-                                    sqlHandler.InsertMapping(objItems.getString("code"), objItems.getString("name"), "I");
                                 }
 
                                 runOnUiThread(() -> {
                                     progressDialog.dismiss();
                                     Toast.makeText(MainActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
 
-                                    JSONObject object1 = new JSONObject();
+                                    /*JSONObject object1 = new JSONObject();
                                     try {
                                         object1.put("claim_administrator_code", global.getOfficerCode());
                                         DownLoadServicesItemsPriceList(object1);
                                     } catch (JSONException | IOException e) {
                                         e.printStackTrace();
-                                    }
+                                    }*/
 
                                 });
 
