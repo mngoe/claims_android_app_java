@@ -115,11 +115,12 @@ public class AddServices extends ImisActivity {
 
                         try {
 
-                            JSONArray subServicesIds = sqlHandler.getSubServicesId(id);
+                            JSONArray subServices = sqlHandler.getSubServicesIds(id);
                             JSONArray subServiceArr = new JSONArray();
-                            for (int i = 0; i < subServicesIds.length(); i++) {
-                                JSONObject objService = sqlHandler.getService(subServicesIds.getJSONObject(i).getString("ServiceId"));
-                                objService.put("QuantityMax", sqlHandler.getSubServiceQty(subServicesIds.getJSONObject(i).getString("ServiceId")));
+                            for (int i = 0; i < subServices.length(); i++) {
+                                JSONObject objService = sqlHandler.getService(subServices.getJSONObject(i).getString("ServiceId"));
+                                objService.put("QuantityMax", subServices.getJSONObject(i).getString("Quantity"));
+                                objService.put("Price", subServices.getJSONObject(i).getString("Price"));
                                 subServiceArr.put(objService);
                             }
 
@@ -127,7 +128,8 @@ public class AddServices extends ImisActivity {
                             JSONArray subItemArr = new JSONArray();
                             for (int i = 0; i < subItemIds.length(); i++) {
                                 JSONObject objItem = sqlHandler.getItem(subItemIds.getJSONObject(i).getString("ItemId"));
-                                objItem.put("QuantityMax", sqlHandler.getSubItemQty(subItemIds.getJSONObject(i).getString("ItemId")));
+                                objItem.put("QuantityMax", subItemIds.getJSONObject(i).getString("Quantity"));
+                                objItem.put("Price", subItemIds.getJSONObject(i).getString("Price"));
                                 subItemArr.put(objItem);
                             }
 
@@ -260,7 +262,7 @@ public class AddServices extends ImisActivity {
                     //add subservices & items
                     if (lvSServiceList.size() != 0) {
                         float amount = Float.valueOf(etSAmount.getText().toString());
-                        JSONArray sServicesItems = new JSONArray();
+                        JSONArray subServiceItems = new JSONArray();
 
                         for (int i = 0; i < CustomAdapter.editModelArrayList.size(); i++) {
 
@@ -268,13 +270,13 @@ public class AddServices extends ImisActivity {
                             sService.put("Code", CustomAdapter.editModelArrayList.get(i).getCode());
                             sService.put("Quantity", CustomAdapter.editModelArrayList.get(i).getQty());
                             sService.put("Price", CustomAdapter.editModelArrayList.get(i).getPrice());
+                            sService.put("Type", CustomAdapter.editModelArrayList.get(i).getType());
 
-                            sServicesItems.put(sService);
-
+                            subServiceItems.put(sService);
                         }
 
                         lvService.put("Price", String.valueOf(amount));
-                        lvService.put("SubServicesItems", sServicesItems.toString());
+                        lvService.put("SubServicesItems", String.valueOf(subServiceItems));
 
                     } else {
                         Amount = etSAmount.getText().toString();
@@ -334,6 +336,7 @@ public class AddServices extends ImisActivity {
             editModel.setQty(lvSServiceList.get(i).get("Quantity"));
             editModel.setPrice(lvSServiceList.get(i).get("Price"));
             editModel.setQtyMax(lvSServiceList.get(i).get("QtyMax"));
+            editModel.setType("S");
             list.add(editModel);
         }
 
@@ -344,6 +347,7 @@ public class AddServices extends ImisActivity {
             editModel.setQty(lvSItemList.get(i).get("Quantity"));
             editModel.setPrice(lvSItemList.get(i).get("Price"));
             editModel.setQtyMax(lvSItemList.get(i).get("QtyMax"));
+            editModel.setType("I");
             list.add(editModel);
         }
 

@@ -261,11 +261,11 @@ public class ClaimActivity extends ImisActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.mnuAddItems:
+            /*case R.id.mnuAddItems:
                 Intent addItemsIntent = new Intent(ClaimActivity.this, AddItems.class);
                 addItemsIntent.putExtra(EXTRA_READONLY, isIntentReadonly());
                 ClaimActivity.this.startActivity(addItemsIntent);
-                return true;
+                return true;*/
             case R.id.mnuAddServices:
                 Intent addServicesIntent = new Intent(ClaimActivity.this, AddServices.class);
                 addServicesIntent.putExtra(EXTRA_READONLY, isIntentReadonly());
@@ -536,7 +536,7 @@ public class ClaimActivity extends ImisActivity {
                                 service.put("PackageType", serviceJson.getString("ServicePackageType"));
 
 
-                                if(!serviceJson.getString("ServiceQuantity").equals("S")){
+                                if(!serviceJson.getString("ServicePackageType").equals("S")){
                                     service.put("SubServicesItems", serviceJson.getString("SubServicesItems"));
                                 }
 
@@ -705,7 +705,7 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("ClaimDate", claimDate);
         claimCV.put("HFCode", etHealthFacility.getText().toString());
         claimCV.put("ClaimAdmin", etClaimAdmin.getText().toString());
-        claimCV.put("ClaimCode", etClaimCode.getText().toString() + etInsureeNumber.getText().toString());
+        claimCV.put("ClaimCode", etInsureeNumber.getText().toString() + etClaimCode.getText().toString());
         //claimCV.put("GuaranteeNumber", etGuaranteeNo.getText().toString());
         claimCV.put("InsureeNumber", etInsureeNumber.getText().toString());
         claimCV.put("StartDate", etStartDate.getText().toString());
