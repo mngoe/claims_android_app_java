@@ -104,6 +104,13 @@ android {
             buildConfigField "String", "API_BASE_URL", '"https://cs.minsante.cm/rest/"'
             dimension 'std'
         }
+        csDev {
+            applicationIdSuffix ".bephaDev"
+            buildConfigField "String", "APP_DIR", '"IMIS-BEPHADEV"'
+            resValue "string", "app_name_claims", "Demande Remboursement CS"
+            buildConfigField "String", "API_BASE_URL", '"https://cs.minsante.cm/rest/"'
+            dimension 'std'
+        }
         niger {
             applicationIdSuffix ".niger"
             resValue "string", "app_name_claims", "Claims Niger"
@@ -154,6 +161,9 @@ android {
 
         bephaDev.java.srcDir 'src/bephaDev/java'
         bephaDev.res.srcDir 'src/bephaDev/res'
+
+        csDev.java.srcDir 'src/csDev/java'
+        csDev.res.srcDir 'src/csDev/res'
 
         niger.java.srcDir 'src/niger/java'
         niger.res.srcDir 'src/niger/res'
