@@ -82,7 +82,7 @@
   <string name="CHFID">Numéro de chèque</string>
   <string name="StartDate">Date de début</string>
   <string name="EndDate">Date de fin</string>
-  <string name="Diagnosis">Diagnostic</string>
+  <string name="Diagnosis">Prestation Principale</string>
   <string name="Diagnosis1">Diagnostic 1</string>
   <string name="Diagnosis2">Diagnostic 2</string>
   <string name="Diagnosis3">Diagnostic 3</string>
@@ -124,9 +124,9 @@
   <string name="MapItems">Lier des prod. méd.</string>
   <string name="MapServices">Lier des services médicaux</string>
   <string name="Saving">Enregistrer</string>
-  <string name="Emergency">Urgence</string>
-  <string name="Referral">Référer</string>
-  <string name="Other">Autre</string>
+  <string name="Emergency">Suivi grossesse et ses complications</string>
+  <string name="Referral">Suivi de l’accouchement et ses complications</string>
+  <string name="Other">Suivi post natal de la mère, du nouveau-né et ses complications</string>
   <string name="MissingVisitType">Veuillez sélectionner le type de visite.</string>
   <string name="New">Nouvelle prestation</string>
   <string name="Save">Envoyer la prestation</string>
