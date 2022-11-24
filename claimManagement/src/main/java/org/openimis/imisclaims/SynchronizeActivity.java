@@ -35,6 +35,7 @@ public class SynchronizeActivity extends ImisActivity {
     private static final int REQUEST_EXPORT_XML_FILE = 2;
     ArrayList<String> broadcastList;
     ToRestApi toRestApi;
+    MainActivity ma;
 
     TextView tvUploadClaims, tvZipClaims;
     RelativeLayout uploadClaims, zipClaims, importMasterData, downloadMasterData;
@@ -279,37 +280,46 @@ public class SynchronizeActivity extends ImisActivity {
             JSONObject objServices;
             for (int i = 0; i < arrServices.length(); i++) {
                 objServices = arrServices.getJSONObject(i);
-                sqlHandler.InsertService(objServices.getString("ServiceID"),
-                        objServices.getString("ServCode"),
-                        objServices.getString("ServName"), "S",
-                        objServices.getString("ServPrice"),
-                        objServices.getString("ServPackageType"));
-                sqlHandler.InsertMapping(objServices.getString("ServCode"),
-                        objServices.getString("ServName"), "S");
+                String priceService = ma.getObjectPriceList(objServices.getString("ServCode"));
 
-                if (objServices.has("SubService")){
-                    JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
+                if( priceService != null){
+                    sqlHandler.InsertService(objServices.getString("ServiceID"),
+                            objServices.getString("ServCode"),
+                            objServices.getString("ServName"), "S",
+                            priceService,
+                            objServices.getString("ServPackageType"));
+                    sqlHandler.InsertMapping(objServices.getString("ServCode"),
+                            objServices.getString("ServName"), "S");
 
-                    //Insert SubServices
-                    JSONObject objSubServices;
-                    for (int s = 0; s < arrSubService.length(); s++) {
-                        objSubServices = arrSubService.getJSONObject(s);
-                        sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
-                                objSubServices.getString("ServiceLinked"), objSubServices.getString("qty"), objSubServices.getString("price"));
+                    if (objServices.has("SubService")) {
+
+                        JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
+
+                        //Insert SubServices
+                        JSONObject objSubServices;
+                        for (int s = 0; s < arrSubService.length(); s++) {
+                            objSubServices = arrSubService.getJSONObject(s);
+                            sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
+                                    objSubServices.getString("ServiceLinked"),objSubServices.getString("qty"),objSubServices.getString("price"));
+                        }
+                    }
+
+                    if (objServices.has("SubItems")) {
+
+                        JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
+
+                        //Insert SubItems
+                        JSONObject objSubItems;
+                        for (int t = 0; t < arrSubItem.length(); t++) {
+                            objSubItems = arrSubItem.getJSONObject(t);
+                            sqlHandler.InsertSubItems(objSubItems.getString("ItemID"),
+                                    objSubItems.getString("ServiceID"), objSubItems.getString("qty"),objSubItems.getString("price"));
+                        }
+
                     }
                 }
 
-                if(objServices.has("SubItems")){
-                    JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
 
-                    //Insert SubItems
-                    JSONObject objSubItems;
-                    for (int t = 0; t < arrSubItem.length(); t++) {
-                        objSubItems = arrSubItem.getJSONObject(t);
-                        sqlHandler.InsertSubItems(objSubItems.getString("ItemID"),
-                                objSubItems.getString("ServiceID"), objSubItems.getString("qty"), objSubItems.getString("price"));
-                    }
-                }
             }
 
         } catch (JSONException e) {
