@@ -14,6 +14,7 @@ import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.ParseException;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -257,6 +258,21 @@ public class SynchronizeActivity extends ImisActivity {
         }
     }
 
+    public String getPriceService(String code, JSONArray arrPriceService){
+        String price = null;
+        try{
+            for (int i = 0; i < arrPriceService.length();i++){
+                JSONObject object = arrPriceService.getJSONObject(i);
+                if (object.getString("code").equals(code)){
+                    price = object.getString("price");
+                }
+            }
+        }catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return price;
+    }
+
 
     public boolean downloadServices() {
 
@@ -266,28 +282,37 @@ public class SynchronizeActivity extends ImisActivity {
         String services = toRestApi.getFromRestApiVersion(functionServices, "2");
 
         JSONArray arrServices;
+        JSONArray arrPriceListServices;
 
 
         try {
+            //get list of all services in database
             arrServices = new JSONArray(services);
+
+            //get pricelist service for health facility and user
+            arrPriceListServices = new JSONArray(getServicesPriceList());
 
             sqlHandler.ClearAll("tblServices");
             sqlHandler.ClearAll("tblSubServices");
             sqlHandler.ClearAll("tblSubItems");
             sqlHandler.ClearMapping("S");
 
-            //Insert Services
-            JSONObject objServices;
-            for (int i = 0; i < arrServices.length(); i++) {
-                objServices = arrServices.getJSONObject(i);
-                String priceService = ma.getObjectPriceList(objServices.getString("ServCode"));
+            //insert service with healthFacility price
+            for (int i = 0; i < arrServices.length(); i++){
 
-                if( priceService != null){
+                JSONObject objServices = arrServices.getJSONObject(i);
+                
+                //get price of service
+                String priceService = getPriceService(objServices.getString("ServCode"),arrPriceListServices);
+
+                if(priceService != null){
+
                     sqlHandler.InsertService(objServices.getString("ServiceID"),
                             objServices.getString("ServCode"),
                             objServices.getString("ServName"), "S",
                             priceService,
                             objServices.getString("ServPackageType"));
+
                     sqlHandler.InsertMapping(objServices.getString("ServCode"),
                             objServices.getString("ServName"), "S");
 
@@ -319,7 +344,6 @@ public class SynchronizeActivity extends ImisActivity {
                     }
                 }
 
-
             }
 
         } catch (JSONException e) {
@@ -327,6 +351,43 @@ public class SynchronizeActivity extends ImisActivity {
             return false;
         }
         return true;
+    }
+
+    public String getServicesPriceList(){
+
+        final HttpResponse[] resp = {null};
+        String content = null;
+        JSONObject object1 = new JSONObject();
+        String ServicePriceList = null;
+
+        if (global.isNetworkAvailable()) {
+
+            String functionName = "claim/getpaymentlists";
+            try {
+                object1.put("claim_administrator_code", global.getOfficerCode());
+                HttpResponse response = toRestApi.postToRestApiToken(object1, functionName);
+                resp[0] = response;
+                HttpEntity respEntity = response.getEntity();
+                if (respEntity != null) {
+                    final String[] code = {null};
+                    // EntityUtils to get the response content
+                    try {
+                        content = EntityUtils.toString(respEntity);
+                        android.util.Log.e("priceListServices", content);
+
+                        JSONObject objResponse = new JSONObject(content);
+                        ServicePriceList = objResponse.getString("pricelist_services");
+
+                    } catch (JSONException | IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (JSONException | ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return ServicePriceList;
     }
 
     public boolean downloadItems() {

@@ -623,7 +623,7 @@ public class MainActivity extends ImisActivity {
 
         final HttpResponse[] resp = {null};
         String content = null;
-        String priceObjet = null;
+        String priceObjet = "";
         JSONObject object1 = new JSONObject();
 
         if (global.isNetworkAvailable()) {

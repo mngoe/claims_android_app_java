@@ -913,9 +913,11 @@ public class SQLHandler extends SQLiteOpenHelper {
 
                 for(int j = 0; j<claimServices.length(); j++){
                     JSONObject service = claimServices.getJSONObject(j);
-                    String subServices = service.getString("SubServicesItems");
-                    JSONArray subServicesItems = new JSONArray(subServices);
-                    service.put("SubServicesItems",subServicesItems);
+                    if(service.has("SubServicesItems")){
+                        String subServices = service.getString("SubServicesItems");
+                        JSONArray subServicesItems = new JSONArray(subServices);
+                        service.put("SubServicesItems",subServicesItems);
+                    }
                 }
                 resultClaim.put("services", claimServices);
                 result.put(resultClaim);
