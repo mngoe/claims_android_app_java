@@ -55,7 +55,7 @@ public class ClaimActivity extends ImisActivity {
     int TotalItemService;
 
     EditText etStartDate, etEndDate, etClaimCode, etHealthFacility, etInsureeNumber, etClaimAdmin, etGuaranteeNo, etTotalClaimed, etTotalApproved, etTotalAdjusted, etExplanation, etAdjustment;
-    AutoCompleteTextView etDiagnosis, etDiagnosis1, etDiagnosis2, etDiagnosis3, etDiagnosis4;
+    AutoCompleteTextView etProgram, etDiagnosis, etDiagnosis1, etDiagnosis2, etDiagnosis3, etDiagnosis4;
     TextView tvItemTotal, tvServiceTotal;
     Button btnPost, btnNew;
     RadioGroup rgVisitType;
@@ -79,6 +79,7 @@ public class ClaimActivity extends ImisActivity {
         etStartDate = findViewById(R.id.etStartDate);
         etEndDate = findViewById(R.id.etEndDate);
         etDiagnosis = findViewById(R.id.etDiagnosis);
+        etProgram = findViewById(R.id.etProgram);
         btnNew = findViewById(R.id.btnNew);
         btnPost = findViewById(R.id.btnPost);
         btnScan = findViewById(R.id.btnScan);
@@ -106,6 +107,12 @@ public class ClaimActivity extends ImisActivity {
 
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
+
+        ProgramAdapter progam_Adapter = new ProgramAdapter(ClaimActivity.this, sqlHandler);
+        etProgram.setAdapter(progam_Adapter);
+        etProgram.setThreshold(1);
+        etProgram.setOnItemClickListener(progam_Adapter);
+
 
         DiseaseAdapter adapter = new DiseaseAdapter(ClaimActivity.this, sqlHandler);
         etDiagnosis.setAdapter(adapter);
@@ -349,6 +356,7 @@ public class ClaimActivity extends ImisActivity {
         etStartDate.setText("");
         etEndDate.setText("");
         etDiagnosis.setText("");
+        etProgram.setText("");
         lvItemList.clear();
         lvServiceList.clear();
         tvItemTotal.setText("0");
@@ -368,6 +376,7 @@ public class ClaimActivity extends ImisActivity {
         disableView(etInsureeNumber);
         disableView(etStartDate);
         disableView(etEndDate);
+        disableView(etProgram);
         disableView(etDiagnosis);
         disableView(etDiagnosis1);
         disableView(etDiagnosis2);
@@ -406,6 +415,8 @@ public class ClaimActivity extends ImisActivity {
 
             etStartDate.setText(claim.getString("visit_date_from"));
             etEndDate.setText(claim.getString("visit_date_to"));
+
+            etDiagnosis.setText(sqlHandler.getProgamName(claim.getString("program")));
 
             etDiagnosis.setText(sqlHandler.getDiseaseCode(claim.getString("main_dg")));
             etDiagnosis1.setText(sqlHandler.getDiseaseCode(claim.getString("sec_dg_1")));
@@ -492,6 +503,8 @@ public class ClaimActivity extends ImisActivity {
                         etInsureeNumber.setText(claimDetails.optString("InsureeNumber"));
                         etStartDate.setText(claimDetails.optString("StartDate"));
                         etEndDate.setText(claimDetails.optString("EndDate"));
+
+                        etProgram.setText(claimDetails.optString("Program"));
 
                         etDiagnosis.setText(claimDetails.optString("ICDCode"));
                         etDiagnosis1.setText(claimDetails.optString("ICDCode1"));
@@ -677,6 +690,11 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
+        if (etProgram.getText().length() == 0) {
+            showValidationDialog(etProgram, getResources().getString(R.string.MissingProgram));
+            return false;
+        }
+
         if (rgVisitType.getCheckedRadioButtonId() == -1) {
             showValidationDialog(rgVisitType, getResources().getString(R.string.MissingVisitType));
             return false;
@@ -741,6 +759,7 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("InsureeNumber", etInsureeNumber.getText().toString());
         claimCV.put("StartDate", etStartDate.getText().toString());
         claimCV.put("EndDate", etEndDate.getText().toString());
+        claimCV.put("Program", etProgram.getText().toString());
         claimCV.put("ICDCode", etDiagnosis.getText().toString());
         claimCV.put("Comment", "");
         claimCV.put("Total", "");

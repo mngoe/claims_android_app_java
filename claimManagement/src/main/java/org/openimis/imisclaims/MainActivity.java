@@ -1,7 +1,6 @@
 package org.openimis.imisclaims;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -11,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Vibrator;
@@ -31,8 +31,8 @@ import android.widget.EditText;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.net.Uri;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.util.EntityUtils;
@@ -42,17 +42,13 @@ import org.json.JSONObject;
 import org.openimis.imisclaims.claimlisting.ClaimListingActivity;
 import org.openimis.imisclaims.tools.Log;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.Locale;
-
-import org.apache.commons.io.IOUtils;
-
-import java.io.File;
-import java.io.FileOutputStream;
 
 
 public class MainActivity extends ImisActivity {
@@ -652,6 +648,7 @@ public class MainActivity extends ImisActivity {
                     String diagnoses = null;
                     String services = null;
                     String items = null;
+                    //String programs = null;
                     String last_update_date = null;
                     String error_occurred = null;
                     String error_message = null;
@@ -677,6 +674,7 @@ public class MainActivity extends ImisActivity {
                                 diagnoses = ob.getString("diagnoses");
                                 services = ob.getString("services");
                                 items = ob.getString("items");
+                                //programs = ob.getString("programs");
                                 last_update_date = ob.getString("update_since_last");
                                 saveLastUpdateDate(last_update_date);
 
@@ -711,6 +709,18 @@ public class MainActivity extends ImisActivity {
                                     sqlHandler.InsertReferences(objItems.getString("code"), objItems.getString("name"), "I", objItems.getString("price"));
                                     sqlHandler.InsertMapping(objItems.getString("code"), objItems.getString("name"), "I");
                                 }
+
+                                //Insert Programs
+                                //JSONArray arrPrograms = null;
+                                //JSONObject objPrograms = null;
+                                //arrPrograms = new JSONArray(programs);
+                                /*for (int i = 0; i < arrPrograms.length(); i++) {
+                                    objPrograms = arrPrograms.getJSONObject(i);
+                                    sqlHandler.InsertPrograms(objPrograms.getString("id"), objPrograms.getString("name"));
+                                }*/
+                                sqlHandler.InsertPrograms("1","VIH");
+                                sqlHandler.InsertPrograms("2","Cheque sante");
+                                sqlHandler.InsertPrograms("3","Paludisme");
 
                                 runOnUiThread(() -> {
                                     progressDialog.dismiss();

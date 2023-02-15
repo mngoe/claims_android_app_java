@@ -109,6 +109,7 @@
     <string name="MissingEndDate">Please enter End Date</string>
     <string name="MissingClaim">Please select at least one item or service to submit the claim.</string>
     <string name="MissingDisease">Please select diagnose.</string>
+    <string name="MissingProgram">Please select program.</string>
     <string name="BiggerDate">End date cannot be smaller than the Start date.</string>
     <string name="AfterCurrentDate">End date cannot be later than the current date.</string>
     <string name="Ok">OK</string>
@@ -240,4 +241,5 @@
     <string name="TotalAdjusted">Total Adjusted</string>
     <string name="PriceAdjusted">Price Adjusted</string>
     <string name="QuantityAdjusted">Quantity Adjusted</string>
+    <string name="program">Program</string>
 </resources>

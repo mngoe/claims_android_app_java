@@ -109,6 +109,7 @@
   <string name="MissingEndDate">Veuillez entrer la date de fin</string>
   <string name="MissingClaim">Veuillez sélectionner au moins un produit médical ou un soin pour soumettre la prestation.</string>
   <string name="MissingDisease">Veuillez sélectionner un diagnostic.</string>
+  <string name="MissingProgram">Veuillez sélectionner un programme.</string>
   <string name="BiggerDate">La date de fin ne peut être antérieur à la date de début.</string>
   <string name="AfterCurrentDate">La date de fin ne peut pas être aprés à la date d\'aujourd\'hui.</string>
   <string name="Ok">OK</string>
@@ -197,4 +198,5 @@
   <string name="initializing">Initialisation.....</string>
   <string name="initializing_complete">Initialisation Terminée</string>
   <string name="application">Application</string>
+  <string name="program">Programme</string>
 </resources>
