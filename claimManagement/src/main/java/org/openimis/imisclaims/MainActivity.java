@@ -21,6 +21,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -32,6 +33,7 @@ import android.widget.Toast;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.ParseException;
 import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -524,6 +526,43 @@ public class MainActivity extends ImisActivity {
         return true;
     }
 
+    public String getServicesPriceList(){
+
+        final HttpResponse[] resp = {null};
+        String content = null;
+        JSONObject object1 = new JSONObject();
+        String ServicePriceList = null;
+
+        if (global.isNetworkAvailable()) {
+
+            String functionName = "claim/getpaymentlists";
+            try {
+                object1.put("claim_administrator_code", global.getOfficerCode());
+                HttpResponse response = toRestApi.postToRestApiToken(object1, functionName);
+                resp[0] = response;
+                HttpEntity respEntity = response.getEntity();
+                if (respEntity != null) {
+                    final String[] code = {null};
+                    // EntityUtils to get the response content
+                    try {
+                        content = EntityUtils.toString(respEntity);
+                        android.util.Log.e("priceListServices", content);
+
+                        JSONObject objResponse = new JSONObject(content);
+                        ServicePriceList = objResponse.getString("pricelist_services");
+
+                    } catch (JSONException | IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (JSONException | ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return ServicePriceList;
+    }
+
     public boolean getServices() {
         if (global.isNetworkAvailable()) {
             String progress_message = getResources().getString(R.string.application);
@@ -532,56 +571,66 @@ public class MainActivity extends ImisActivity {
 
                 String function = "GetListServiceAllItems";
                 String api_version = "2";
+                String services = toRestApi.getFromRestApiVersion(function, api_version);
+
+                JSONArray arr;
+                JSONArray arrPriceListServices;
 
                 try {
-                    String services = toRestApi.getFromRestApiVersion(function, api_version);
-
-                    JSONArray arr;
 
                     if (!services.equals("[]")) {
+                        //get list of all services in database
                         arr = new JSONArray(services);
+
+                        //get pricelist service for health facility and user
+                        arrPriceListServices = new JSONArray(getServicesPriceList());
+
                         sqlHandler.ClearAll("tblServices");
                         sqlHandler.ClearAll("tblSubServices");
                         sqlHandler.ClearAll("tblSubItems");
                         sqlHandler.ClearMapping("S");
-                        //Insert Services
-                        JSONObject objServices;
+
                         for (int i = 0; i < arr.length(); i++) {
-                            objServices = arr.getJSONObject(i);
-                            sqlHandler.InsertService(objServices.getString("ServiceID"),
-                                    objServices.getString("ServCode"),
-                                    objServices.getString("ServName"), "S",
-                                    objServices.getString("ServPrice"),
-                                    objServices.getString("ServPackageType"));
-                            sqlHandler.InsertMapping(objServices.getString("ServCode"),
-                                    objServices.getString("ServName"), "S");
+                            JSONObject objServices = arr.getJSONObject(i);
+                            String priceService = getObjectPriceList(objServices.getString("ServCode"), arrPriceListServices);
 
-                            if (objServices.has("SubService")) {
+                            if( priceService != null ){
+                                sqlHandler.InsertService(objServices.getString("ServiceID"),
+                                        objServices.getString("ServCode"),
+                                        objServices.getString("ServName"), "S",
+                                        priceService,
+                                        objServices.getString("ServPackageType"));
+                                sqlHandler.InsertMapping(objServices.getString("ServCode"),
+                                        objServices.getString("ServName"), "S");
 
-                                JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
+                                if (objServices.has("SubService")) {
 
-                                //Insert SubServices
-                                JSONObject objSubServices;
-                                for (int s = 0; s < arrSubService.length(); s++) {
-                                    objSubServices = arrSubService.getJSONObject(s);
-                                    sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
-                                            objSubServices.getString("ServiceLinked"),objSubServices.getString("qty"),objSubServices.getString("price"));
+                                    JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
+
+                                    //Insert SubServices
+                                    JSONObject objSubServices;
+                                    for (int s = 0; s < arrSubService.length(); s++) {
+                                        objSubServices = arrSubService.getJSONObject(s);
+                                        sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
+                                                objSubServices.getString("ServiceLinked"),objSubServices.getString("qty"),objSubServices.getString("price"));
+                                    }
+                                }
+
+                                if (objServices.has("SubItems")) {
+
+                                    JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
+
+                                    //Insert SubItems
+                                    JSONObject objSubItems;
+                                    for (int t = 0; t < arrSubItem.length(); t++) {
+                                        objSubItems = arrSubItem.getJSONObject(t);
+                                        sqlHandler.InsertSubItems(objSubItems.getString("ItemID"),
+                                                objSubItems.getString("ServiceID"), objSubItems.getString("qty"),objSubItems.getString("price"));
+                                    }
+
                                 }
                             }
 
-                            if (objServices.has("SubItems")) {
-
-                                JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
-
-                                //Insert SubItems
-                                JSONObject objSubItems;
-                                for (int t = 0; t < arrSubItem.length(); t++) {
-                                    objSubItems = arrSubItem.getJSONObject(t);
-                                    sqlHandler.InsertSubItems(objSubItems.getString("ItemID"),
-                                            objSubItems.getString("ServiceID"), objSubItems.getString("qty"),objSubItems.getString("price"));
-                                }
-
-                            }
                         }
 
                         runOnUiThread(() -> {
@@ -610,6 +659,21 @@ public class MainActivity extends ImisActivity {
             return false;
         }
         return true;
+    }
+
+    public String getObjectPriceList(String serviceCode, JSONArray arrServicePriceList){
+        String price = null;
+        try{
+            for (int i = 0; i < arrServicePriceList.length();i++){
+                JSONObject object = arrServicePriceList.getJSONObject(i);
+                if (object.getString("code").equals(serviceCode)){
+                    price = object.getString("price");
+                }
+            }
+        }catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return price;
     }
 
     public boolean getItems() {
@@ -698,10 +762,17 @@ public class MainActivity extends ImisActivity {
                             String dateS = formatter.format(new Date(0));
                             object.put("last_update_date", dateS);
 
-                            try {
+                            if(global.isLoggedIn()){
                                 DownLoadDiagnosesServicesItems(object);
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                            }else{
+                                doLoggedIn(() -> {
+                                    loginText.setText(R.string.Logout);
+                                    try{
+                                        DownLoadDiagnosesServicesItems(object);
+                                    }catch(IOException e){
+                                        e.printStackTrace();
+                                    }
+                                });
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -1021,6 +1092,7 @@ public class MainActivity extends ImisActivity {
                             // EntityUtils to get the response content
                             try {
                                 content = EntityUtils.toString(respEntity);
+                                Log.e("priceListServices", content);
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
