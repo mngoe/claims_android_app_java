@@ -526,6 +526,43 @@ public class MainActivity extends ImisActivity {
         return true;
     }
 
+    public String getServicesPriceList(){
+
+        final HttpResponse[] resp = {null};
+        String content = null;
+        JSONObject object1 = new JSONObject();
+        String ServicePriceList = null;
+
+        if (global.isNetworkAvailable()) {
+
+            String functionName = "claim/getpaymentlists";
+            try {
+                object1.put("claim_administrator_code", global.getOfficerCode());
+                HttpResponse response = toRestApi.postToRestApiToken(object1, functionName);
+                resp[0] = response;
+                HttpEntity respEntity = response.getEntity();
+                if (respEntity != null) {
+                    final String[] code = {null};
+                    // EntityUtils to get the response content
+                    try {
+                        content = EntityUtils.toString(respEntity);
+                        android.util.Log.e("priceListServices", content);
+
+                        JSONObject objResponse = new JSONObject(content);
+                        ServicePriceList = objResponse.getString("pricelist_services");
+
+                    } catch (JSONException | IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } catch (JSONException | ParseException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return ServicePriceList;
+    }
+
     public boolean getServices() {
         if (global.isNetworkAvailable()) {
             String progress_message = getResources().getString(R.string.application);
@@ -534,45 +571,30 @@ public class MainActivity extends ImisActivity {
 
                 String function = "GetListServiceAllItems";
                 String api_version = "2";
+                String services = toRestApi.getFromRestApiVersion(function, api_version);
 
-                final HttpResponse[] resp = {null};
-                String content = null;
-                JSONObject object1 = new JSONObject();
-
-                String functionName = "claim/getpaymentlists";
+                JSONArray arr;
+                JSONArray arrPriceListServices;
 
                 try {
-                    object1.put("claim_administrator_code", global.getOfficerCode());
-                    HttpResponse response = toRestApi.postToRestApiToken(object1, functionName);
-                    resp[0] = response;
-                    HttpEntity respEntity = response.getEntity();
-                    content = EntityUtils.toString(respEntity);
-                    //Log.e("priceListServices", content);
-
-                    JSONObject objResponse = new JSONObject(content);
-                    String ServicePriceList = objResponse.getString("pricelist_services");
-                    JSONArray arrServicePriceList = new JSONArray(ServicePriceList);
-
-
-
-                    String services = toRestApi.getFromRestApiVersion(function, api_version);
-
-                    JSONArray arr;
 
                     if (!services.equals("[]")) {
+                        //get list of all services in database
                         arr = new JSONArray(services);
+
+                        //get pricelist service for health facility and user
+                        arrPriceListServices = new JSONArray(getServicesPriceList());
+
                         sqlHandler.ClearAll("tblServices");
                         sqlHandler.ClearAll("tblSubServices");
                         sqlHandler.ClearAll("tblSubItems");
                         sqlHandler.ClearMapping("S");
-                        //Insert Services
-                        JSONObject objServices;
 
                         for (int i = 0; i < arr.length(); i++) {
-                            objServices = arr.getJSONObject(i);
-                            String priceService = getObjectPriceList(objServices.getString("ServCode"), arrServicePriceList);
+                            JSONObject objServices = arr.getJSONObject(i);
+                            String priceService = getObjectPriceList(objServices.getString("ServCode"), arrPriceListServices);
 
-                            if( priceService != null || priceService !=""){
+                            if( priceService != null ){
                                 sqlHandler.InsertService(objServices.getString("ServiceID"),
                                         objServices.getString("ServCode"),
                                         objServices.getString("ServName"), "S",
@@ -626,7 +648,7 @@ public class MainActivity extends ImisActivity {
                             onAllRequirementsMet();
                         }
                     });*/
-                } catch (JSONException | IOException e) {
+                } catch (JSONException e) {
                     e.printStackTrace();
                     runOnUiThread(() -> progressDialog.dismiss());
                 }
@@ -640,24 +662,18 @@ public class MainActivity extends ImisActivity {
     }
 
     public String getObjectPriceList(String serviceCode, JSONArray arrServicePriceList){
-
-        String priceObjet = "";
-
-            try {
-                        for(int i=0;i>arrServicePriceList.length();i++){
-                            JSONObject obj = arrServicePriceList.getJSONObject(i);
-
-                            //compare name of code in priceList and return price
-                            if(serviceCode.equals(obj.getString("code"))){
-                                priceObjet = obj.getString("price");
-                            }
-                        }
-
-            } catch (JSONException | ParseException e) {
-                e.printStackTrace();
+        String price = null;
+        try{
+            for (int i = 0; i < arrServicePriceList.length();i++){
+                JSONObject object = arrServicePriceList.getJSONObject(i);
+                if (object.getString("code").equals(serviceCode)){
+                    price = object.getString("price");
+                }
             }
-
-        return priceObjet;
+        }catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return price;
     }
 
     public boolean getItems() {
@@ -746,10 +762,17 @@ public class MainActivity extends ImisActivity {
                             String dateS = formatter.format(new Date(0));
                             object.put("last_update_date", dateS);
 
-                            try {
+                            if(global.isLoggedIn()){
                                 DownLoadDiagnosesServicesItems(object);
-                            } catch (IOException e) {
-                                e.printStackTrace();
+                            }else{
+                                doLoggedIn(() -> {
+                                    loginText.setText(R.string.Logout);
+                                    try{
+                                        DownLoadDiagnosesServicesItems(object);
+                                    }catch(IOException e){
+                                        e.printStackTrace();
+                                    }
+                                });
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
