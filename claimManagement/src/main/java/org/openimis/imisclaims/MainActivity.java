@@ -535,7 +535,26 @@ public class MainActivity extends ImisActivity {
                 String function = "GetListServiceAllItems";
                 String api_version = "2";
 
+                final HttpResponse[] resp = {null};
+                String content = null;
+                JSONObject object1 = new JSONObject();
+
+                String functionName = "claim/getpaymentlists";
+
                 try {
+                    object1.put("claim_administrator_code", global.getOfficerCode());
+                    HttpResponse response = toRestApi.postToRestApiToken(object1, functionName);
+                    resp[0] = response;
+                    HttpEntity respEntity = response.getEntity();
+                    content = EntityUtils.toString(respEntity);
+                    //Log.e("priceListServices", content);
+
+                    JSONObject objResponse = new JSONObject(content);
+                    String ServicePriceList = objResponse.getString("pricelist_services");
+                    JSONArray arrServicePriceList = new JSONArray(ServicePriceList);
+
+
+
                     String services = toRestApi.getFromRestApiVersion(function, api_version);
 
                     JSONArray arr;
@@ -548,11 +567,12 @@ public class MainActivity extends ImisActivity {
                         sqlHandler.ClearMapping("S");
                         //Insert Services
                         JSONObject objServices;
+
                         for (int i = 0; i < arr.length(); i++) {
                             objServices = arr.getJSONObject(i);
-                            String priceService = getObjectPriceList(objServices.getString("ServCode"));
+                            String priceService = getObjectPriceList(objServices.getString("ServCode"), arrServicePriceList);
 
-                            if( priceService != null){
+                            if( priceService != null || priceService !=""){
                                 sqlHandler.InsertService(objServices.getString("ServiceID"),
                                         objServices.getString("ServCode"),
                                         objServices.getString("ServName"), "S",
@@ -606,7 +626,7 @@ public class MainActivity extends ImisActivity {
                             onAllRequirementsMet();
                         }
                     });*/
-                } catch (JSONException e) {
+                } catch (JSONException | IOException e) {
                     e.printStackTrace();
                     runOnUiThread(() -> progressDialog.dismiss());
                 }
@@ -619,32 +639,11 @@ public class MainActivity extends ImisActivity {
         return true;
     }
 
-    public String getObjectPriceList(String serviceCode){
+    public String getObjectPriceList(String serviceCode, JSONArray arrServicePriceList){
 
-        final HttpResponse[] resp = {null};
-        String content = null;
         String priceObjet = "";
-        JSONObject object1 = new JSONObject();
 
-        if (global.isNetworkAvailable()) {
-
-            String functionName = "claim/getpaymentlists";
             try {
-                object1.put("claim_administrator_code", global.getOfficerCode());
-                HttpResponse response = toRestApi.postToRestApiToken(object1, functionName);
-                resp[0] = response;
-                HttpEntity respEntity = response.getEntity();
-                if (respEntity != null) {
-                    final String[] code = {null};
-                    // EntityUtils to get the response content
-                    try {
-                        content = EntityUtils.toString(respEntity);
-                        Log.e("priceListServices", content);
-
-                        JSONObject objResponse = new JSONObject(content);
-                        String ServicePriceList = objResponse.getString("pricelist_services");
-                        JSONArray arrServicePriceList = new JSONArray(ServicePriceList);
-
                         for(int i=0;i>arrServicePriceList.length();i++){
                             JSONObject obj = arrServicePriceList.getJSONObject(i);
 
@@ -653,14 +652,10 @@ public class MainActivity extends ImisActivity {
                                 priceObjet = obj.getString("price");
                             }
                         }
-                    } catch (JSONException | IOException e) {
-                        e.printStackTrace();
-                    }
-                }
+
             } catch (JSONException | ParseException e) {
                 e.printStackTrace();
             }
-        }
 
         return priceObjet;
     }
