@@ -574,7 +574,7 @@ public class MainActivity extends ImisActivity {
                 String services = toRestApi.getFromRestApiVersion(function, api_version);
 
                 JSONArray arr;
-                //JSONArray arrPriceListServices;
+                JSONArray arrPriceListServices;
 
                 try {
 
@@ -583,7 +583,7 @@ public class MainActivity extends ImisActivity {
                         arr = new JSONArray(services);
 
                         //get pricelist service for health facility and user
-                        //arrPriceListServices = new JSONArray(getServicesPriceList());
+                        arrPriceListServices = new JSONArray(getServicesPriceList());
 
                         sqlHandler.ClearAll("tblServices");
                         sqlHandler.ClearAll("tblSubServices");
@@ -594,44 +594,59 @@ public class MainActivity extends ImisActivity {
 
                         for (int i = 0; i < arr.length(); i++) {
                             objServices = arr.getJSONObject(i);
-                            //String priceService = getObjectPriceList(objServices.getString("ServCode"), arrPriceListServices);
+                            String priceService = getObjectPriceList(objServices.getString("ServCode"), arrPriceListServices);
 
-                            //if( priceService != null ){
-                                sqlHandler.InsertService(objServices.getString("ServiceID"),
-                                        objServices.getString("ServCode"),
-                                        objServices.getString("ServName"), "S",
-                                        objServices.getString("ServPrice"),
-                                        objServices.getString("ServPackageType"));
-                                sqlHandler.InsertMapping(objServices.getString("ServCode"),
-                                        objServices.getString("ServName"), "S");
+                            if(objServices.has("SubService")){
 
-                                if (objServices.has("SubService")) {
+                                if( priceService != null ){
+                                    sqlHandler.InsertService(objServices.getString("ServiceID"),
+                                            objServices.getString("ServCode"),
+                                            objServices.getString("ServName"), "S",
+                                            priceService,
+                                            objServices.getString("ServPackageType"));
+                                    sqlHandler.InsertMapping(objServices.getString("ServCode"),
+                                            objServices.getString("ServName"), "S");
 
-                                    JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
+                                    if (objServices.has("SubService")) {
 
-                                    //Insert SubServices
-                                    JSONObject objSubServices;
-                                    for (int s = 0; s < arrSubService.length(); s++) {
-                                        objSubServices = arrSubService.getJSONObject(s);
-                                        sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
-                                                objSubServices.getString("ServiceLinked"),objSubServices.getString("qty"),objSubServices.getString("price"));
-                                    }
-                                }
+                                        JSONArray arrSubService = new JSONArray(objServices.getString("SubService"));
 
-                                if (objServices.has("SubItems")) {
-
-                                    JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
-
-                                    //Insert SubItems
-                                    JSONObject objSubItems;
-                                    for (int t = 0; t < arrSubItem.length(); t++) {
-                                        objSubItems = arrSubItem.getJSONObject(t);
-                                        sqlHandler.InsertSubItems(objSubItems.getString("ItemID"),
-                                                objSubItems.getString("ServiceID"), objSubItems.getString("qty"),objSubItems.getString("price"));
+                                        //Insert SubServices
+                                        JSONObject objSubServices;
+                                        for (int s = 0; s < arrSubService.length(); s++) {
+                                            objSubServices = arrSubService.getJSONObject(s);
+                                            sqlHandler.InsertSubServices(objSubServices.getString("ServiceId"),
+                                                    objSubServices.getString("ServiceLinked"),objSubServices.getString("qty"),objSubServices.getString("price"));
+                                        }
                                     }
 
+                                    if (objServices.has("SubItems")) {
+
+                                        JSONArray arrSubItem = new JSONArray(objServices.getString("SubItems"));
+
+                                        //Insert SubItems
+                                        JSONObject objSubItems;
+                                        for (int t = 0; t < arrSubItem.length(); t++) {
+                                            objSubItems = arrSubItem.getJSONObject(t);
+                                            sqlHandler.InsertSubItems(objSubItems.getString("ItemID"),
+                                                    objSubItems.getString("ServiceID"), objSubItems.getString("qty"),objSubItems.getString("price"));
+                                        }
+
+                                    }
                                 }
-                            //}
+                            }else{
+
+                                    sqlHandler.InsertService(objServices.getString("ServiceID"),
+                                            objServices.getString("ServCode"),
+                                            objServices.getString("ServName"), "S",
+                                            priceService,
+                                            objServices.getString("ServPackageType"));
+                                    sqlHandler.InsertMapping(objServices.getString("ServCode"),
+                                            objServices.getString("ServName"), "S");
+
+
+                            }
+
 
                         }
 
