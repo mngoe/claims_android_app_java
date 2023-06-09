@@ -574,7 +574,7 @@ public class MainActivity extends ImisActivity {
                 String services = toRestApi.getFromRestApiVersion(function, api_version);
 
                 JSONArray arr;
-                JSONArray arrPriceListServices;
+                //JSONArray arrPriceListServices;
 
                 try {
 
@@ -583,22 +583,24 @@ public class MainActivity extends ImisActivity {
                         arr = new JSONArray(services);
 
                         //get pricelist service for health facility and user
-                        arrPriceListServices = new JSONArray(getServicesPriceList());
+                        //arrPriceListServices = new JSONArray(getServicesPriceList());
 
                         sqlHandler.ClearAll("tblServices");
                         sqlHandler.ClearAll("tblSubServices");
                         sqlHandler.ClearAll("tblSubItems");
                         sqlHandler.ClearMapping("S");
 
-                        for (int i = 0; i < arr.length(); i++) {
-                            JSONObject objServices = arr.getJSONObject(i);
-                            String priceService = getObjectPriceList(objServices.getString("ServCode"), arrPriceListServices);
+                        JSONObject objServices;
 
-                            if( priceService != null ){
+                        for (int i = 0; i < arr.length(); i++) {
+                            objServices = arr.getJSONObject(i);
+                            //String priceService = getObjectPriceList(objServices.getString("ServCode"), arrPriceListServices);
+
+                            //if( priceService != null ){
                                 sqlHandler.InsertService(objServices.getString("ServiceID"),
                                         objServices.getString("ServCode"),
                                         objServices.getString("ServName"), "S",
-                                        priceService,
+                                        objServices.getString("ServPrice"),
                                         objServices.getString("ServPackageType"));
                                 sqlHandler.InsertMapping(objServices.getString("ServCode"),
                                         objServices.getString("ServName"), "S");
@@ -629,7 +631,7 @@ public class MainActivity extends ImisActivity {
                                     }
 
                                 }
-                            }
+                            //}
 
                         }
 
