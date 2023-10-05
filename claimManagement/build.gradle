@@ -126,7 +126,7 @@ android {
         }
         mauritaniaTrain {
             applicationIdSuffix ".mauritaniaTrain"
-            buildConfigField "String", "API_BASE_URL", '"https://formation.cnass-mauritanie.swisstph-mis.ch/rest/"'
+            buildConfigField "String", "API_BASE_URL", '"https://dev.cnass.mr/rest/"'
             resValue "string", "app_name_claims", "Claims CNASS TRAIN"
             dimension = 'std'
         }

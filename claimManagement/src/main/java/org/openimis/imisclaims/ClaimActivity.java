@@ -159,9 +159,16 @@ public class ClaimActivity extends ImisActivity {
             );
         });
 
-        if (sqlHandler.getAdjustability("GuaranteeNo").equals("N")) {
-            etGuaranteeNo.setVisibility(View.GONE);
-        }
+        //if (sqlHandler.getAdjustability("GuaranteeNo").equals("N")) {
+            //etGuaranteeNo.setVisibility(View.GONE);
+        //}
+
+        etGuaranteeNo.setVisibility(View.GONE);
+        etDiagnosis2.setVisibility(View.GONE);
+        etDiagnosis3.setVisibility(View.GONE);
+        etDiagnosis4.setVisibility(View.GONE);
+        tvItemTotal.setVisibility(View.GONE);
+
         if (sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
             etClaimAdmin.setVisibility(View.GONE);
         }
@@ -336,7 +343,7 @@ public class ClaimActivity extends ImisActivity {
 
     private void ClearForm() {
         etClaimCode.setText("");
-        etGuaranteeNo.setText("");
+        //etGuaranteeNo.setText("");
         etInsureeNumber.setText("");
         etStartDate.setText("");
         etEndDate.setText("");
@@ -347,24 +354,24 @@ public class ClaimActivity extends ImisActivity {
         tvServiceTotal.setText("0");
         TotalItemService = 0;
         etDiagnosis1.setText("");
-        etDiagnosis2.setText("");
-        etDiagnosis3.setText("");
-        etDiagnosis4.setText("");
+        //etDiagnosis2.setText("");
+        //etDiagnosis3.setText("");
+        //etDiagnosis4.setText("");
         rgVisitType.clearCheck();
         etClaimCode.requestFocus();
     }
 
     private void disableForm() {
         disableView(etClaimCode);
-        disableView(etGuaranteeNo);
+        //disableView(etGuaranteeNo);
         disableView(etInsureeNumber);
         disableView(etStartDate);
         disableView(etEndDate);
         disableView(etDiagnosis);
         disableView(etDiagnosis1);
-        disableView(etDiagnosis2);
-        disableView(etDiagnosis3);
-        disableView(etDiagnosis4);
+        //disableView(etDiagnosis2);
+        //disableView(etDiagnosis3);
+        //disableView(etDiagnosis4);
         disableView(rgVisitType);
         disableView(etClaimCode);
         disableView(btnPost);
@@ -385,12 +392,12 @@ public class ClaimActivity extends ImisActivity {
             }
             etHealthFacility.setText(global.getOfficerHealthFacility());
 
-            if (etGuaranteeNo.getVisibility() != View.GONE) {
-                String guaranteeNumber = claim.getString("guarantee_number");
-                if ("".equals(guaranteeNumber) || "null".equals(guaranteeNumber))
-                    etGuaranteeNo.setText("");
-                else etGuaranteeNo.setText(guaranteeNumber);
-            }
+            //if (etGuaranteeNo.getVisibility() != View.GONE) {
+            //    String guaranteeNumber = claim.getString("guarantee_number");
+            //    if ("".equals(guaranteeNumber) || "null".equals(guaranteeNumber))
+            //        etGuaranteeNo.setText("");
+            //    else etGuaranteeNo.setText(guaranteeNumber);
+            //}
 
             etInsureeNumber.setText(claim.getString("insurance_number"));
             if (!claim.getString("claim_status").equals("Rejected"))
@@ -477,9 +484,9 @@ public class ClaimActivity extends ImisActivity {
                         }
                         etHealthFacility.setText(claimDetails.getString("HFCode"));
 
-                        if (etGuaranteeNo.getVisibility() != View.GONE) {
-                            etGuaranteeNo.setText(claimDetails.getString("GuaranteeNumber"));
-                        }
+                        //if (etGuaranteeNo.getVisibility() != View.GONE) {
+                        //    etGuaranteeNo.setText(claimDetails.getString("GuaranteeNumber"));
+                        //}
 
                         etInsureeNumber.setText(claimDetails.getString("InsureeNumber"));
                         etStartDate.setText(claimDetails.getString("StartDate"));
@@ -693,7 +700,7 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("HFCode", etHealthFacility.getText().toString());
         claimCV.put("ClaimAdmin", etClaimAdmin.getText().toString());
         claimCV.put("ClaimCode", etClaimCode.getText().toString());
-        claimCV.put("GuaranteeNumber", etGuaranteeNo.getText().toString());
+        //claimCV.put("GuaranteeNumber", etGuaranteeNo.getText().toString());
         claimCV.put("InsureeNumber", etInsureeNumber.getText().toString());
         claimCV.put("StartDate", etStartDate.getText().toString());
         claimCV.put("EndDate", etEndDate.getText().toString());
