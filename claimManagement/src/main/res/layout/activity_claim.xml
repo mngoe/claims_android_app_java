@@ -88,7 +88,9 @@
                     android:layout_marginTop="-10dp"
                     android:src="@drawable/scan" />
 
+
             </LinearLayout>
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -186,32 +188,133 @@
 
             </LinearLayout>
 
-            <RadioGroup android:id="@+id/rgVisitType"
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                >
+                android:text="@string/VisitType"/>
 
-                <RadioButton
-                    android:id="@+id/rbEmergency"
+                <RadioGroup
+                    android:id="@+id/rgVisitType"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:tag="E"
-                    android:text="@string/Emergency" />
+                    android:orientation="vertical">
+
+                    <RadioButton
+                        android:id="@+id/rbEmergency"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="1"
+                        android:text="@string/Emergency" />
+
+                    <RadioButton
+                        android:id="@+id/rbReferral"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="2"
+                        android:text="@string/Referral" />
+
+                    <RadioButton
+                        android:id="@+id/rbDisease"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="3"
+                        android:text="@string/Disease" />
+
+                    <RadioButton
+                        android:id="@+id/rbMaternity"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="4"
+                        android:text="@string/Maternity" />
+
+                    <RadioButton
+                        android:id="@+id/rbHta"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="5"
+                        android:text="@string/HTA" />
+
+                    <RadioButton
+                        android:id="@+id/rbDiabete"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="6"
+                        android:text="@string/Diabete" />
+
+                    <RadioButton
+                        android:id="@+id/rbReanimation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="7"
+                        android:text="@string/Reanimation" />
+
+                    <RadioButton
+                        android:id="@+id/rbAVP"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="8"
+                        android:text="@string/AVP" />
+
+                    <RadioButton
+                        android:id="@+id/rbOther"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:tag="O"
+                        android:text="@string/Other" />
+
+                </RadioGroup>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/PrescriberType"/>
+
+            <RadioGroup
+                android:id="@+id/rgPrescriberType"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
 
                 <RadioButton
-                    android:id="@+id/rbReferral"
+                    android:id="@+id/rbMidwife"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:tag="R"
-                    android:text="@string/Referral" />
+                    android:tag="1"
+                    android:text="@string/Midwife"/>
 
                 <RadioButton
-                    android:id="@+id/rbOther"
+                    android:id="@+id/rbHTechnician"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:tag="O"
-                    android:text="@string/Other" />
+                    android:tag="2"
+                    android:text="@string/HealthTechnician"/>
 
+                <RadioButton
+                    android:id="@+id/rbGeneralDoctor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="3"
+                    android:text="@string/GeneralDoctor"/>
+
+                <RadioButton
+                    android:id="@+id/rbSpecialistDoctor"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="4"
+                    android:text="@string/SpecialistDoctor"/>
+
+                <RadioButton
+                    android:id="@+id/rbDentist"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="5"
+                    android:text="@string/Dentist"/>
+
+                <RadioButton
+                    android:id="@+id/rbNurse"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="6"
+                    android:text="@string/Nurse"/>
             </RadioGroup>
         </LinearLayout>
 

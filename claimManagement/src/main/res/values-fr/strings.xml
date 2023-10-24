@@ -197,4 +197,18 @@
   <string name="initializing">Initialisation.....</string>
   <string name="initializing_complete">Initialisation Terminée</string>
   <string name="application">Application</string>
+  <string name="Disease">Maladie</string>
+  <string name="Maternity">Maternité</string>
+  <string name="HTA">Suivi de l\'HTA</string>
+  <string name="Diabete">Suivi du diabète</string>
+  <string name="Reanimation">Réanimation</string>
+  <string name="AVP">AVP</string>
+  <string name="PrescriberType">Type de prescripteur</string>
+  <string name="Midwife">Sage femme</string>
+  <string name="HealthTechnician">Technicien de santé</string>
+  <string name="GeneralDoctor">Médécin Généraliste</string>
+  <string name="SpecialistDoctor">Médecin spécialisé</string>
+  <string name="Dentist">Dentiste</string>
+  <string name="Nurse">Infirmier</string>
+  <string name="MissingPrescriberType">Veuillez sélectionner le type de prescripteur.</string>
 </resources>

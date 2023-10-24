@@ -56,7 +56,7 @@ public class ClaimActivity extends ImisActivity {
     AutoCompleteTextView etDiagnosis, etDiagnosis1, etDiagnosis2, etDiagnosis3, etDiagnosis4;
     TextView tvItemTotal, tvServiceTotal;
     Button btnPost, btnNew;
-    RadioGroup rgVisitType;
+    RadioGroup rgVisitType, rgPrescriberType;
     RadioButton rbEmergency, rbReferral, rbOther;
     ImageButton btnScan;
 
@@ -92,6 +92,7 @@ public class ClaimActivity extends ImisActivity {
         etDiagnosis3 = findViewById(R.id.etDiagnosis3);
         etDiagnosis4 = findViewById(R.id.etDiagnosis4);
         rgVisitType = findViewById(R.id.rgVisitType);
+        rgPrescriberType = findViewById(R.id.rgPrescriberType);
         rbEmergency = findViewById(R.id.rbEmergency);
         rbReferral = findViewById(R.id.rbReferral);
         rbOther = findViewById(R.id.rbOther);
@@ -358,6 +359,7 @@ public class ClaimActivity extends ImisActivity {
         //etDiagnosis3.setText("");
         //etDiagnosis4.setText("");
         rgVisitType.clearCheck();
+        rgPrescriberType.clearCheck();
         etClaimCode.requestFocus();
     }
 
@@ -373,6 +375,7 @@ public class ClaimActivity extends ImisActivity {
         //disableView(etDiagnosis3);
         //disableView(etDiagnosis4);
         disableView(rgVisitType);
+        disableView(rgPrescriberType);
         disableView(etClaimCode);
         disableView(btnPost);
         disableView(rbEmergency);
@@ -419,11 +422,52 @@ public class ClaimActivity extends ImisActivity {
                 case "Referral":
                     rgVisitType.check(R.id.rbReferral);
                     break;
+                case "Disease":
+                    rgVisitType.check(R.id.rbDisease);
+                    break;
+                case "Maternity":
+                    rgVisitType.check(R.id.rbMaternity);
+                    break;
+                case "HTA monitoring":
+                    rgVisitType.check(R.id.rbHta);
+                    break;
+                case "Diabetes Monitoring":
+                    rgVisitType.check(R.id.rbDiabete);
+                    break;
+                case "Reanimation":
+                    rgVisitType.check(R.id.rbReanimation);
+                    break;
+                case "AVP":
+                    rgVisitType.check(R.id.rbAVP);
+                    break;
                 case "Other":
                     rgVisitType.check(R.id.rbOther);
                     break;
                 default:
                     rgVisitType.clearCheck();
+            }
+
+            switch (claim.getString("prescriber_type")) {
+                case "Midwife":
+                    rgPrescriberType.check(R.id.rbMidwife);
+                    break;
+                case "Health technician":
+                    rgPrescriberType.check(R.id.rbHTechnician);
+                    break;
+                case "General doctor":
+                    rgPrescriberType.check(R.id.rbGeneralDoctor);
+                    break;
+                case "Specialist doctor":
+                    rgPrescriberType.check(R.id.rbSpecialistDoctor);
+                    break;
+                case "Dentist":
+                    rgPrescriberType.check(R.id.rbDentist);
+                    break;
+                case "Nurse":
+                    rgPrescriberType.check(R.id.rbNurse);
+                    break;
+                default:
+                    rgPrescriberType.clearCheck();
             }
 
             lvItemList.clear();
@@ -499,17 +543,58 @@ public class ClaimActivity extends ImisActivity {
                         etDiagnosis4.setText(claimDetails.getString("ICDCode4"));
 
                         switch (claimDetails.getString("VisitType")) {
-                            case "E":
+                            case "1":
                                 rgVisitType.check(R.id.rbEmergency);
                                 break;
-                            case "R":
+                            case "2":
                                 rgVisitType.check(R.id.rbReferral);
+                                break;
+                            case "3":
+                                rgVisitType.check(R.id.rbDisease);
+                                break;
+                            case "4":
+                                rgVisitType.check(R.id.rbMaternity);
+                                break;
+                            case "5":
+                                rgVisitType.check(R.id.rbHta);
+                                break;
+                            case "6":
+                                rgVisitType.check(R.id.rbDiabete);
+                                break;
+                            case "7":
+                                rgVisitType.check(R.id.rbReanimation);
+                                break;
+                            case "8":
+                                rgVisitType.check(R.id.rbAVP);
                                 break;
                             case "O":
                                 rgVisitType.check(R.id.rbOther);
                                 break;
                             default:
                                 rgVisitType.clearCheck();
+                        }
+
+                        switch (claimDetails.getString("PrescriberType")) {
+                            case "1":
+                                rgPrescriberType.check(R.id.rbMidwife);
+                                break;
+                            case "2":
+                                rgPrescriberType.check(R.id.rbHTechnician);
+                                break;
+                            case "3":
+                                rgPrescriberType.check(R.id.rbGeneralDoctor);
+                                break;
+                            case "4":
+                                rgPrescriberType.check(R.id.rbSpecialistDoctor);
+                                break;
+                            case "5":
+                                rgPrescriberType.check(R.id.rbDentist);
+                                break;
+                            case "6":
+                                rgPrescriberType.check(R.id.rbNurse);
+                                break;
+                            default:
+                                rgPrescriberType.clearCheck();
                         }
 
                         lvItemList.clear();
@@ -648,6 +733,11 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
+        if (rgPrescriberType.getCheckedRadioButtonId() == -1) {
+            showValidationDialog(rgPrescriberType, getResources().getString(R.string.MissingPrescriberType));
+            return false;
+        }
+
         if (Float.parseFloat(tvItemTotal.getText().toString()) + Float.parseFloat(tvServiceTotal.getText().toString()) == 0) {
             showValidationDialog(tvItemTotal, getResources().getString(R.string.MissingClaim));
             return false;
@@ -693,6 +783,13 @@ public class ClaimActivity extends ImisActivity {
         selectedTypeButton = findViewById(SelectedId);
         String visitType = selectedTypeButton.getTag().toString();
 
+        //save field prescriber type
+        int SelectedPrescriberTypeId;
+        SelectedPrescriberTypeId = rgPrescriberType.getCheckedRadioButtonId();
+        RadioButton selectedPrescriberTypeButton;
+        selectedPrescriberTypeButton = findViewById(SelectedPrescriberTypeId);
+        String prescriberType = selectedPrescriberTypeButton.getTag().toString();
+
         ContentValues claimCV = new ContentValues();
 
         claimCV.put("ClaimUUID", claimUUID);
@@ -712,6 +809,7 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("ICDCode3", etDiagnosis3.getText().toString());
         claimCV.put("ICDCode4", etDiagnosis4.getText().toString());
         claimCV.put("VisitType", visitType);
+        claimCV.put("PrescriberType", prescriberType);
 
         ArrayList<ContentValues> claimItemCVs = new ArrayList<>(lvItemList.size());
         for (int i = 0; i < lvItemList.size(); i++) {

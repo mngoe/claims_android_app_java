@@ -229,5 +229,21 @@
     <string name="NoInternetTitle">NO INTERNET CONNECTION</string>
     <string name="ImportMasterDataFailed">Failed to read master data from file.</string>
     <string name="HttpResponse">HTTP response: %1$d — %2$s</string>
+    <string name="Practician">Practician</string>
+    <string name="MissingPractician">Please enter Practician name</string>
+    <string name="Disease">Disease</string>
+    <string name="Maternity">Maternity</string>
+    <string name="HTA">HTA monitoring</string>
+    <string name="Diabete">Diabetes monitoring</string>
+    <string name="Reanimation">Reanimation</string>
+    <string name="AVP">AVP</string>
+    <string name="PrescriberType">Prescriber Type</string>
+    <string name="Midwife">Midwife</string>
+    <string name="HealthTechnician">Health Technician</string>
+    <string name="GeneralDoctor">General Doctor</string>
+    <string name="SpecialistDoctor">Specialist Doctor</string>
+    <string name="Dentist">Dentist</string>
+    <string name="Nurse">Nurse</string>
+    <string name="MissingPrescriberType">Please select prescriber type.</string>
 
 </resources>
