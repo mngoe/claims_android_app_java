@@ -25,6 +25,8 @@
 
 package org.openimis.imisclaims;
 
+import static org.openimis.imisclaims.BuildConfig.RAR_PASSWORD;
+
 import android.Manifest;
 import android.app.Application;
 import android.content.Context;
@@ -39,6 +41,8 @@ import android.net.Uri;
 import android.os.Environment;
 import android.util.Base64;
 import android.util.DisplayMetrics;
+
+import org.openimis.imisclaims.tools.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -56,10 +60,6 @@ import java.util.Map;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
-
-import static org.openimis.imisclaims.BuildConfig.RAR_PASSWORD;
-
-import org.openimis.imisclaims.tools.Log;
 
 public class Global extends Application {
     private static final String SHPREF_NAME = "SHPref";
@@ -103,14 +103,6 @@ public class Global extends Application {
         OfficerCode = officerCode;
     }
 
-    public String getOfficerHealthFacility() {
-        return OfficerHealthFacility;
-    }
-
-    public void setOfficerHealthFacility(String HealthFacility) {
-        OfficerHealthFacility = HealthFacility;
-    }
-
     public int getUserId() {
         return UserId;
     }
@@ -121,6 +113,14 @@ public class Global extends Application {
 
     public void setOfficerName(String officerName) {
         OfficerName = officerName;
+    }
+
+    public String getOfficerHealthFacility() {
+        return OfficerHealthFacility;
+    }
+
+    public void setOfficerHealthFacility(String HealthFacility) {
+        OfficerHealthFacility = HealthFacility;
     }
 
     public String getOfficeName() {

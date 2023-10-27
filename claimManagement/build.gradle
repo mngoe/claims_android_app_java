@@ -3,6 +3,8 @@ import java.time.format.DateTimeFormatter
 
 apply plugin: 'com.android.application'
 
+// Apply custom flavours
+
 static def getDate() {
     LocalDateTime date = LocalDateTime.now()
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern('dd MMMM yyyy HH:mm').withLocale(Locale.UK)
@@ -18,15 +20,15 @@ repositories {
 }
 
 android {
-    compileSdkVersion 32
+    compileSdk 32
     buildToolsVersion '33.0.0'
 
     defaultConfig {
         applicationId "org.openimis.imisclaims"
         minSdkVersion 21
         targetSdkVersion 32
-        versionCode 4
-        versionName "2.0.1"
+        versionCode 1
+        versionName "1.0.1"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -56,7 +58,7 @@ android {
     productFlavors.all {
         resValue "string", "app_name_claims", "openIMIS Claims"
         resValue "string", "ReleaseDateValue", getDate()
-        buildConfigField "String", "API_BASE_URL", '"http://demo.openimis.org/rest/"'
+        buildConfigField "String", "API_BASE_URL", '"http://3.238.179.83:89/reposApi/"'
         buildConfigField "String", "RAR_PASSWORD", '")(#$1HsD"'
         buildConfigField "String", "API_VERSION", '"3"'
     }
@@ -97,8 +99,16 @@ android {
         }
         bephaDev {
             applicationIdSuffix ".bephaDev"
-            resValue "string", "app_name_claims", "Claims BEPHA"
-            buildConfigField "String", "API_BASE_URL", '"http://149.210.235.40/devupgrade/rest/"'
+            buildConfigField "String", "APP_DIR", '"IMIS-BEPHADEV"'
+            resValue "string", "app_name_claims", "Demande Remboursement CS"
+            buildConfigField "String", "API_BASE_URL", '"https://cs.minsante.cm/rest/"'
+            dimension 'std'
+        }
+        csDev {
+            applicationIdSuffix ".bephaDev"
+            buildConfigField "String", "APP_DIR", '"IMIS-BEPHADEV"'
+            resValue "string", "app_name_claims", "Demande Remboursement CS"
+            buildConfigField "String", "API_BASE_URL", '"https://test-cs.minsante.cm/rest/"'
             dimension 'std'
         }
         niger {
@@ -140,17 +150,20 @@ android {
         demoRelease.java.srcDir 'src/demoRelease/java'
         demoRelease.res.srcDir 'src/demoRelease/res'
 
-        chfDev.java.srcDir 'src/chf/java'
-        chfDev.res.srcDir 'src/chf/res'
+        chfDev.java.srcDir 'src/chfDev/java'
+        chfDev.res.srcDir 'src/chfDev/res'
 
-        chfProd.java.srcDir 'src/chf/java'
-        chfProd.res.srcDir 'src/chf/res'
+        chfProd.java.srcDir 'src/chfDev/java'
+        chfProd.res.srcDir 'src/chfProd/res'
 
-        mvDev.java.srcDir 'src/mv/java'
-        mvDev.res.srcDir 'src/mv/res'
+        mvDev.java.srcDir 'src/mvDev/java'
+        mvDev.res.srcDir 'src/mvDev/res'
 
-        bephaDev.java.srcDir 'src/bepha/java'
-        bephaDev.res.srcDir 'src/bepha/res'
+        bephaDev.java.srcDir 'src/bephaDev/java'
+        bephaDev.res.srcDir 'src/bephaDev/res'
+
+        csDev.java.srcDir 'src/csDev/java'
+        csDev.res.srcDir 'src/csDev/res'
 
         niger.java.srcDir 'src/niger/java'
         niger.res.srcDir 'src/niger/res'
@@ -167,8 +180,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     buildFeatures {
         viewBinding true
@@ -178,7 +191,6 @@ android {
     }
 }
 
-// Apply custom flavours
 if(file('custom-flavours.gradle').exists()){
     apply from: 'custom-flavours.gradle'
 }

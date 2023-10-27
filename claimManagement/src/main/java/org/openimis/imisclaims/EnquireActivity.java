@@ -1,5 +1,7 @@
 package org.openimis.imisclaims;
 
+import static org.openimis.imisclaims.BuildConfig.API_BASE_URL;
+
 import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
@@ -40,13 +42,9 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import static org.openimis.imisclaims.BuildConfig.API_BASE_URL;
-
 public class EnquireActivity extends ImisActivity {
-    private static final String LOG_TAG = "ENQUIRE";
+    public static final String LOG_TAG = "ENQUIRE";
     private static final int REQUEST_QR_SCAN_CODE = 1;
-
-    private Picasso picasso;
 
     EditText etCHFID;
     TextView tvCHFID, tvName, tvGender, tvDOB;
@@ -79,7 +77,6 @@ public class EnquireActivity extends ImisActivity {
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
-        picasso = new Picasso.Builder(this).build();
         isSDCardAvailable();
 
         //Check if network available
@@ -324,7 +321,8 @@ public class EnquireActivity extends ImisActivity {
                 } else if (!JsonUtils.isStringEmpty(jsonObject, "photoPath", true) && global.isNetworkAvailable()) {
                     String photo_url_str = API_BASE_URL + jsonObject.getString("photoPath");
                     iv.setImageResource(R.drawable.person);
-                    picasso.load(photo_url_str)
+                    Picasso.get()
+                            .load(photo_url_str)
                             .placeholder(R.drawable.person)
                             .error(R.drawable.person)
                             .into(iv);

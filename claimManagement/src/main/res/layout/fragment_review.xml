@@ -105,7 +105,7 @@
             android:textColor="@color/Black"
             android:text="@string/ClaimCode"/>
         <TextView
-            android:id="@+id/ClaimCode"
+            android:id="@+id/ClaimCode_form"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textSize="12dp"

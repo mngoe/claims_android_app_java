@@ -1,16 +1,23 @@
 package org.openimis.imisclaims;
 
-import android.content.Intent;
 import android.content.Context;
+import android.content.Intent;
 import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v4.app.JobIntentService;
 import android.support.v4.content.FileProvider;
 import android.util.Xml;
 
+import org.apache.http.HttpResponse;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.openimis.imisclaims.tools.Log;
+import org.openimis.imisclaims.tools.StorageManager;
+import org.openimis.imisclaims.util.FileUtils;
+import org.openimis.imisclaims.util.XmlUtils;
+import org.openimis.imisclaims.util.ZipUtils;
+import org.xmlpull.v1.XmlSerializer;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -20,14 +27,6 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
-
-import org.apache.http.HttpResponse;
-import org.openimis.imisclaims.tools.Log;
-import org.openimis.imisclaims.tools.StorageManager;
-import org.openimis.imisclaims.util.FileUtils;
-import org.openimis.imisclaims.util.XmlUtils;
-import org.openimis.imisclaims.util.ZipUtils;
-import org.xmlpull.v1.XmlSerializer;
 
 public class SynchronizeService extends JobIntentService {
     private static final int JOB_ID = 6541259; //Random unique Job id
