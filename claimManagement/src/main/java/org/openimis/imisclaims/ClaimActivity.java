@@ -83,7 +83,7 @@ public class ClaimActivity extends ImisActivity {
         btnScan = findViewById(R.id.btnScan);
         etHealthFacility = findViewById(R.id.etHealthFacility);
         etClaimAdmin = findViewById(R.id.etClaimAdmin);
-        //etGuaranteeNo = findViewById(R.id.etGuaranteeNo);
+        etGuaranteeNo = findViewById(R.id.etGuaranteeNo);
         etClaimCode = findViewById(R.id.etClaimCode);
         etInsureeNumber = findViewById(R.id.etCHFID);
         tvItemTotal = findViewById(R.id.tvItemTotal);
@@ -171,9 +171,9 @@ public class ClaimActivity extends ImisActivity {
         //}
 
         etGuaranteeNo.setVisibility(View.GONE);
-        etDiagnosis2.setVisibility(View.GONE);
-        etDiagnosis3.setVisibility(View.GONE);
-        etDiagnosis4.setVisibility(View.GONE);
+        //etDiagnosis2.setVisibility(View.GONE);
+        //etDiagnosis3.setVisibility(View.GONE);
+        //etDiagnosis4.setVisibility(View.GONE);
         tvItemTotal.setVisibility(View.GONE);
 
         if (sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
