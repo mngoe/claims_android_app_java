@@ -104,7 +104,7 @@ public class CustomAdapter extends BaseAdapter {
 
                 int qtyMax = Integer.valueOf(editModelArrayList.get(position).getQtyMax());
 
-                if(!holder.editQty.getText().toString().equals("")){
+                /*if(!holder.editQty.getText().toString().equals("")){
 
                     if (AddServices.packageType.equals("F")){
                         if(Float.valueOf(holder.editQty.getText().toString()) > qtyMax){
@@ -118,17 +118,17 @@ public class CustomAdapter extends BaseAdapter {
                         }
                     }
 
-                }
+                }*/
 
 
 
-                for(int i = 0 ; i < editModelArrayList.size(); i++){
+                /*for(int i = 0 ; i < editModelArrayList.size(); i++){
 
                     amount = amount + (Float.valueOf(editModelArrayList.get(i).getQty()) * Float.valueOf(editModelArrayList.get(i).getPrice())) ;
 
-                }
+                }*/
 
-                AddServices.etSAmount.setText(String.valueOf(amount));
+                //AddServices.etSAmount.setText(String.valueOf(amount));
 
             }
         });

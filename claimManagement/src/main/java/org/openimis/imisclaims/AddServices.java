@@ -107,7 +107,7 @@ public class AddServices extends ImisActivity {
                     etSName.setText(sqlHandler.getServiceName(Code));
 
                     if (!packageType.equals("S")) {
-                        etSAmount.setText("");
+                        //etSAmount.setText("");
                         sServicePrice = 0;
 
                         try {

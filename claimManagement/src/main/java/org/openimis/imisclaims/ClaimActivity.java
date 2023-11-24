@@ -360,7 +360,7 @@ public class ClaimActivity extends ImisActivity {
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
         TotalItemService = 0;
-        etDiagnosis1.setText("");
+        //etDiagnosis1.setText("");
         //etDiagnosis2.setText("");
         //etDiagnosis3.setText("");
         //etDiagnosis4.setText("");
@@ -376,7 +376,7 @@ public class ClaimActivity extends ImisActivity {
         disableView(etStartDate);
         disableView(etEndDate);
         disableView(etDiagnosis);
-        disableView(etDiagnosis1);
+        //disableView(etDiagnosis1);
         //disableView(etDiagnosis2);
         //disableView(etDiagnosis3);
         //disableView(etDiagnosis4);
@@ -692,7 +692,7 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
-        if (etClaimCode.getText().length() > 2) {
+        if (etClaimCode.getText().length() > 8) {
             showValidationDialog(etClaimCode, getResources().getString(R.string.InvalidClaimCode));
             return false;
         }
@@ -851,6 +851,7 @@ public class ClaimActivity extends ImisActivity {
             claimServiceCV.put("ServiceCode", lvServiceList.get(i).get("Code"));
             claimServiceCV.put("ServicePrice", lvServiceList.get(i).get("Price"));
             claimServiceCV.put("ServiceQuantity", lvServiceList.get(i).get("Quantity"));
+            claimServiceCV.put("ServicePackageType", lvServiceList.get(i).get("PackageType"));
 
             if (!lvServiceList.get(i).get("PackageType").equals("S")) {
                 claimServiceCV.put("SubServicesItems", lvServiceList.get(i).get("SubServicesItems"));

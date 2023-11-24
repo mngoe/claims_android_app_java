@@ -625,7 +625,7 @@ public class MainActivity extends ImisActivity {
             Thread thread = new Thread(() -> {
 
                 String function = "GetListServiceAllItems";
-                String api_version = "2";
+                String api_version = "3";
                 String services = toRestApi.getFromRestApiVersion(function, api_version);
 
                 JSONArray arr;
@@ -755,7 +755,7 @@ public class MainActivity extends ImisActivity {
             Thread thread = new Thread(() -> {
 
                 String function = "GetListMainItemItems";
-                String api_version = "2";
+                String api_version = "3";
 
                 try {
                     String items = toRestApi.getFromRestApiVersion(function, api_version);
