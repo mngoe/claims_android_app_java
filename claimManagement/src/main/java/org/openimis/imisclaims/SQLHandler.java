@@ -889,6 +889,7 @@ public class SQLHandler extends SQLiteOpenHelper {
             resultClaim.put("details", claimDetails.getJSONObject(0));
             resultClaim.put("items", getClaimItems(claimUUID));
             resultClaim.put("services", getClaimServices(claimUUID));
+            resultClaim.put("attachments", getClaimAttachments(claimUUID));
 
             return resultClaim;
         } catch (JSONException e) {
@@ -918,6 +919,7 @@ public class SQLHandler extends SQLiteOpenHelper {
                 JSONObject resultClaim = new JSONObject();
                 resultClaim.put("details", claim);
                 resultClaim.put("items", getClaimItems(ClaimUUID));
+                resultClaim.put("attachments", getClaimAttachments(ClaimUUID));
 
                 JSONArray claimServices = getClaimServices(ClaimUUID);
 
@@ -953,6 +955,16 @@ public class SQLHandler extends SQLiteOpenHelper {
         return getQueryResultAsJsonArray(
                 "tblClaimServices",
                 new String[]{"ServiceCode", "ServicePrice", "ServiceQuantity","ServicePackageType","SubServicesItems"},
+                "ClaimUUID = ?",
+                new String[]{claimUUID}
+        );
+    }
+
+    @NonNull
+    public JSONArray getClaimAttachments(String claimUUID) {
+        return getQueryResultAsJsonArray(
+                "tblClaimAttachments",
+                new String[]{"Title", "Name", "File"},
                 "ClaimUUID = ?",
                 new String[]{claimUUID}
         );
