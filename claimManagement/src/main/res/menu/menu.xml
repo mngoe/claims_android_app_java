@@ -9,5 +9,9 @@
 		android:visible="false"
 		android:title="@string/AddItems">
 	</item>
+	<item android:id="@+id/mnuAddAttachments"
+		android:icon="@drawable/addattachments"
+		android:title="@string/AddAttachments">
+	</item>
 </menu>
     

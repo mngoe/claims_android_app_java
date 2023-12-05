@@ -48,6 +48,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String createTableClaimDetails = "CREATE TABLE IF NOT EXISTS tblClaimDetails(ClaimUUID TEXT, ClaimDate TEXT, HFCode TEXT, ClaimAdmin TEXT, ClaimCode TEXT, GuaranteeNumber TEXT, InsureeNumber TEXT, StartDate TEXT, EndDate TEXT, ICDCode TEXT, Comment TEXT, Total TEXT, ICDCode1 TEXT, ICDCode2 TEXT, ICDCode3 TEXT, ICDCode4 TEXT, VisitType TEXT, PrescriberType TEXT);";
     private static final String createTableClaimItems = "CREATE TABLE IF NOT EXISTS tblClaimItems(ClaimUUID TEXT, ItemCode TEXT, ItemPrice TEXT, ItemQuantity TEXT);";
     private static final String createTableClaimServices = "CREATE TABLE IF NOT EXISTS tblClaimServices(ClaimUUID TEXT, ServiceCode TEXT, ServicePrice TEXT, ServiceQuantity TEXT, ServicePackageType TEXT, SubServicesItems TEXT);";
+    private static final String createTableClaimAttachments = "CREATE TABLE IF NOT EXISTS tblClaimAttachments(ClaimUUID TEXT, Title TEXT, Name TEXT, File TEXT);";
     private static final String createTableClaimUploadStatus = "CREATE TABLE IF NOT EXISTS tblClaimUploadStatus(ClaimUUID TEXT, UploadDate TEXT, UploadStatus TEXT, UploadMessage TEXT);";
 
     public final String REFERENCE_UNKNOWN;
@@ -726,7 +727,7 @@ public class SQLHandler extends SQLiteOpenHelper {
         String[] commands = {CreateTableControls, CreateTableReferences, CreateTableClaimAdmins,
                 createTablePolicyInquiry, createTableClaimDetails, CreateTableServices, CreateTableItems, 
                 CreateTableSubServices, CreateTableSubItems, createTableClaimItems, createTableClaimServices,
-                createTableClaimUploadStatus};
+                createTableClaimUploadStatus, createTableClaimAttachments};
         for (String command : commands) {
             try {
                 db.execSQL(command);
@@ -797,16 +798,16 @@ public class SQLHandler extends SQLiteOpenHelper {
         return qty;
     }
 
-    public void saveClaim(@NonNull ContentValues claimDetails, @NonNull Iterable<ContentValues> claimItems, @NonNull Iterable<ContentValues> claimServices) {
+    public void saveClaim(@NonNull ContentValues claimDetails, @NonNull Iterable<ContentValues> claimItems, @NonNull Iterable<ContentValues> claimServices, @NonNull Iterable<ContentValues> claimAttachments) {
         if (checkIfExists("tblClaimDetails", "ClaimUUID = ?", claimDetails.getAsString("ClaimUUID"))) {
-            updateClaim(claimDetails, claimItems, claimServices);
+            updateClaim(claimDetails, claimItems, claimServices, claimAttachments);
         } else {
-            insertClaim(claimDetails, claimItems, claimServices);
+            insertClaim(claimDetails, claimItems, claimServices, claimAttachments);
         }
 
     }
 
-    public void insertClaim(ContentValues claimDetails, Iterable<ContentValues> claimItems, Iterable<ContentValues> claimServices) {
+    public void insertClaim(ContentValues claimDetails, Iterable<ContentValues> claimItems, Iterable<ContentValues> claimServices, Iterable<ContentValues> claimAttachments) {
         try {
             db.beginTransaction();
             db.insertOrThrow("tblClaimDetails", null, claimDetails);
@@ -816,6 +817,9 @@ public class SQLHandler extends SQLiteOpenHelper {
             for (ContentValues claimService : claimServices) {
                 db.insertOrThrow("tblClaimServices", null, claimService);
             }
+            for (ContentValues claimAttachment : claimAttachments) {
+                db.insertOrThrow("tblClaimAttachments", null, claimAttachment);
+            }
             db.setTransactionSuccessful();
         } catch (Exception e) {
             Log.e(LOG_TAG, "Error while inserting claim", e);
@@ -824,18 +828,22 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void updateClaim(ContentValues claimDetails, Iterable<ContentValues> claimItems, Iterable<ContentValues> claimServices) {
+    public void updateClaim(ContentValues claimDetails, Iterable<ContentValues> claimItems, Iterable<ContentValues> claimServices, Iterable<ContentValues> claimAttachments) {
         try {
             db.beginTransaction();
             String claimUUID = claimDetails.getAsString("ClaimUUID");
             db.update("tblClaimDetails", claimDetails, "ClaimUUID = ?", new String[]{claimUUID});
             db.delete("tblClaimItems", "ClaimUUID = ?", new String[]{claimUUID});
             db.delete("tblClaimServices", "ClaimUUID = ?", new String[]{claimUUID});
+            db.delete("tblClaimAttachments", "ClaimUUID = ?", new String[]{claimUUID});
             for (ContentValues claimItem : claimItems) {
                 db.insert("tblClaimItems", null, claimItem);
             }
             for (ContentValues claimService : claimServices) {
                 db.insert("tblClaimServices", null, claimService);
+            }
+            for (ContentValues claimAttachment : claimAttachments) {
+                db.insert("tblClaimAttachments", null, claimAttachment);
             }
             db.setTransactionSuccessful();
         } catch (Exception e) {
@@ -881,6 +889,7 @@ public class SQLHandler extends SQLiteOpenHelper {
             resultClaim.put("details", claimDetails.getJSONObject(0));
             resultClaim.put("items", getClaimItems(claimUUID));
             resultClaim.put("services", getClaimServices(claimUUID));
+            resultClaim.put("attachments", getClaimAttachments(claimUUID));
 
             return resultClaim;
         } catch (JSONException e) {
@@ -910,6 +919,7 @@ public class SQLHandler extends SQLiteOpenHelper {
                 JSONObject resultClaim = new JSONObject();
                 resultClaim.put("details", claim);
                 resultClaim.put("items", getClaimItems(ClaimUUID));
+                resultClaim.put("attachments", getClaimAttachments(ClaimUUID));
 
                 JSONArray claimServices = getClaimServices(ClaimUUID);
 
@@ -945,6 +955,16 @@ public class SQLHandler extends SQLiteOpenHelper {
         return getQueryResultAsJsonArray(
                 "tblClaimServices",
                 new String[]{"ServiceCode", "ServicePrice", "ServiceQuantity","ServicePackageType","SubServicesItems"},
+                "ClaimUUID = ?",
+                new String[]{claimUUID}
+        );
+    }
+
+    @NonNull
+    public JSONArray getClaimAttachments(String claimUUID) {
+        return getQueryResultAsJsonArray(
+                "tblClaimAttachments",
+                new String[]{"Title", "Name", "File"},
                 "ClaimUUID = ?",
                 new String[]{claimUUID}
         );

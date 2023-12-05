@@ -44,6 +44,7 @@ public class ClaimActivity extends ImisActivity {
 
     public static ArrayList<HashMap<String, String>> lvItemList;
     public static ArrayList<HashMap<String, String>> lvServiceList;
+    public static ArrayList<HashMap<String, String>> lvAttachmentList;
     public static final String EXTRA_CLAIM_DATA = "claim";
     public static final String EXTRA_CLAIM_UUID = "claimUUID";
     public static final String EXTRA_READONLY = "readonly";
@@ -74,6 +75,7 @@ public class ClaimActivity extends ImisActivity {
 
         lvItemList = new ArrayList<>();
         lvServiceList = new ArrayList<>();
+        lvAttachmentList = new ArrayList<>();
 
         etStartDate = findViewById(R.id.etStartDate);
         etEndDate = findViewById(R.id.etEndDate);
@@ -279,6 +281,11 @@ public class ClaimActivity extends ImisActivity {
                 addServicesIntent.putExtra(EXTRA_READONLY, isIntentReadonly());
                 ClaimActivity.this.startActivity(addServicesIntent);
                 return true;
+            case R.id.mnuAddAttachments:
+                Intent addAttachmentsIntent = new Intent(ClaimActivity.this, AddAttachments.class);
+                addAttachmentsIntent.putExtra(EXTRA_READONLY, isIntentReadonly());
+                ClaimActivity.this.startActivity(addAttachmentsIntent);
+                return true;
             default:
                 onBackPressed();
                 return true;
@@ -357,6 +364,7 @@ public class ClaimActivity extends ImisActivity {
         etDiagnosis.setText("");
         lvItemList.clear();
         lvServiceList.clear();
+        lvAttachmentList.clear();
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
         TotalItemService = 0;
@@ -511,6 +519,21 @@ public class ClaimActivity extends ImisActivity {
             }
             tvServiceTotal.setText(String.valueOf(lvServiceList.size()));
 
+            lvAttachmentList.clear();
+            if (claim.has("attachments")) {
+                JSONArray attachments = claim.getJSONArray("attachments");
+                for (int i = 0; i < attachments.length(); i++) {
+                    HashMap<String, String> attachment = new HashMap<>();
+                    JSONObject attachmentJson = attachments.getJSONObject(i);
+
+                    attachment.put("Title", attachmentJson.getString("title"));
+                    attachment.put("Name", attachmentJson.getString("name"));
+                    attachment.put("File", attachmentJson.getString("file"));
+
+                    lvAttachmentList.add(attachment);
+                }
+            }
+
             TotalItemService = lvItemList.size() + lvServiceList.size();
 
             etInsureeNumber.requestFocus();
@@ -644,6 +667,21 @@ public class ClaimActivity extends ImisActivity {
                         }
                         tvServiceTotal.setText(String.valueOf(lvServiceList.size()));
 
+                        lvAttachmentList.clear();
+                        if (claimObject.has("attachments")) {
+                            JSONArray attachments = claimObject.getJSONArray("attachments");
+                            for (int i = 0; i < attachments.length(); i++) {
+                                HashMap<String, String> attachment = new HashMap<>();
+                                JSONObject attachmentJson = attachments.getJSONObject(i);
+
+                                attachment.put("Name", attachmentJson.getString("Name"));
+                                attachment.put("Title", attachmentJson.getString("Title"));
+                                attachment.put("File", attachmentJson.getString("File"));
+
+                                lvAttachmentList.add(attachment);
+                            }
+                        }
+
                         TotalItemService = lvItemList.size() + lvServiceList.size();
                     } catch (JSONException e) {
                         Log.e(LOG_TAG, String.format("Error while parsing claim (%s)", claimUUID));
@@ -659,6 +697,10 @@ public class ClaimActivity extends ImisActivity {
 
     private int getTotalService() {
         return lvServiceList.size();
+    }
+
+    private int getTotalAttachment() {
+        return lvAttachmentList.size();
     }
 
     @Override
@@ -752,6 +794,13 @@ public class ClaimActivity extends ImisActivity {
         if (rgVisitType.getCheckedRadioButtonId() == -1) {
             showValidationDialog(rgVisitType, getResources().getString(R.string.MissingVisitType));
             return false;
+        }
+
+        if(rgVisitType.getCheckedRadioButtonId() == R.id.rbReferral){
+            if(getTotalAttachment() == 0){
+                showValidationDialog(rgVisitType, getResources().getString(R.string.MissingClaimAttachment));
+                return false;
+            }
         }
 
         if (rgPrescriberType.getCheckedRadioButtonId() == -1) {
@@ -859,7 +908,19 @@ public class ClaimActivity extends ImisActivity {
 
             claimServiceCVs.add(claimServiceCV);
         }
-        sqlHandler.saveClaim(claimCV, claimItemCVs, claimServiceCVs);
+
+        ArrayList<ContentValues> claimAttachmentCVs = new ArrayList<>(lvAttachmentList.size());
+        for (int i = 0; i < lvAttachmentList.size(); i++) {
+            ContentValues claimAttachmentCV = new ContentValues();
+
+            claimAttachmentCV.put("ClaimUUID", claimUUID);
+            claimAttachmentCV.put("Title", lvAttachmentList.get(i).get("Title"));
+            claimAttachmentCV.put("Name", lvAttachmentList.get(i).get("Name"));
+            claimAttachmentCV.put("File", lvAttachmentList.get(i).get("File"));
+
+            claimAttachmentCVs.add(claimAttachmentCV);
+        }
+        sqlHandler.saveClaim(claimCV, claimItemCVs, claimServiceCVs, claimAttachmentCVs);
         return true;
     }
 
