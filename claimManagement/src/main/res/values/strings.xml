@@ -252,4 +252,5 @@
     <string name="AddAttachments">Add Attachments</string>
     <string name="AttachmentTitle">Title</string>
     <string name="AttachmentName">Name</string>
+    <string name="MissingClaimAttachment">Please add at least one attachment to submit the claim.</string>
 </resources>

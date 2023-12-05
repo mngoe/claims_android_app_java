@@ -615,4 +615,5 @@
   <string name="AddAttachments">Ajouter des pièces jointes </string>
   <string name="AttachmentTitle">Titre</string>
   <string name="AttachmentName">Nom</string>
+  <string name="MissingClaimAttachment">Veuillez ajouter au moins une pièce jointe pour soumettre la prestation.</string>
 </resources>

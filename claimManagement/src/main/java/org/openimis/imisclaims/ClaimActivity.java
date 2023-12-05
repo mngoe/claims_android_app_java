@@ -699,6 +699,10 @@ public class ClaimActivity extends ImisActivity {
         return lvServiceList.size();
     }
 
+    private int getTotalAttachment() {
+        return lvAttachmentList.size();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -790,6 +794,13 @@ public class ClaimActivity extends ImisActivity {
         if (rgVisitType.getCheckedRadioButtonId() == -1) {
             showValidationDialog(rgVisitType, getResources().getString(R.string.MissingVisitType));
             return false;
+        }
+
+        if(rgVisitType.getCheckedRadioButtonId() == R.id.rbReferral){
+            if(getTotalAttachment() == 0){
+                showValidationDialog(rgVisitType, getResources().getString(R.string.MissingClaimAttachment));
+                return false;
+            }
         }
 
         if (rgPrescriberType.getCheckedRadioButtonId() == -1) {
