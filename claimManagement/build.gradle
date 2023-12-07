@@ -104,6 +104,12 @@ android {
             buildConfigField "String", "API_BASE_URL", '"http://149.210.235.40/devupgrade/"'
             dimension 'std'
         }
+        csuDev {
+            applicationIdSuffix ".csuDev"
+            resValue "string", "app_name_claims", "Claims CSU"
+            buildConfigField "String", "API_BASE_URL", '"https://dev-csuapps.minsante.cm/"'
+            dimension 'std'
+        }
         niger {
             applicationIdSuffix ".niger"
             resValue "string", "app_name_claims", "Claims Niger"
@@ -154,6 +160,9 @@ android {
 
         bephaDev.java.srcDir 'src/bepha/java'
         bephaDev.res.srcDir 'src/bepha/res'
+
+        csuDev.java.srcDir 'src/csu/java'
+        csuDev.res.srcDir 'src/csu/res'
 
         niger.java.srcDir 'src/niger/java'
         niger.res.srcDir 'src/niger/res'

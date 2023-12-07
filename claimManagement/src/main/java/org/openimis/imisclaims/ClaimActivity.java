@@ -67,7 +67,7 @@ public class ClaimActivity extends ImisActivity {
     int TotalItemService;
 
     EditText etStartDate, etEndDate, etClaimCode, etHealthFacility, etInsureeNumber, etClaimAdmin, etGuaranteeNo;
-    AutoCompleteTextView etDiagnosis, etDiagnosis1, etDiagnosis2, etDiagnosis3, etDiagnosis4;
+    AutoCompleteTextView etDiagnosis, etDiagnosis1, etDiagnosis2, etDiagnosis3, etDiagnosis4, etProgram;
     TextView tvItemTotal, tvServiceTotal;
     Button btnPost, btnNew;
     RadioGroup rgVisitType;
@@ -91,6 +91,7 @@ public class ClaimActivity extends ImisActivity {
         etStartDate = findViewById(R.id.etStartDate);
         etEndDate = findViewById(R.id.etEndDate);
         etDiagnosis = findViewById(R.id.etDiagnosis);
+        etProgram = findViewById(R.id.etProgram);
         btnNew = findViewById(R.id.btnNew);
         btnPost = findViewById(R.id.btnPost);
         btnScan = findViewById(R.id.btnScan);
@@ -113,6 +114,12 @@ public class ClaimActivity extends ImisActivity {
 
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
+
+        ProgramAdapter progam_Adapter = new ProgramAdapter(ClaimActivity.this, sqlHandler);
+        etProgram.setAdapter(progam_Adapter);
+        etProgram.setThreshold(1);
+        etProgram.setOnItemClickListener(progam_Adapter);
+
 
         DiseaseAdapter adapter = new DiseaseAdapter(ClaimActivity.this, sqlHandler);
         etDiagnosis.setAdapter(adapter);
@@ -364,6 +371,7 @@ public class ClaimActivity extends ImisActivity {
         etStartDate.setText("");
         etEndDate.setText("");
         etDiagnosis.setText("");
+        etProgram.setText("");
         lvItemList.clear();
         lvServiceList.clear();
         tvItemTotal.setText("0");
@@ -383,6 +391,7 @@ public class ClaimActivity extends ImisActivity {
         disableView(etInsureeNumber);
         disableView(etStartDate);
         disableView(etEndDate);
+        disableView(etProgram);
         disableView(etDiagnosis);
         disableView(etDiagnosis1);
         disableView(etDiagnosis2);
@@ -425,6 +434,7 @@ public class ClaimActivity extends ImisActivity {
         etDiagnosis2.setText(sqlHandler.getDiseaseCode(claim.getSecDg2()));
         etDiagnosis3.setText(sqlHandler.getDiseaseCode(claim.getSecDg3()));
         etDiagnosis4.setText(sqlHandler.getDiseaseCode(claim.getSecDg4()));
+        //etProgram.setText(sqlHandler.getProgamName(claim.getString("program")));
 
         switch (claim.getVisitType() != null ? claim.getVisitType() : "") {
             case "Emergency":
@@ -498,6 +508,7 @@ public class ClaimActivity extends ImisActivity {
                         etDiagnosis2.setText(claimDetails.getString("ICDCode2"));
                         etDiagnosis3.setText(claimDetails.getString("ICDCode3"));
                         etDiagnosis4.setText(claimDetails.getString("ICDCode4"));
+                        etProgram.setText(claimDetails.getString("Program"));
 
                         switch (claimDetails.getString("VisitType")) {
                             case "E":
@@ -640,6 +651,11 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
+        if (etProgram.getText().length() == 0) {
+            showValidationDialog(etProgram, getResources().getString(R.string.MissingProgram));
+            return false;
+        }
+
         if (rgVisitType.getCheckedRadioButtonId() == -1) {
             showValidationDialog(rgVisitType, getResources().getString(R.string.MissingVisitType));
             return false;
@@ -699,6 +715,7 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("InsureeNumber", etInsureeNumber.getText().toString());
         claimCV.put("StartDate", etStartDate.getText().toString());
         claimCV.put("EndDate", etEndDate.getText().toString());
+        claimCV.put("Program", etProgram.getText().toString());
         claimCV.put("ICDCode", etDiagnosis.getText().toString());
         claimCV.put("Comment", "");
         claimCV.put("Total", "");

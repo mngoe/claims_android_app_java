@@ -54,7 +54,6 @@ import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class MainActivity extends ImisActivity {
     private static final int REQUEST_PERMISSIONS_CODE = 1;
     private static final int REQUEST_ALL_FILES_ACCESS_CODE = 2;
@@ -578,6 +577,16 @@ public class MainActivity extends ImisActivity {
                         for (Service service : diagnosesServicesMedications.getServices()) {
                             sqlHandler.InsertReferences(service.getCode(), service.getName(), "S", String.valueOf(service.getPrice()));
                             sqlHandler.InsertMapping(service.getCode(), service.getName(), "S");
+
+                            //Insert Programs
+                            //JSONArray arrPrograms = null;
+                            //JSONObject objPrograms = null;
+                            //arrPrograms = new JSONArray(programs);
+                                /*for (int i = 0; i < arrPrograms.length(); i++) {
+                                    objPrograms = arrPrograms.getJSONObject(i);
+                                    sqlHandler.InsertPrograms(objPrograms.getString("id"), objPrograms.getString("name"));
+                                }*/
+
                         }
 
                         //Insert Items

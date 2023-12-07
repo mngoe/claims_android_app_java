@@ -35,7 +35,7 @@ public class FetchClaimAdmins {
                         /* lastName = */ dto.getNames().get(0).getFamily(),
                         /* otherNames = */ String.join(" ", dto.getNames().get(0).getGiven()),
                         /* claimAdminCode = */ IdentifierDto.getCode(dto.getIdentifiers()),
-                        /* healthFacilityCode = */ Objects.requireNonNull(dto.getHealthFacilityCode())
+                        /* healthFacilityCode = */ dto.getHealthFacilityCode()
                 )
         );
     }
