@@ -192,6 +192,13 @@ public class ClaimActivity extends ImisActivity {
         disableView(etHealthFacility);
         disableView(etClaimAdmin);
 
+        //hide fields
+        etGuaranteeNo.setVisibility(View.GONE);
+        etDiagnosis1.setVisibility(View.GONE);
+        etDiagnosis2.setVisibility(View.GONE);
+        etDiagnosis3.setVisibility(View.GONE);
+        etDiagnosis4.setVisibility(View.GONE);
+
         Intent intent = getIntent();
 
         if (intent.hasExtra(EXTRA_CLAIM_DATA)) {

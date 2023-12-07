@@ -1,5 +1,6 @@
 type Query {
   control(offset: Int, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String, adjustability: String, adjustability_Icontains: String, adjustability_Istartswith: String, usage: String, usage_Icontains: String, usage_Istartswith: String): ControlGQLTypeConnection
+  program(first: Int): ProgramGQLTypeConnection
   controlStr(str: String, offset: Int, before: String, after: String, first: Int, last: Int, name: String, name_Icontains: String, name_Istartswith: String, adjustability: String, adjustability_Icontains: String, adjustability_Istartswith: String, usage: String, usage_Icontains: String, usage_Istartswith: String): ControlGQLTypeConnection
   detailPaymentInvoice(orderBy: [String], dateValidFrom_Gte: DateTime, dateValidTo_Lte: DateTime, applyDefaultValidityFilter: Boolean, clientMutationId: String, offset: Int, before: String, after: String, first: Int, last: Int, id: ID, subjectId: String, subjectType: ID, status: DetailPaymentInvoiceStatus, fees: Decimal, fees_Lt: Decimal, fees_Lte: Decimal, fees_Gt: Decimal, fees_Gte: Decimal, amount: Decimal, amount_Lt: Decimal, amount_Lte: Decimal, amount_Gt: Decimal, amount_Gte: Decimal, reconcilationId_Istartswith: String, reconcilationId_Icontains: String, reconcilationId_Iexact: String, reconcilationDate: Date, reconcilationDate_Lt: Date, reconcilationDate_Lte: Date, reconcilationDate_Gt: Date, reconcilationDate_Gte: Date, dateCreated: DateTime, dateCreated_Lt: DateTime, dateCreated_Lte: DateTime, dateCreated_Gt: DateTime, dateCreated_Gte: DateTime, dateUpdated: DateTime, dateUpdated_Lt: DateTime, dateUpdated_Lte: DateTime, dateUpdated_Gt: DateTime, dateUpdated_Gte: DateTime, isDeleted: Boolean, version: Int, payment_Id: ID, payment_CodeTp_Istartswith: String, payment_CodeTp_Icontains: String, payment_CodeTp_Iexact: String, payment_CodeExt_Istartswith: String, payment_CodeExt_Icontains: String, payment_CodeExt_Iexact: String, payment_CodeReceipt_Istartswith: String, payment_CodeReceipt_Icontains: String, payment_CodeReceipt_Iexact: String, payment_Label_Istartswith: String, payment_Label_Iexact: String, payment_ReconciliationStatus: PaymentInvoiceReconciliationStatus, payment_Fees: Decimal, payment_Fees_Lt: Decimal, payment_Fees_Lte: Decimal, payment_Fees_Gt: Decimal, payment_Fees_Gte: Decimal, payment_AmountReceived: Decimal, payment_AmountReceived_Lt: Decimal, payment_AmountReceived_Lte: Decimal, payment_AmountReceived_Gt: Decimal, payment_AmountReceived_Gte: Decimal, payment_DatePayment: Date, payment_DatePayment_Lt: Date, payment_DatePayment_Lte: Date, payment_DatePayment_Gt: Date, payment_DatePayment_Gte: Date, payment_PaymentOrigin_Istartswith: String, payment_PaymentOrigin_Icontains: String, payment_PaymentOrigin_Iexact: String, payment_DateCreated: DateTime, payment_DateCreated_Lt: DateTime, payment_DateCreated_Lte: DateTime, payment_DateCreated_Gt: DateTime, payment_DateCreated_Gte: DateTime, payment_DateUpdated: DateTime, payment_DateUpdated_Lt: DateTime, payment_DateUpdated_Lte: DateTime, payment_DateUpdated_Gt: DateTime, payment_DateUpdated_Gte: DateTime, payment_PayerRef_Istartswith: String, payment_PayerRef_Icontains: String, payment_PayerRef_Iexact: String, payment_PayerName_Istartswith: String, payment_PayerName_Icontains: String, payment_PayerName_Iexact: String, payment_IsDeleted: Boolean, payment_Version: Int): DetailPaymentInvoiceGQLTypeConnection
   paymentInvoice(orderBy: [String], subjectIds: [UUID], dateValidFrom_Gte: DateTime, dateValidTo_Lte: DateTime, applyDefaultValidityFilter: Boolean, clientMutationId: String, offset: Int, before: String, after: String, first: Int, last: Int, id: ID, codeTp_Istartswith: String, codeTp_Icontains: String, codeTp_Iexact: String, codeExt_Istartswith: String, codeExt_Icontains: String, codeExt_Iexact: String, codeReceipt_Istartswith: String, codeReceipt_Icontains: String, codeReceipt_Iexact: String, label_Istartswith: String, label_Iexact: String, reconciliationStatus: PaymentInvoiceReconciliationStatus, fees: Decimal, fees_Lt: Decimal, fees_Lte: Decimal, fees_Gt: Decimal, fees_Gte: Decimal, amountReceived: Decimal, amountReceived_Lt: Decimal, amountReceived_Lte: Decimal, amountReceived_Gt: Decimal, amountReceived_Gte: Decimal, datePayment: Date, datePayment_Lt: Date, datePayment_Lte: Date, datePayment_Gt: Date, datePayment_Gte: Date, paymentOrigin_Istartswith: String, paymentOrigin_Icontains: String, paymentOrigin_Iexact: String, dateCreated: DateTime, dateCreated_Lt: DateTime, dateCreated_Lte: DateTime, dateCreated_Gt: DateTime, dateCreated_Gte: DateTime, dateUpdated: DateTime, dateUpdated_Lt: DateTime, dateUpdated_Lte: DateTime, dateUpdated_Gt: DateTime, dateUpdated_Gte: DateTime, payerRef_Istartswith: String, payerRef_Icontains: String, payerRef_Iexact: String, payerName_Istartswith: String, payerName_Icontains: String, payerName_Iexact: String, isDeleted: Boolean, version: Int): PaymentInvoiceGQLTypeConnection
@@ -201,6 +202,19 @@ type ControlGQLTypeConnection {
   edgeCount: Int
 }
 
+type ProgramGQLTypeConnection {
+  """
+  Pagination data for this connection.
+  """
+  pageInfo: PageInfo!
+  """
+  Contains the nodes in this connection.
+  """
+  edges: [ProgramGQLTypeEdge]!
+  totalCount: Int
+  edgeCount: Int
+}
+
 """
 The Relay compliant `PageInfo` type, containing data necessary to paginate this connection.
 """
@@ -245,6 +259,26 @@ type ControlGQLType implements Node {
   The ID of the object.
   """
   id: ID!
+}
+
+"""
+A Relay edge containing a `ProgramGQLType` and its cursor.
+"""
+type ProgramGQLTypeEdge {
+  """
+  The item at the end of the edge
+  """
+  node: ProgramGQLType
+  """
+  A cursor for use in pagination
+  """
+  cursor: String!
+}
+
+type ProgramGQLType {
+   idProgram: String
+   code: String
+   nameProgram: String
 }
 
 """

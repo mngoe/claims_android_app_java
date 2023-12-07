@@ -121,8 +121,7 @@
                 android:ems="10"
                 android:fontFamily="sans-serif-light"
 
-                android:hint="@string/program"
-                android:maxLength="6" />
+                android:hint="@string/program"/>
 
             <AutoCompleteTextView
                 android:id="@+id/etDiagnosis"

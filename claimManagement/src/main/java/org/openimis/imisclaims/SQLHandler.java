@@ -39,7 +39,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String createTablePolicyInquiry = "CREATE TABLE IF NOT EXISTS tblPolicyInquiry(InsureeNumber text,Photo BLOB, InsureeName Text, DOB Text, Gender Text, ProductCode Text, ProductName Text, ExpiryDate Text, Status Text, DedType Int, Ded1 Int, Ded2 Int, Ceiling1 Int, Ceiling2 Int);";
     private static final String CreateTableControls = "CREATE TABLE IF NOT EXISTS tblControls(FieldName TEXT, Adjustability TEXT);";
     private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Code TEXT, HFCode TEXT ,Name TEXT);";
-    private static final String CreateTablePrograms = "CREATE TABLE IF NOT EXISTS tblPrograms(Id TEXT, Name TEXT);";
+    private static final String CreateTablePrograms = "CREATE TABLE IF NOT EXISTS tblPrograms(Id TEXT, Code TEXT, Name TEXT);";
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code TEXT, Name TEXT, Type TEXT, Price TEXT);";
     private static final String createTableClaimDetails = "CREATE TABLE IF NOT EXISTS tblClaimDetails(ClaimUUID TEXT, ClaimDate TEXT, HFCode TEXT, ClaimAdmin TEXT, ClaimCode TEXT, GuaranteeNumber TEXT, InsureeNumber TEXT, StartDate TEXT, EndDate TEXT, Program TEXT, ICDCode TEXT, Comment TEXT, Total TEXT, ICDCode1 TEXT, ICDCode2 TEXT, ICDCode3 TEXT, ICDCode4 TEXT, VisitType TEXT);";
     private static final String createTableClaimItems = "CREATE TABLE IF NOT EXISTS tblClaimItems(ClaimUUID TEXT, ItemCode TEXT, ItemPrice TEXT, ItemQuantity TEXT);";
@@ -165,10 +165,11 @@ public class SQLHandler extends SQLiteOpenHelper {
     }
 
     //insert programs
-    public void InsertPrograms(String Id, String Name) {
+    public void InsertPrograms(String Id, String Code, String Name) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("Id", Id);
+            cv.put("Code", Code);
             cv.put("Name", Name);
             db.insert("tblPrograms", null, cv);
         } catch (Exception e) {

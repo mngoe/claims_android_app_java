@@ -42,12 +42,14 @@ import org.openimis.imisclaims.domain.entity.DiagnosesServicesMedications;
 import org.openimis.imisclaims.domain.entity.Diagnosis;
 import org.openimis.imisclaims.domain.entity.Medication;
 import org.openimis.imisclaims.domain.entity.PaymentList;
+import org.openimis.imisclaims.domain.entity.Program;
 import org.openimis.imisclaims.domain.entity.Service;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.usecase.FetchClaimAdmins;
 import org.openimis.imisclaims.usecase.FetchControls;
 import org.openimis.imisclaims.usecase.FetchDiagnosesServicesItems;
 import org.openimis.imisclaims.usecase.FetchPaymentList;
+import org.openimis.imisclaims.usecase.FetchPrograms;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -577,16 +579,12 @@ public class MainActivity extends ImisActivity {
                         for (Service service : diagnosesServicesMedications.getServices()) {
                             sqlHandler.InsertReferences(service.getCode(), service.getName(), "S", String.valueOf(service.getPrice()));
                             sqlHandler.InsertMapping(service.getCode(), service.getName(), "S");
+                        }
 
-                            //Insert Programs
-                            //JSONArray arrPrograms = null;
-                            //JSONObject objPrograms = null;
-                            //arrPrograms = new JSONArray(programs);
-                                /*for (int i = 0; i < arrPrograms.length(); i++) {
-                                    objPrograms = arrPrograms.getJSONObject(i);
-                                    sqlHandler.InsertPrograms(objPrograms.getString("id"), objPrograms.getString("name"));
-                                }*/
-
+                        //Insert Programs
+                        List<Program> programs = new FetchPrograms().execute();
+                        for (Program program : programs) {
+                            sqlHandler.InsertPrograms(program.getIdProgram(), program.getCode(), program.getNameProgram());
                         }
 
                         //Insert Items
