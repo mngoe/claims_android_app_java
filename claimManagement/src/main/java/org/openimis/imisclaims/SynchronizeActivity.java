@@ -335,45 +335,47 @@ public class SynchronizeActivity extends ImisActivity {
         }
     }
 
-    public String getServicesPriceList(){
-
-        final HttpResponse[] resp = {null};
-        String content = null;
-        JSONObject object1 = new JSONObject();
-        String ServicePriceList = null;
-
+    public void downloadPricelist(){
         if (global.isNetworkAvailable()) {
-
-            String functionName = "claim/getpaymentlists";
-            try {
-                object1.put("claim_administrator_code", global.getOfficerCode());
-                HttpResponse response = toRestApi.postToRestApiToken(object1, functionName);
-                resp[0] = response;
-                HttpEntity respEntity = response.getEntity();
-                if (respEntity != null) {
-                    final String[] code = {null};
-                    // EntityUtils to get the response content
+            String progress_message = getResources().getString(R.string.Services) + ", " + getResources().getString(R.string.Items) + "...";
+            progressDialog = ProgressDialog.show(this, getResources().getString(R.string.mapping), progress_message);
+            Thread thread = new Thread() {
+                public void run() {
                     try {
-                        content = EntityUtils.toString(respEntity);
-                        android.util.Log.e("priceListServices", content);
+                        PaymentList paymentList = new FetchPaymentList().execute(global.getOfficerCode());
+                        sqlHandler.ClearMapping("S");
+                        sqlHandler.ClearMapping("I");
 
-                        JSONObject objResponse = new JSONObject(content);
-                        ServicePriceList = objResponse.getString("pricelist_services");
+                        //Insert Services
+                        for (Service service : paymentList.getServices()) {
+                            sqlHandler.InsertMapping(service.getCode(), service.getName(), "S");
+                        }
 
-                    } catch (JSONException | IOException e) {
+                        //Insert Items
+                        for (Medication medication : paymentList.getMedications()) {
+                            sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I");
+                        }
+                        runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            Toast.makeText(SynchronizeActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
+                        });
+                    } catch (Exception e) {
                         e.printStackTrace();
+                        runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            Toast.makeText(SynchronizeActivity.this, e.getMessage() + "-" + getResources().getString(R.string.AccessDenied), Toast.LENGTH_LONG).show();
+                        });
                     }
                 }
-            } catch (JSONException | ParseException e) {
-                e.printStackTrace();
-            }
+            };
+            thread.start();
+        } else {
+            runOnUiThread(() -> progressDialog.dismiss());
+            ErrorDialogBox(getResources().getString(R.string.CheckInternet));
         }
-
-        return ServicePriceList;
     }
 
     public void downloadItems() {
-
         if (global.isNetworkAvailable()) {
             String progress_message = getResources().getString(R.string.Items);
             progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
@@ -383,37 +385,30 @@ public class SynchronizeActivity extends ImisActivity {
                     List<Medication> items = new FetchMedications().execute();
                     if (items.size() != 0) {
 
-                        //get pricelist service for health facility and user
-                        PaymentList paymentList = new FetchPaymentList().execute(global.getOfficerCode());
-                        List<Medication> itemsPricelist = paymentList.getMedications();
-
                         sqlHandler.ClearAll("tblItems");
 
 
                         for (Medication item : items) {
-                            String priceService = "";
 
-                            //get service price from pricelist
-                            for (Medication med : itemsPricelist) {
-                                if (med.getCode().equals(item.getCode())) {
-                                    priceService = String.valueOf(med.getPrice());
-                                }
-                            }
-
-                            //insert service in database
+                            //insert item in database
                             sqlHandler.InsertItem(
                                     item.getId(),
                                     item.getCode(),
                                     item.getName(), "I",
-                                    priceService,
+                                    String.valueOf(item.getPrice()),
                                     item.getProgram());
                         }
-                    }
 
-                    runOnUiThread(() -> {
-                        progressDialog.dismiss();
-                        downloadDiagnoses();
-                    });
+                        runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            downloadDiagnoses();
+                        });
+                    }else {
+                        runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            Toast.makeText(SynchronizeActivity.this, getResources().getString(R.string.downloadFail), Toast.LENGTH_LONG).show();
+                        });
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     runOnUiThread(() -> progressDialog.dismiss());
@@ -463,6 +458,7 @@ public class SynchronizeActivity extends ImisActivity {
 
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
+                            downloadPricelist();
                             Toast.makeText(SynchronizeActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
                         });
                     } catch (Exception e) {

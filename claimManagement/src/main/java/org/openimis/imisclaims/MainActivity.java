@@ -534,8 +534,6 @@ public class MainActivity extends ImisActivity {
 
                     List<Service> services = new FetchServices().execute();
                     if (services.size() != 0) {
-                        //get list of all services in database
-
                         //get pricelist service for health facility and user
                         PaymentList paymentList = new FetchPaymentList().execute(claimAdminCode);
                         List<Service> servicesPricelist = paymentList.getServices();
@@ -544,10 +542,9 @@ public class MainActivity extends ImisActivity {
                         sqlHandler.ClearAll("tblSubServices");
                         sqlHandler.ClearAll("tblSubItems");
 
-
                         for (Service service: services) {
+                            //get service price from user pricelist
                             String price ="";
-                            //insert user healthfacility services
                             for(Service serv : servicesPricelist){
                                 if(serv.getCode().equals(service.getCode())){
                                     price = String.valueOf(serv.getPrice());
@@ -555,6 +552,7 @@ public class MainActivity extends ImisActivity {
                                 }
                             }
 
+                            //insert services
                             sqlHandler.InsertService(service.getId(),
                                     service.getCode(),
                                     service.getName(), "S",
@@ -582,7 +580,6 @@ public class MainActivity extends ImisActivity {
                             }
 
                         }
-
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             downloadItems(claimAdminCode);
@@ -609,29 +606,11 @@ public class MainActivity extends ImisActivity {
             String progress_message = getResources().getString(R.string.Items);
             progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
             Thread thread = new Thread(() -> {
-
                 try {
                     List<Medication> items = new FetchMedications().execute();
                     if (items.size() != 0) {
-
-                        //get pricelist service for health facility and user
-                        //PaymentList paymentList = new FetchPaymentList().execute(claimAdminCode);
-                        //List<Medication> itemsPricelist = paymentList.getMedications();
-
                         sqlHandler.ClearAll("tblItems");
-
-
                         for (Medication item : items) {
-                            //String priceService = "";
-
-                            //get service price from pricelist
-                            //for (Medication med : itemsPricelist) {
-                                //if (med.getCode().equals(item.getCode())) {
-                                    //priceService = String.valueOf(med.getPrice());
-                                //}
-                            //}
-
-                            //insert item in database
                             sqlHandler.InsertItem(
                                     item.getId(),
                                     item.getCode(),
@@ -639,7 +618,6 @@ public class MainActivity extends ImisActivity {
                                     String.valueOf(item.getPrice()),
                                     item.getProgram());
                         }
-
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             Toast.makeText(MainActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
@@ -688,7 +666,7 @@ public class MainActivity extends ImisActivity {
                     if (c.getCount() == 0) {
                         try {
                             progressDialog.dismiss();
-                            doLoggedIn(() -> DownLoadDiagnosesServicesItems(null));
+                            doLoggedIn(() -> DownLoadDiagnosesServicesItems(claimAdminCode));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -781,7 +759,6 @@ public class MainActivity extends ImisActivity {
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             Toast.makeText(MainActivity.this, getResources().getString(R.string.MapSuccessful), Toast.LENGTH_LONG).show();
-                            downloadServices(claimAdministratorCode);
                         });
                     } catch (Exception e) {
                         e.printStackTrace();

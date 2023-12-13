@@ -41,28 +41,6 @@
                 android:hint="@string/ClaimAdmin"
                 android:maxLength="8"></EditText>
 
-            <EditText
-                android:id="@+id/etClaimCode"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ems="10"
-                android:fontFamily="sans-serif-light"
-                android:hint="@string/ClaimCode"
-                android:maxLength="8">
-
-                <requestFocus />
-            </EditText>
-
-            <EditText
-                android:id="@+id/etGuaranteeNo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ems="10"
-                android:fontFamily="sans-serif-light"
-                android:hint="@string/GuaranteeNo"
-
-                android:maxLength="8"></EditText>
-
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -122,6 +100,29 @@
                 android:fontFamily="sans-serif-light"
 
                 android:hint="@string/program"/>
+
+            <EditText
+                android:id="@+id/etClaimCode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:fontFamily="sans-serif-light"
+                android:hint="@string/ClaimCode"
+                android:maxLength="8">
+
+                <requestFocus />
+            </EditText>
+
+            <EditText
+                android:id="@+id/etGuaranteeNo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:fontFamily="sans-serif-light"
+                android:hint="@string/GuaranteeNo"
+
+                android:maxLength="8"></EditText>
+
 
             <AutoCompleteTextView
                 android:id="@+id/etDiagnosis"
