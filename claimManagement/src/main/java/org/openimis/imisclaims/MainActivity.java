@@ -697,7 +697,7 @@ public class MainActivity extends ImisActivity {
                         //Insert Services
                         for (Service service : diagnosesServicesMedications.getServices()) {
                             sqlHandler.InsertReferences(service.getCode(), service.getName(), "S", String.valueOf(service.getPrice()));
-                            sqlHandler.InsertMapping(service.getCode(), service.getName(), "S");
+                            sqlHandler.InsertMapping(service.getCode(), service.getName(), "S", service.getProgram());
                         }
 
                         //Insert Programs
@@ -709,7 +709,7 @@ public class MainActivity extends ImisActivity {
                         //Insert Items
                         for (Medication medication : diagnosesServicesMedications.getMedications()) {
                             sqlHandler.InsertReferences(medication.getCode(), medication.getName(), "I", String.valueOf(medication.getPrice()));
-                            sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I");
+                            sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I", medication.getProgram());
                         }
 
                         runOnUiThread(() -> {
@@ -749,12 +749,12 @@ public class MainActivity extends ImisActivity {
 
                         //Insert Services
                         for (Service service : paymentList.getServices()) {
-                            sqlHandler.InsertMapping(service.getCode(), service.getName(), "S");
+                            sqlHandler.InsertMapping(service.getCode(), service.getName(), "S", service.getProgram());
                         }
 
                         //Insert Items
                         for (Medication medication : paymentList.getMedications()) {
-                            sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I");
+                            sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I", medication.getProgram());
                         }
                         runOnUiThread(() -> {
                             progressDialog.dismiss();

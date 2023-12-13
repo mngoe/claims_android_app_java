@@ -36,7 +36,7 @@ public class ItemAdapter extends CursorAdapter {
         if (getFilterQueryProvider() != null) {
             return getFilterQueryProvider().runQuery(constraint);
         }
-        return sqlHandler.searchItems((constraint != null ? constraint.toString() : ""));
+        return sqlHandler.searchItems((constraint != null ? constraint.toString() : ""),ClaimActivity.claimProgram);
     }
 
     @Override

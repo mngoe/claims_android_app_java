@@ -42,7 +42,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text, Quantity text, Price text);";
 
 
-    private static final String CreateTableMapping = "CREATE TABLE IF NOT EXISTS tblMapping(Code TEXT,Name TEXT,Type TEXT);";
+    private static final String CreateTableMapping = "CREATE TABLE IF NOT EXISTS tblMapping(Code TEXT,Name TEXT,Type TEXT, Program TEXT);";
     private static final String createTablePolicyInquiry = "CREATE TABLE IF NOT EXISTS tblPolicyInquiry(InsureeNumber text,Photo BLOB, InsureeName Text, DOB Text, Gender Text, ProductCode Text, ProductName Text, ExpiryDate Text, Status Text, DedType Int, Ded1 Int, Ded2 Int, Ceiling1 Int, Ceiling2 Int);";
     private static final String CreateTableControls = "CREATE TABLE IF NOT EXISTS tblControls(FieldName TEXT, Adjustability TEXT);";
     private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Code TEXT, HFCode TEXT ,Name TEXT);";
@@ -204,12 +204,13 @@ public class SQLHandler extends SQLiteOpenHelper {
         return getNameService(code);
     }
 
-    public boolean InsertMapping(String Code, String Name, String Type) {
+    public boolean InsertMapping(String Code, String Name, String Type, String Program) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("Code", Code);
             cv.put("Name", Name);
             cv.put("Type", Type);
+            cv.put("Program", Program);
 
             dbMapping.insert("tblMapping", null, cv);
         } catch (SQLiteFullException e) {
@@ -405,12 +406,12 @@ public class SQLHandler extends SQLiteOpenHelper {
         return name;
     }
 
-    public Cursor filterItemsServices(String nameFilter, String typeFilter) {
+    public Cursor filterItemsServices(String nameFilter, String typeFilter, String programFilter) {
         String wildcardNameFilter = "%" + nameFilter + "%";
         Cursor c = dbMapping.query("tblMapping",
                 new String[]{"Code AS _id", "Code", "Name"},
-                "type = ? AND (Code LIKE ? OR Name LIKE ?)",
-                new String[]{typeFilter, wildcardNameFilter, wildcardNameFilter},
+                "type = ? AND (Code LIKE ? OR Name LIKE ?) AND Program = ?",
+                new String[]{typeFilter, wildcardNameFilter, wildcardNameFilter, programFilter},
                 null,
                 null,
                 null);
@@ -422,12 +423,12 @@ public class SQLHandler extends SQLiteOpenHelper {
         return c;
     }
 
-    public Cursor searchItems(String filter) {
-        return filterItemsServices(filter, "I");
+    public Cursor searchItems(String filter, String program) {
+        return filterItemsServices(filter, "I",program);
     }
 
-    public Cursor searchServices(String filter) {
-        return filterItemsServices(filter, "S");
+    public Cursor searchServices(String filter, String program) {
+        return filterItemsServices(filter, "S",program);
     }
 
     public String getAdjustability(String FieldName) {

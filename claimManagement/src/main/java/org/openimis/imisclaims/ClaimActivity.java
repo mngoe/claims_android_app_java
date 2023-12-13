@@ -7,6 +7,7 @@ import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -51,6 +52,7 @@ public class ClaimActivity extends ImisActivity {
     private static final String EXTRA_CLAIM_DATA = "claim";
     private static final String EXTRA_CLAIM_UUID = "claimUUID";
     public static final String EXTRA_READONLY = "readonly";
+    public static String claimProgram;
 
     public static Intent newIntent(@NonNull Context context, @NonNull Claim claim) {
         return new Intent(context, ClaimActivity.class).putExtra(EXTRA_CLAIM_DATA, claim);
@@ -118,7 +120,17 @@ public class ClaimActivity extends ImisActivity {
         ProgramAdapter progam_Adapter = new ProgramAdapter(ClaimActivity.this, sqlHandler);
         etProgram.setAdapter(progam_Adapter);
         etProgram.setThreshold(1);
-        etProgram.setOnItemClickListener(progam_Adapter);
+        etProgram.setOnItemClickListener((parent, view,position, l) ->{
+            if(position >= 0){
+                Cursor cursor = (Cursor)parent.getItemAtPosition(position);
+                claimProgram = cursor.getString(cursor.getColumnIndexOrThrow("Id"));
+                etClaimCode.setText("");
+                lvServiceList.clear();
+                lvItemList.clear();
+                tvItemTotal.setText("0");
+                tvServiceTotal.setText("0");
+            }
+        });
 
 
         DiseaseAdapter adapter = new DiseaseAdapter(ClaimActivity.this, sqlHandler);

@@ -36,7 +36,7 @@ public class ServiceAdapter extends CursorAdapter {
             return getFilterQueryProvider().runQuery(constraint);
         }
 
-        return sqlHandler.searchServices((constraint != null ? constraint.toString() : ""));
+        return sqlHandler.searchServices((constraint != null ? constraint.toString() : ""), ClaimActivity.claimProgram);
     }
 
     @Override

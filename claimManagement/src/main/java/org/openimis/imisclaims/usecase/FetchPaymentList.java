@@ -52,7 +52,7 @@ public class FetchPaymentList {
                 /* price = */ service.price(),
                 /* currency = */ "XAF",
                 null,
-                null,
+                service.program() != null ? service.program().idProgram(): null,
                 null,
                 null
         );
@@ -67,7 +67,7 @@ public class FetchPaymentList {
                 /* name = */ item.name(),
                 /* price = */ item.price(),
                 /* currency = */ "XAF",
-                null
+                item.program().idProgram()
         );
     }
 }

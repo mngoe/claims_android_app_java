@@ -226,7 +226,7 @@ public class MapServices extends ImisActivity {
             boolean checked = (Boolean) oService.get("isMapped");
             if (checked) {
                 count++;
-                if (!sqlHandler.InsertMapping(oService.get("Code").toString(), oService.get("Name").toString(), "S")) {
+                if (!sqlHandler.InsertMapping(oService.get("Code").toString(), oService.get("Name").toString(), "S",oService.get("Program").toString())) {
                     return 2;
                 }
 

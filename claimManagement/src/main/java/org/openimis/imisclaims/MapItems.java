@@ -232,7 +232,7 @@ public class MapItems extends ImisActivity {
             boolean checked = (Boolean) oItem.get("isMapped");
             if (checked) {
                 count++;
-                if (!sqlHandler.InsertMapping(oItem.get("Code").toString(), oItem.get("Name").toString(), "I")) {
+                if (!sqlHandler.InsertMapping(oItem.get("Code").toString(), oItem.get("Name").toString(), "I",oItem.get("Program").toString())) {
                     return 2;
                 }
             }
