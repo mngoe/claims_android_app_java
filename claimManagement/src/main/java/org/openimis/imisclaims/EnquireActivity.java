@@ -51,7 +51,7 @@ import java.util.Map;
 import java.util.Objects;
 
 public class EnquireActivity extends ImisActivity {
-    private static final String LOG_TAG = "ENQUIRE";
+    public static final String LOG_TAG = "ENQUIRE";
     private static final int REQUEST_QR_SCAN_CODE = 1;
     EditText etCHFID;
     TextView tvCHFID, tvName, tvGender, tvDOB;

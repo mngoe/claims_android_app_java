@@ -24,7 +24,7 @@ android {
 
     defaultConfig {
         applicationId "org.openimis.imisclaims"
-        minSdkVersion 21
+        minSdkVersion 23
         targetSdkVersion 32
         versionCode 4
         versionName "2.0.1"
@@ -216,6 +216,8 @@ dependencies {
     implementation 'commons-io:commons-io:2.11.0'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'org.apache.httpcomponents:httpclient:4.5.9'
+    implementation 'org.apache.httpcomponents:httpcore:4.4.11'
     implementation 'com.squareup.okhttp3:okhttp:4.11.0'
     implementation 'com.squareup.okhttp3:logging-interceptor:4.11.0'
     implementation('com.apollographql.apollo:apollo-runtime:2.5.14')

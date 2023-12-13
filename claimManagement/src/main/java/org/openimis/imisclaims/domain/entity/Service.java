@@ -4,8 +4,14 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.util.List;
 
 public class Service implements Parcelable {
+
+    @Nullable
+    private final String id;
 
     @NonNull
     private final String code;
@@ -17,37 +23,72 @@ public class Service implements Parcelable {
     @NonNull
     private final String currency;
 
+    @Nullable
+    private final List<SubServiceItem> subServices;
+
+    @Nullable
+    private final List<SubServiceItem> subItems;
+
+    @Nullable
+    private final String program;
+
+    @Nullable
+    private final String packageType;
+
     public Service(
+            @Nullable String id,
             @NonNull String code,
             @NonNull String name,
             double price,
-            @NonNull String currency
+            @NonNull String currency,
+            @Nullable String packageType,
+            @Nullable String program,
+            @Nullable List<SubServiceItem> subServices,
+            @Nullable List<SubServiceItem> subItems
     ){
+        this.id = id;
         this.code = code;
         this.name = name;
         this.price = price;
         this.currency = currency;
+        this.packageType = packageType;
+        this.program = program;
+        this.subServices = subServices;
+        this.subItems = subItems;
     }
 
     protected Service(Parcel in) {
+        id = in.readString();
         code = in.readString();
         name = in.readString();
         price = in.readDouble();
         currency = in.readString();
+        program = in.readString();
+        packageType = in.readString();
+        subServices = in.createTypedArrayList(SubServiceItem.CREATOR);
+        subItems = in.createTypedArrayList(SubServiceItem.CREATOR);
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
         dest.writeString(code);
         dest.writeString(name);
         dest.writeDouble(price);
         dest.writeString(currency);
+        dest.writeString(program);
+        dest.writeString(packageType);
+        dest.writeTypedList(subServices);
+        dest.writeTypedList(subItems);
     }
 
     @Override
     public int describeContents() {
         return 0;
     }
+
+    @NonNull
+    public String getId(){ return id; }
 
     @NonNull
     public String getCode() {
@@ -61,6 +102,22 @@ public class Service implements Parcelable {
 
     public double getPrice() {
         return price;
+    }
+
+    @Nullable
+    public String getProgram(){ return program;}
+
+    @NonNull
+    public  String getPackageType(){ return packageType; }
+
+    @Nullable
+    public List<SubServiceItem> getSubServices() {
+        return subServices;
+    }
+
+    @Nullable
+    public List<SubServiceItem> getSubItems() {
+        return subItems;
     }
 
     @NonNull

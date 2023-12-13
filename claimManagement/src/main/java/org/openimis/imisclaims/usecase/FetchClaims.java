@@ -147,13 +147,14 @@ public class FetchClaims {
                 /* code = */ service.service().code(),
                 /* name = */ service.service().name(),
                 /* price = */ service.service().price(),
-                /* currency = */ "$",
+                /* currency = */ "XAF",
                 /* quantityProvided = */ service.qtyProvided().toString(),
                 /* quantityApproved = */ service.qtyApproved() != null ? service.qtyApproved().toString() : null,
                 /* priceAdjusted = */ service.priceAdjusted() != null ? service.priceAdjusted().toString() : null,
                 /* priceValuated = */ service.priceValuated() != null ? service.priceValuated().toString() : null,
                 /* explanation = */ service.explanation(),
-                /* justification = */ service.justification()
+                /* justification = */ service.justification(),
+                /* packageType = */ service.service().packagetype()
         );
     }
 
@@ -162,7 +163,7 @@ public class FetchClaims {
                 /* code = */ item.item().code(),
                 /* name = */ item.item().name(),
                 /* price = */ item.item().price(),
-                /* currency = */ "$",
+                /* currency = */ "XAF",
                 /* quantityProvided = */ item.qtyProvided().toString(),
                 /* quantityApproved = */ item.qtyApproved() != null ? item.qtyApproved().toString() : null,
                 /* priceAdjusted = */ item.priceAdjusted() != null ? item.priceAdjusted().toString() : null,

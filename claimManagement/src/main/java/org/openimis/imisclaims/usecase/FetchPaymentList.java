@@ -46,10 +46,15 @@ public class FetchPaymentList {
     private Service toService(@NonNull GetPaymentListQuery.Edge1 edge) {
         GetPaymentListQuery.Service service = Objects.requireNonNull(edge.node()).service();
         return new Service(
+                null,
                 /* code = */ service.code(),
                 /* name = */ service.name(),
                 /* price = */ service.price(),
-                /* currency = */ "$"
+                /* currency = */ "XAF",
+                null,
+                null,
+                null,
+                null
         );
     }
 
@@ -57,10 +62,12 @@ public class FetchPaymentList {
     private Medication toMedication(@NonNull GetPaymentListQuery.Edge2 edge) {
         GetPaymentListQuery.Item item = Objects.requireNonNull(edge.node()).item();
         return new Medication(
+                null,
                 /* code = */ item.code(),
                 /* name = */ item.name(),
                 /* price = */ item.price(),
-                /* currency = */ "$"
+                /* currency = */ "XAF",
+                null
         );
     }
 }

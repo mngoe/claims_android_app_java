@@ -11,7 +11,6 @@ import androidx.fragment.app.Fragment;
 
 import android.view.View;
 import android.widget.Button;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.openimis.imisclaims.domain.entity.Claim;

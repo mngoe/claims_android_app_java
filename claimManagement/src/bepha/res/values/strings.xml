@@ -79,7 +79,7 @@
   <string name="app_name_claim">Claim</string>
   <string name="app_name_enquire">Enquire</string>
   <string name="ClaimAdmin">Claim Admin</string>
-  <string name="CHFID">ID adherent</string>
+  <string name="CHFID">ID cheque</string>
   <string name="StartDate">Start Date</string>
   <string name="EndDate">End Date</string>
   <string name="Diagnosis">Diagnosis</string>
@@ -103,8 +103,9 @@
   <string name="MissingClaimAdmin">Please enter Claim Admin Code</string>
   <string name="MissingGuaranteeNo">Please enter Guarantee ID</string>
   <string name="MissingClaimCode">Please enter Claim Code</string>
-  <string name="MissingCHFID">Please enter the adherent number</string>
-  <string name="InvalidCHFID">Invalid adherent number</string>
+  <string name="InvalidClaimCode">The claim code must be 2 characters maximum</string>
+  <string name="MissingCHFID">Please enter the cheque number</string>
+  <string name="InvalidCHFID">Invalid cheque number</string>
   <string name="MissingStartDate">Please enter Start Date</string>
   <string name="MissingEndDate">Please enter End Date</string>
   <string name="MissingClaim">Please select at least one item or service to submit the claim.</string>
@@ -197,4 +198,6 @@
   <string name="initializing">Initializing…</string>
   <string name="initializing_complete">Initializing Complete</string>
   <string name="application">Application</string>
+  <string name="qtyAlert">The maximum quantity of this product is</string>
+  <string name="qtyAlertAsk">The quantity allowed for this product is</string>
 </resources>

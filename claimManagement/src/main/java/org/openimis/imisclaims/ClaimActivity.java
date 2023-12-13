@@ -476,6 +476,7 @@ public class ClaimActivity extends ImisActivity {
             item.put("Code", service.getCode());
             item.put("Price", String.valueOf(service.getPrice()));
             item.put("Quantity", service.getQuantity());
+            item.put("PackageType", service.getPackageType());
             lvServiceList.add(item);
         }
         tvServiceTotal.setText(String.valueOf(lvServiceList.size()));
@@ -559,6 +560,11 @@ public class ClaimActivity extends ImisActivity {
                                 service.put("Code", serviceJson.getString("ServiceCode"));
                                 service.put("Price", serviceJson.getString("ServicePrice"));
                                 service.put("Quantity", serviceJson.getString("ServiceQuantity"));
+                                service.put("PackageType", serviceJson.getString("ServicePackageType"));
+
+                                if(!serviceJson.getString("ServicePackageType").equals("S")){
+                                    service.put("SubServicesItems", serviceJson.getString("SubServicesItems"));
+                                }
 
                                 lvServiceList.add(service);
                             }
@@ -672,7 +678,6 @@ public class ClaimActivity extends ImisActivity {
             showValidationDialog(tvItemTotal, getResources().getString(R.string.MissingClaim));
             return false;
         }
-
         return true;
     }
 
@@ -753,10 +758,14 @@ public class ClaimActivity extends ImisActivity {
             claimServiceCV.put("ServicePrice", lvServiceList.get(i).get("Price"));
             claimServiceCV.put("ServiceQuantity", lvServiceList.get(i).get("Quantity"));
 
+            if (!lvServiceList.get(i).get("PackageType").equals("S")) {
+                claimServiceCV.put("SubServicesItems", lvServiceList.get(i).get("SubServicesItems"));
+            }
+
             claimServiceCVs.add(claimServiceCV);
         }
-
         sqlHandler.saveClaim(claimCV, claimItemCVs, claimServiceCVs);
         return true;
     }
+
 }

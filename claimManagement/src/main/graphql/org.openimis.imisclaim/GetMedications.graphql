@@ -1,0 +1,17 @@
+query GetMedications {
+  medicalItems {
+    edges {
+      node {
+        id
+        code
+        name
+        type
+        price
+        careType
+        program {
+          idProgram
+        }
+      }
+    }
+  }
+}

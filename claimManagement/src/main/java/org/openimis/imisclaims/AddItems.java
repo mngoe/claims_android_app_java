@@ -12,9 +12,9 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 
-import java.util.HashMap;
-
 import org.openimis.imisclaims.tools.Log;
+
+import java.util.HashMap;
 
 public class AddItems extends ImisActivity {
     ListView lvItems;

@@ -78,19 +78,26 @@ public class FetchDiagnosesServicesItems {
     @NonNull
     private Service toService(@NonNull ActivityDefinitionDto dto) {
         return new Service(
+                /* Id = */ dto.getId(),
                 /* code = */ IdentifierDto.getCode(dto.getIdentifiers()),
                 /* name = */ dto.getTitle(),
                 /* price = */ dto.getPrice(),
-                /* currency = */ dto.getCurrency()
+                /* currency = */ dto.getCurrency(),
+                null,
+                null,
+                null,
+                null
         );
     }
     @NonNull
     private Medication toMedication(@NonNull MedicationDto dto) {
         return new Medication(
+                /* Id = */ dto.getId(),
                 /* code = */ IdentifierDto.getCode(dto.getIdentifiers()),
                 /* name = */ dto.getTitle(),
                 /* price = */ dto.getPrice(),
-                /* currency = */ dto.getCurrency()
+                /* currency = */ dto.getCurrency(),
+                null
         );
     }
 }

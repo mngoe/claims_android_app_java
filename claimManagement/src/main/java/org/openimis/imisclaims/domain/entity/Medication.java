@@ -4,9 +4,12 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class Medication implements Parcelable {
 
+    @Nullable
+    private final String id;
     @NonNull
     private final String code;
     @NonNull
@@ -14,40 +17,54 @@ public class Medication implements Parcelable {
 
     private final double price;
 
+    @Nullable
+    private final String program;
+
     @NonNull
     private final String currency;
 
     public Medication(
+            @Nullable String id,
             @NonNull String code,
             @NonNull String name,
             double price,
-            @NonNull String currency
+            @NonNull String currency,
+            @Nullable String program
     ){
+        this.id = id;
         this.code = code;
         this.name = name;
         this.price = price;
         this.currency = currency;
+        this.program = program;
     }
 
     protected Medication(Parcel in) {
+        id = in.readString();
         code = in.readString();
         name = in.readString();
         price = in.readDouble();
         currency = in.readString();
+        program = in.readString();
     }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
         dest.writeString(code);
         dest.writeString(name);
         dest.writeDouble(price);
         dest.writeString(currency);
+        dest.writeString(program);
     }
 
     @Override
     public int describeContents() {
         return 0;
     }
+
+    @NonNull
+    public  String getId(){ return id; }
 
     @NonNull
     public String getCode() {
@@ -67,6 +84,9 @@ public class Medication implements Parcelable {
     public String getCurrency() {
         return currency;
     }
+
+    @NonNull
+    public String getProgram(){ return program; }
 
     public static final Creator<Medication> CREATOR = new Creator<>() {
         @Override
