@@ -600,4 +600,5 @@
   <string name="NotFound"></string>
   <string name="qtyAlert">La quantité maximale pour ce produit est</string>
   <string name="qtyAlertAsk">La quantité autorisée pour ce produit est </string>
+  <string name="Prefix">Préfixe</string>
 </resources>

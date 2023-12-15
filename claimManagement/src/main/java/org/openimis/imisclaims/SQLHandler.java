@@ -360,7 +360,7 @@ public class SQLHandler extends SQLiteOpenHelper {
 
     public Cursor SearchProgram(String InputText) {
         //Cursor c = db.rawQuery("SELECT Code as _id,Code, Name,Code + ' ' + Name AS Disease FROM tblReferences WHERE Type = 'D' AND (Code LIKE '%"+ InputText +"%' OR Name LIKE '%"+ InputText +"%')",null);
-        Cursor c = db.rawQuery("SELECT Name as _id,Id, Name FROM tblPrograms WHERE (Name LIKE '%" + InputText + "%')", null);
+        Cursor c = db.rawQuery("SELECT Name as _id,Id, Name, Code FROM tblPrograms WHERE (Name LIKE '%" + InputText + "%')", null);
         if (c != null) {
             c.moveToFirst();
         }

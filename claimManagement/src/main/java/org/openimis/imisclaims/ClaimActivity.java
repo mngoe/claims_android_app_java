@@ -33,6 +33,8 @@ import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.util.DateUtils;
 import org.openimis.imisclaims.util.TextViewUtils;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -67,8 +69,12 @@ public class ClaimActivity extends ImisActivity {
 
     private int year, month, day;
     int TotalItemService;
+    String prefixProgramCode = "";
+    String prefixYear = "";
+    String prefixHfCode = "";
+    String claimPrefix = "";
 
-    EditText etStartDate, etEndDate, etClaimCode, etHealthFacility, etInsureeNumber, etClaimAdmin, etGuaranteeNo;
+    EditText etStartDate, etEndDate, etClaimCode, etHealthFacility, etInsureeNumber, etClaimAdmin, etGuaranteeNo, etClaimPrefix;
     AutoCompleteTextView etDiagnosis, etDiagnosis1, etDiagnosis2, etDiagnosis3, etDiagnosis4, etProgram;
     TextView tvItemTotal, tvServiceTotal;
     Button btnPost, btnNew;
@@ -112,7 +118,7 @@ public class ClaimActivity extends ImisActivity {
         rbEmergency = findViewById(R.id.rbEmergency);
         rbReferral = findViewById(R.id.rbReferral);
         rbOther = findViewById(R.id.rbOther);
-
+        etClaimPrefix = findViewById(R.id.etClaimPrefix);
 
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
@@ -129,6 +135,14 @@ public class ClaimActivity extends ImisActivity {
                 lvItemList.clear();
                 tvItemTotal.setText("0");
                 tvServiceTotal.setText("0");
+                if(etProgram.getText().toString().equals("Cheque Santé") || etProgram.getText().toString().equals("Chèque Santé")){
+                    claimPrefix = "";
+                    etClaimPrefix.setText(claimPrefix);
+                }else{
+                    prefixProgramCode = cursor.getString(cursor.getColumnIndexOrThrow("Code"));
+                    claimPrefix = prefixHfCode + "." + prefixYear + "." + prefixProgramCode + ".";
+                    etClaimPrefix.setText(claimPrefix);
+                }
             }
         });
 
@@ -203,6 +217,7 @@ public class ClaimActivity extends ImisActivity {
         // hfCode and adminCode not editable
         disableView(etHealthFacility);
         disableView(etClaimAdmin);
+        disableView(etClaimPrefix);
 
         //hide fields
         etGuaranteeNo.setVisibility(View.GONE);
@@ -231,6 +246,9 @@ public class ClaimActivity extends ImisActivity {
             if (global.getOfficerCode() != null) {
                 etClaimAdmin.setText(global.getOfficerCode());
                 etHealthFacility.setText(global.getOfficerHealthFacility());
+                prefixHfCode = global.getOfficerHealthFacility();
+                claimPrefix = prefixHfCode + "." + prefixYear + "." + prefixProgramCode + ".";
+                etClaimPrefix.setText(claimPrefix);
             }
             btnNew.setOnClickListener(v -> {
                 if (TotalItemService > 0) {
@@ -354,6 +372,9 @@ public class ClaimActivity extends ImisActivity {
 
             if (etEndDate.getText().length() == 0) {
                 etEndDate.setText(etStartDate.getText().toString());
+                prefixYear = String.valueOf(year);
+                claimPrefix = prefixHfCode + "." + prefixYear + "." + prefixProgramCode + ".";
+                etClaimPrefix.setText(claimPrefix);
             }
         }
     };
@@ -367,6 +388,9 @@ public class ClaimActivity extends ImisActivity {
             day = SelectedDay;
             Date date = new Date(year - 1900, month, day);
             TextViewUtils.setDate(etEndDate, date);
+            prefixYear = String.valueOf(year);
+            claimPrefix = prefixHfCode + "." + prefixYear + "." + prefixProgramCode + ".";
+            etClaimPrefix.setText(claimPrefix);
         }
     };
 
@@ -734,7 +758,7 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("ClaimDate", claimDate);
         claimCV.put("HFCode", etHealthFacility.getText().toString());
         claimCV.put("ClaimAdmin", etClaimAdmin.getText().toString());
-        claimCV.put("ClaimCode", etClaimCode.getText().toString());
+        claimCV.put("ClaimCode", claimPrefix + etClaimCode.getText().toString());
         claimCV.put("GuaranteeNumber", etGuaranteeNo.getText().toString());
         claimCV.put("InsureeNumber", etInsureeNumber.getText().toString());
         claimCV.put("StartDate", etStartDate.getText().toString());
