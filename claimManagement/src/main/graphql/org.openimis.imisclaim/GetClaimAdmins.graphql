@@ -1,0 +1,15 @@
+query GetClaimAdmins{
+    claimAdmins{
+        edges{
+            node{
+                id
+                code
+                lastName
+                otherNames
+                healthFacility{
+                   code
+                }
+            }
+        }
+    }
+}

@@ -4,12 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
 import org.apache.commons.codec.binary.Base64;
-import org.openimis.imisclaims.GetClaimsQuery;
-import org.openimis.imisclaims.GetControlsQuery;
 import org.openimis.imisclaims.GetServicesQuery;
-import org.openimis.imisclaims.domain.entity.Claim;
-import org.openimis.imisclaims.domain.entity.Control;
-import org.openimis.imisclaims.domain.entity.Program;
 import org.openimis.imisclaims.domain.entity.Service;
 import org.openimis.imisclaims.domain.entity.SubServiceItem;
 import org.openimis.imisclaims.network.request.GetServicesGraphqlRequest;
