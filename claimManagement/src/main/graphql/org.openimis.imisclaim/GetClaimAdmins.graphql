@@ -1,5 +1,5 @@
 query GetClaimAdmins{
-    claimAdmins{
+    claimAdmins(last: 100){
         edges{
             node{
                 id

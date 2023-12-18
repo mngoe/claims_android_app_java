@@ -34,7 +34,6 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.navigation.NavigationView;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.openimis.imisclaims.claimlisting.ClaimListingActivity;
 import org.openimis.imisclaims.domain.entity.ClaimAdmin;

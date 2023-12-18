@@ -35,7 +35,8 @@ public class FetchClaimAdmins {
     @WorkerThread
     @NonNull
     public List<ClaimAdmin> execute() throws Exception {
-        return Mapper.map(request.get(),
+        return Mapper.map(
+                request.get().edges(),
                 dto -> {
                     GetClaimAdminsQuery.Node node = Objects.requireNonNull(dto.node());
                     return new ClaimAdmin(
