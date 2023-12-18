@@ -103,8 +103,8 @@
   <string name="MissingClaimAdmin">Veuillez entrer le code d\'administration de la prestation</string>
   <string name="MissingGuaranteeNo">Veuillez entrer le numéro de garantie</string>
   <string name="MissingClaimCode">Veuillez entrer le code de prestation</string>
-  <string name="MissingCHFID">Veuillez entrer le numéro de chèque</string>
-  <string name="InvalidCHFID">Numéro de chèque invalide</string>
+  <string name="MissingCHFID">Veuillez entrer le numéro d\assuré</string>
+  <string name="InvalidCHFID">Numéro d\'assuré invalide</string>
   <string name="MissingStartDate">Veuillez entrer la date de début</string>
   <string name="MissingEndDate">Veuillez entrer la date de fin</string>
   <string name="MissingClaim">Veuillez sélectionner au moins un produit médical ou un soin pour soumettre la prestation.</string>
@@ -601,4 +601,7 @@
   <string name="qtyAlert">La quantité maximale pour ce produit est</string>
   <string name="qtyAlertAsk">La quantité autorisée pour ce produit est </string>
   <string name="Prefix">Préfixe</string>
+  <string name="ChequeNumber">Numéro de chèque</string>
+  <string name="MissingChequeNumber">Veuillez entrer le numéro de chèque</string>
+  <string name="InvalidClaimCode">Le code de la prestation doit contenir maximum 6 caractères</string>
 </resources>

@@ -8,7 +8,9 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.inputmethodservice.Keyboard;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -138,10 +140,13 @@ public class ClaimActivity extends ImisActivity {
                 if(etProgram.getText().toString().equals("Cheque Santé") || etProgram.getText().toString().equals("Chèque Santé")){
                     claimPrefix = "";
                     etClaimPrefix.setText(claimPrefix);
+                    etClaimPrefix.setHint(getResources().getString(R.string.ChequeNumber));
+                    etClaimPrefix.setEnabled(true);
                 }else{
                     prefixProgramCode = cursor.getString(cursor.getColumnIndexOrThrow("Code"));
                     claimPrefix = prefixHfCode + "." + prefixYear + "." + prefixProgramCode + ".";
                     etClaimPrefix.setText(claimPrefix);
+                    etClaimPrefix.setEnabled(false);
                 }
             }
         });
@@ -217,7 +222,7 @@ public class ClaimActivity extends ImisActivity {
         // hfCode and adminCode not editable
         disableView(etHealthFacility);
         disableView(etClaimAdmin);
-        disableView(etClaimPrefix);
+        etClaimPrefix.setEnabled(false);
 
         //hide fields
         etGuaranteeNo.setVisibility(View.GONE);
@@ -241,7 +246,10 @@ public class ClaimActivity extends ImisActivity {
             } else {
                 btnNew.setText(R.string.DeleteClaim);
                 btnNew.setOnClickListener(v -> confirmDelete());
+                etClaimCode.setEnabled(false);
+                etProgram.setEnabled(false);
             }
+            etClaimPrefix.setVisibility(View.GONE);
         } else {
             if (global.getOfficerCode() != null) {
                 etClaimAdmin.setText(global.getOfficerCode());
@@ -426,6 +434,7 @@ public class ClaimActivity extends ImisActivity {
         etDiagnosis4.setText("");
         rgVisitType.clearCheck();
         etClaimCode.requestFocus();
+        etClaimPrefix.setText("");
     }
 
     private void disableForm() {
@@ -446,6 +455,7 @@ public class ClaimActivity extends ImisActivity {
         disableView(rbEmergency);
         disableView(rbReferral);
         disableView(rbOther);
+        disableView(etClaimPrefix);
     }
 
     private void fillClaimFromRestore(Claim claim) {
@@ -477,7 +487,7 @@ public class ClaimActivity extends ImisActivity {
         etDiagnosis2.setText(sqlHandler.getDiseaseCode(claim.getSecDg2()));
         etDiagnosis3.setText(sqlHandler.getDiseaseCode(claim.getSecDg3()));
         etDiagnosis4.setText(sqlHandler.getDiseaseCode(claim.getSecDg4()));
-        //etProgram.setText(sqlHandler.getProgamName(claim.getString("program")));
+        etProgram.setText(sqlHandler.getProgamName(claim.getClaimProgram()));
 
         switch (claim.getVisitType() != null ? claim.getVisitType() : "") {
             case "Emergency":
@@ -705,6 +715,16 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
+        if(etClaimPrefix.getText().length() == 0){
+            showValidationDialog(etClaimPrefix, getResources().getString(R.string.MissingChequeNumber));
+            return false;
+        }
+
+        if(etClaimCode.getText().length() > 6){
+            showValidationDialog(etClaimPrefix, getResources().getString(R.string.InvalidClaimCode));
+            return false;
+        }
+
         if (rgVisitType.getCheckedRadioButtonId() == -1) {
             showValidationDialog(rgVisitType, getResources().getString(R.string.MissingVisitType));
             return false;
@@ -758,7 +778,7 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("ClaimDate", claimDate);
         claimCV.put("HFCode", etHealthFacility.getText().toString());
         claimCV.put("ClaimAdmin", etClaimAdmin.getText().toString());
-        claimCV.put("ClaimCode", claimPrefix + etClaimCode.getText().toString());
+        claimCV.put("ClaimCode", etClaimPrefix.getText().toString() + etClaimCode.getText().toString());
         claimCV.put("GuaranteeNumber", etGuaranteeNo.getText().toString());
         claimCV.put("InsureeNumber", etInsureeNumber.getText().toString());
         claimCV.put("StartDate", etStartDate.getText().toString());
@@ -793,6 +813,7 @@ public class ClaimActivity extends ImisActivity {
             claimServiceCV.put("ServiceCode", lvServiceList.get(i).get("Code"));
             claimServiceCV.put("ServicePrice", lvServiceList.get(i).get("Price"));
             claimServiceCV.put("ServiceQuantity", lvServiceList.get(i).get("Quantity"));
+            claimServiceCV.put("ServicePackageType",lvServiceList.get(i).get("PackageType"));
 
             if (!lvServiceList.get(i).get("PackageType").equals("S")) {
                 claimServiceCV.put("SubServicesItems", lvServiceList.get(i).get("SubServicesItems"));

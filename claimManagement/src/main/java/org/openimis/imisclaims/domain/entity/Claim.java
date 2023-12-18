@@ -29,6 +29,9 @@ public class Claim implements Parcelable {
     @NonNull
     private final String claimNumber;
 
+    @NonNull
+    private final String claimProgram;
+
     @Nullable
     private final Date dateClaimed;
 
@@ -87,6 +90,7 @@ public class Claim implements Parcelable {
             @Nullable String insuranceNumber,
             @NonNull String patientName,
             @NonNull String claimNumber,
+            @NonNull String claimProgram,
             @Nullable Date dateClaimed,
             @Nullable Date visitDateFrom,
             @Nullable Date visitDateTo,
@@ -111,6 +115,7 @@ public class Claim implements Parcelable {
         this.insuranceNumber = insuranceNumber;
         this.patientName = patientName;
         this.claimNumber = claimNumber;
+        this.claimProgram = claimProgram;
         this.dateClaimed = dateClaimed;
         this.visitDateFrom = visitDateFrom;
         this.visitDateTo = visitDateTo;
@@ -137,6 +142,7 @@ public class Claim implements Parcelable {
         insuranceNumber = in.readString();
         patientName = in.readString();
         claimNumber = in.readString();
+        claimProgram = in.readString();
         visitType = in.readString();
         mainDg = in.readString();
         secDg1 = in.readString();
@@ -189,6 +195,7 @@ public class Claim implements Parcelable {
         dest.writeString(insuranceNumber);
         dest.writeString(patientName);
         dest.writeString(claimNumber);
+        dest.writeString(claimProgram);
         dest.writeString(visitType);
         dest.writeString(mainDg);
         dest.writeString(secDg1);
@@ -272,6 +279,11 @@ public class Claim implements Parcelable {
     @NonNull
     public String getClaimNumber() {
         return claimNumber;
+    }
+
+    @NonNull
+    public String getClaimProgram() {
+        return claimProgram;
     }
 
     @Nullable
