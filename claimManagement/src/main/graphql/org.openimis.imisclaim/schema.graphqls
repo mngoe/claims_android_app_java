@@ -1468,6 +1468,7 @@ type ClaimGQLType implements Node {
   status: Int!
   adjuster: InteractiveUserGQLType
   adjustment: String
+  program: ProgramGQLType!
   claimed: Decimal
   approved: Decimal
   reinsured: Decimal
@@ -5906,6 +5907,7 @@ input CreateClaimMutationInput {
   dateClaimed: Date!
   dateProcessed: Date
   healthFacilityId: Int!
+  program: Int!
   batchRunId: Int
   category: String
   visitType: String
@@ -6006,6 +6008,22 @@ input ClaimServiceInputType {
   exceedCeilingAmount: Decimal
   priceOrigin: String
   exceedCeilingAmountCategory: Decimal
+  serviceserviceSet: [SubServiceInputType]
+  serviceLinked: [SubItemInputType]
+}
+
+input SubServiceInputType {
+  subServiceCode: String!
+  priceAsked: String!
+  qtyAsked: String!
+  qtyProvided: String!
+}
+
+input SubItemInputType {
+  subItemCode: String!
+  priceAsked: String!
+  qtyAsked: String!
+  qtyProvided: String!
 }
 
 """

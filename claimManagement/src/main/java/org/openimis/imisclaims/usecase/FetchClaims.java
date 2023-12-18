@@ -105,6 +105,7 @@ public class FetchClaims {
                 /* insuranceNumber = */ node.insuree().chfId(),
                 /* patientName = */ node.insuree().lastName() + " " + node.insuree().otherNames(),
                 /* claimNumber = */ node.code(),
+                /*claimProgram = */ node.program() != null ? node.program().nameProgram():"",
                 /* dateClaimed = */ node.dateClaimed(),
                 /* visitDateFrom = */ node.dateFrom(),
                 /* visitDateTo = */ node.dateTo(),

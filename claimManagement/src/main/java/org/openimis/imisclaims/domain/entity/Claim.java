@@ -430,6 +430,10 @@ public class Claim implements Parcelable {
         private final String explanation;
         @Nullable
         private final String justification;
+        @Nullable
+        private final List<SubServiceItem> subServices;
+        @Nullable
+        private final List<SubServiceItem> subItems;
 
         public Service(
                 @NonNull String code,
@@ -442,7 +446,9 @@ public class Claim implements Parcelable {
                 @Nullable String priceAdjusted,
                 @Nullable String priceValuated,
                 @Nullable String explanation,
-                @Nullable String justification
+                @Nullable String justification,
+                @Nullable List<SubServiceItem> subServices,
+                @Nullable List<SubServiceItem> subItems
         ) {
             super(null,code, name, price, currency,packageType,null,null,null);
             this.quantityProvided = quantityProvided;
@@ -451,6 +457,8 @@ public class Claim implements Parcelable {
             this.priceValuated = priceValuated;
             this.explanation = explanation;
             this.justification = justification;
+            this.subServices = subServices;
+            this.subItems = subItems;
         }
 
         protected Service(Parcel in) {
@@ -465,7 +473,9 @@ public class Claim implements Parcelable {
                     /* priceValuated = */ in.readString(),
                     /* explanation = */ in.readString(),
                     /* justification = */ in.readString(),
-                    /* packageType = */ in.readString()
+                    /* packageType = */ in.readString(),
+                    /* subservices = */ in.createTypedArrayList(SubServiceItem.CREATOR),
+                    /* subItems = */ in.createTypedArrayList(SubServiceItem.CREATOR)
             );
         }
 
@@ -478,6 +488,8 @@ public class Claim implements Parcelable {
             dest.writeString(priceValuated);
             dest.writeString(explanation);
             dest.writeString(justification);
+            dest.writeTypedList(subServices);
+            dest.writeTypedList(subItems);
         }
 
         @NonNull
@@ -513,6 +525,16 @@ public class Claim implements Parcelable {
         @Nullable
         public String getJustification() {
             return justification;
+        }
+
+        @Nullable
+        public List<SubServiceItem> getSubServices(){
+            return subServices;
+        }
+
+        @Nullable
+        public List<SubServiceItem> getSubItems(){
+            return subItems;
         }
 
         public static final Creator<Service> CREATOR = new Creator<>() {
