@@ -13,6 +13,7 @@ import org.openimis.imisclaims.network.request.GetMedicationsRequest;
 import org.openimis.imisclaims.network.request.GetServicesGraphqlRequest;
 import org.openimis.imisclaims.network.util.Mapper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -33,18 +34,31 @@ public class FetchMedications {
     @WorkerThread
     @NonNull
     public List<Medication> execute() throws Exception {
-        return Mapper.map(request.get(), dto -> {
-            GetMedicationsQuery.Node node = Objects.requireNonNull(dto.node());
-            byte[] bytes = node.id().getBytes();
-            String id = new String(Base64.decodeBase64(bytes)).split(":")[1];
-            return new Medication(
-                    /* id = */ id,
-                    /* code = */ node.code(),
-                    /* name = */ node.name(),
-                    /* price = */ node.price(),
-                    "XAF",
-                    /* program = */ node.program().idProgram()
+        List<Medication> items = new ArrayList<>();
+        int page = 0;
+        boolean hasNextPage;
+        do{
+            GetMedicationsQuery.MedicalItems response = request.get(page);
+            items.addAll(
+                    Mapper.map(
+                            response.edges(),
+                            dto -> {
+                                GetMedicationsQuery.Node node = Objects.requireNonNull(dto.node());
+                                byte[] bytes = node.id().getBytes();
+                                String id = new String(Base64.decodeBase64(bytes)).split(":")[1];
+                                return new Medication(
+                                        /* id = */ id,
+                                        /* code = */ node.code(),
+                                        /* name = */ node.name(),
+                                        /* price = */ node.price(),
+                                        "XAF",
+                                        /* program = */ node.program().idProgram()
+                                );
+                            })
             );
-        });
+            hasNextPage = response.pageInfo().hasNextPage();
+            page = page + 100;
+        }while (hasNextPage);
+        return items;
     }
 }

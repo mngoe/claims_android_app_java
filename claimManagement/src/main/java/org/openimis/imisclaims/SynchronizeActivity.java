@@ -520,9 +520,11 @@ public class SynchronizeActivity extends ImisActivity {
                     sqlHandler.ClearAll("tblClaimAdmins");
                     for (ClaimAdmin claimAdmin : claimAdmins) {
                         sqlHandler.InsertClaimAdmins(
+                                claimAdmin.getId(),
                                 claimAdmin.getClaimAdminCode(),
                                 claimAdmin.getHealthFacilityCode(),
-                                claimAdmin.getDisplayName()
+                                claimAdmin.getDisplayName(),
+                                claimAdmin.getHfId()
                         );
                     }
 

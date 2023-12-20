@@ -1,5 +1,8 @@
-query GetClaimAdmins{
-    claimAdmins(last: 100){
+query GetClaimAdmins($offset: Int){
+    claimAdmins(offset: $offset){
+        pageInfo{
+          hasNextPage
+        }
         edges{
             node{
                 id
@@ -7,6 +10,7 @@ query GetClaimAdmins{
                 lastName
                 otherNames
                 healthFacility{
+                   id
                    code
                 }
             }

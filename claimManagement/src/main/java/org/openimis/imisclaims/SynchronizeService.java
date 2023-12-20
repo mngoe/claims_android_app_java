@@ -12,12 +12,15 @@ import androidx.core.content.FileProvider;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.openimis.imisclaims.domain.entity.Claim;
 import org.openimis.imisclaims.domain.entity.PendingClaim;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.tools.StorageManager;
+import org.openimis.imisclaims.usecase.CreateClaim;
 import org.openimis.imisclaims.usecase.PostNewClaims;
 import org.openimis.imisclaims.util.DateUtils;
 import org.openimis.imisclaims.util.FileUtils;
+import org.openimis.imisclaims.util.JsonUtils;
 import org.openimis.imisclaims.util.XmlUtils;
 import org.openimis.imisclaims.util.ZipUtils;
 import org.xmlpull.v1.XmlSerializer;
@@ -27,9 +30,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Objects;
+import java.util.UUID;
 
 public class SynchronizeService extends JobIntentService {
     private static final int JOB_ID = 6541259; //Random unique Job id
@@ -102,20 +108,60 @@ public class SynchronizeService extends JobIntentService {
             return;
         }
 
-        JSONArray claims = sqlHandler.getAllPendingClaims();
-        if (claims.length() < 1) {
+        JSONArray claimsArray = sqlHandler.getAllPendingClaims();
+        if (claimsArray.length() < 1) {
             broadcastError(getResources().getString(R.string.NoClaim), ACTION_UPLOAD_CLAIMS);
             return;
         }
 
         try {
-            List<PostNewClaims.Result> results = new PostNewClaims().execute(PendingClaim.fromJson(claims));
-            JSONArray claimStatus = processClaimResponse(results);
-            broadcastSyncSuccess(claimStatus);
+            //List<PostNewClaims.Result> results = new PostNewClaims().execute(PendingClaim.fromJson(claims));
+            //JSONArray claimStatus = processClaimResponse(results);
+            //broadcastSyncSuccess(claimStatus);
+            String adminId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"Id");
+
+            List<Claim> claims = claimFromJSONObject(claimsArray);
+            //new CreateClaim().execute(claims, Integer.valueOf(adminId),0);
         } catch (Exception e) {
             e.printStackTrace();
             broadcastError(getResources().getString(R.string.ErrorOccurred) + ": " + e.getMessage(), ACTION_UPLOAD_CLAIMS);
         }
+    }
+
+    private List<Claim> claimFromJSONObject(
+            @NonNull JSONArray array
+    )throws JSONException {
+        List<Claim> claims = new ArrayList<>();
+        for (int i = 0; i < array.length(); i++) {
+            JSONObject object = array.getJSONObject(i);
+            claims.add(new Claim(
+                    /* uuid = */ object.getString("ClaimUUID"),
+                    /* hfCode = */ object.getString("HFCode"),
+                    /* hfName = */ null,
+                    /* insureeNumber = */ Objects.requireNonNull(object.getString("InsureeNumber")),
+                    /* patientName = */ null,
+                    /* claimNumber = */ Objects.requireNonNull(object.getString("ClaimCode")),
+                    /* claimProgram = */ Objects.requireNonNull(object.getString("ClaimProgram")),
+                    /* dateClaimed = */ Objects.requireNonNull(JsonUtils.getDateOrDefault(object, "ClaimDate")),
+                    /* visitDatefrom = */ Objects.requireNonNull(JsonUtils.getDateOrDefault(object, "StartDate")),
+                    /* visitDateTo = */ Objects.requireNonNull(JsonUtils.getDateOrDefault(object, "EndDate")),
+                    /* visitType = */ object.getString("VisitType"),
+                    /* status = */null,
+                    /* mainDg = */ object.getString("ICDCode"),
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    null
+            ));
+        }
+        return claims;
     }
 
     private JSONArray processClaimResponse(List<PostNewClaims.Result> results) {

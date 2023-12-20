@@ -4,6 +4,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.WorkerThread;
 
+import org.apache.commons.codec.binary.Base64;
 import org.openimis.imisclaims.GetClaimAdminsQuery;
 import org.openimis.imisclaims.GetControlsQuery;
 import org.openimis.imisclaims.domain.entity.ClaimAdmin;
@@ -35,18 +36,38 @@ public class FetchClaimAdmins {
     @WorkerThread
     @NonNull
     public List<ClaimAdmin> execute() throws Exception {
-        return Mapper.map(
-                request.get().edges(),
-                dto -> {
-                    GetClaimAdminsQuery.Node node = Objects.requireNonNull(dto.node());
-                    return new ClaimAdmin(
-                            /* lastName = */ node.lastName(),
-                            /* otherNames = */ node.otherNames(),
-                            /* claimAdminCode = */ node.code(),
-                            /* healthFacilityCode = */ node.healthFacility() != null ? node.healthFacility().code() : null
-                    );
-                }
+        List<ClaimAdmin> claimAdmins = new ArrayList<>();
+        int page = 0;
+        boolean hasNextPage;
+        do{
+            GetClaimAdminsQuery.ClaimAdmins response = request.get(page);
+            claimAdmins.addAll(
+                    Mapper.map(
+                            response.edges(),
+                            dto -> {
+                                GetClaimAdminsQuery.Node node = Objects.requireNonNull(dto.node());
+                                byte[] bytes = node.id().getBytes();
+                                String id = new String(Base64.decodeBase64(bytes)).split(":")[1];
+                                String fosaId = "";
+                                if(node.healthFacility() != null){
+                                    byte[] fosaBytes = node.healthFacility().id().getBytes();
+                                    fosaId = new String(Base64.decodeBase64(fosaBytes)).split(":")[1];
+                                }
+                                return new ClaimAdmin(
+                                        /* id = */ id,
+                                        /* lastName = */ node.lastName(),
+                                        /* otherNames = */ node.otherNames(),
+                                        /* claimAdminCode = */ node.code(),
+                                        /* healthFacilityCode = */ node.healthFacility() != null ? node.healthFacility().code() : null,
+                                        /* healthFacilityId = */ fosaId
+                                );
+                            }
+                    )
+            );
+            hasNextPage = response.pageInfo().hasNextPage();
+            page = page + 100;
+        }while(hasNextPage);
 
-        );
+        return claimAdmins;
     }
 }

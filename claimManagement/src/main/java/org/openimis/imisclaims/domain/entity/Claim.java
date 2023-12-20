@@ -86,9 +86,9 @@ public class Claim implements Parcelable {
     public Claim(
             @NonNull String uuid,
             @NonNull String healthFacilityCode,
-            @NonNull String healthFacilityName,
+            @Nullable String healthFacilityName,
             @Nullable String insuranceNumber,
-            @NonNull String patientName,
+            @Nullable String patientName,
             @NonNull String claimNumber,
             @NonNull String claimProgram,
             @Nullable Date dateClaimed,

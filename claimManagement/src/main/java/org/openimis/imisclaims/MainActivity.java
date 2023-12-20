@@ -35,11 +35,13 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import com.google.android.material.navigation.NavigationView;
 
 import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
 import org.openimis.imisclaims.claimlisting.ClaimListingActivity;
 import org.openimis.imisclaims.domain.entity.ClaimAdmin;
 import org.openimis.imisclaims.domain.entity.Control;
 import org.openimis.imisclaims.domain.entity.DiagnosesServicesMedications;
 import org.openimis.imisclaims.domain.entity.Diagnosis;
+import org.openimis.imisclaims.domain.entity.HealthFacility;
 import org.openimis.imisclaims.domain.entity.Medication;
 import org.openimis.imisclaims.domain.entity.PaymentList;
 import org.openimis.imisclaims.domain.entity.Program;
@@ -49,6 +51,7 @@ import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.usecase.FetchClaimAdmins;
 import org.openimis.imisclaims.usecase.FetchControls;
 import org.openimis.imisclaims.usecase.FetchDiagnosesServicesItems;
+import org.openimis.imisclaims.usecase.FetchHealthfacilities;
 import org.openimis.imisclaims.usecase.FetchMedications;
 import org.openimis.imisclaims.usecase.FetchPaymentList;
 import org.openimis.imisclaims.usecase.FetchPrograms;
@@ -502,9 +505,11 @@ public class MainActivity extends ImisActivity {
                     sqlHandler.ClearAll("tblClaimAdmins");
                     for (ClaimAdmin claimAdmin : claimAdmins) {
                         sqlHandler.InsertClaimAdmins(
+                                claimAdmin.getId(),
                                 claimAdmin.getClaimAdminCode(),
                                 claimAdmin.getHealthFacilityCode(),
-                                claimAdmin.getDisplayName()
+                                claimAdmin.getDisplayName(),
+                                claimAdmin.getHfId()
                         );
                     }
 
@@ -686,6 +691,8 @@ public class MainActivity extends ImisActivity {
                         DiagnosesServicesMedications diagnosesServicesMedications = new FetchDiagnosesServicesItems().execute();
                         saveLastUpdateDate(diagnosesServicesMedications.getLastUpdated());
                         sqlHandler.ClearAll("tblReferences");
+                        sqlHandler.ClearAll("tblPrograms");
+                        sqlHandler.ClearAll("tblHealthFacilities");
                         sqlHandler.ClearMapping("S");
                         sqlHandler.ClearMapping("I");
                         //Insert Diagnoses
@@ -699,16 +706,23 @@ public class MainActivity extends ImisActivity {
                             sqlHandler.InsertMapping(service.getCode(), service.getName(), "S", service.getProgram());
                         }
 
+                        //Insert Items
+                        for (Medication medication : diagnosesServicesMedications.getMedications()) {
+                            sqlHandler.InsertReferences(medication.getCode(), medication.getName(), "I", String.valueOf(medication.getPrice()));
+                            sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I", medication.getProgram());
+                        }
+
                         //Insert Programs
                         List<Program> programs = new FetchPrograms().execute();
                         for (Program program : programs) {
                             sqlHandler.InsertPrograms(program.getIdProgram(), program.getCode(), program.getNameProgram());
                         }
 
-                        //Insert Items
-                        for (Medication medication : diagnosesServicesMedications.getMedications()) {
-                            sqlHandler.InsertReferences(medication.getCode(), medication.getName(), "I", String.valueOf(medication.getPrice()));
-                            sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I", medication.getProgram());
+                        //Insert HealthFacility
+                        List<HealthFacility> healthFacilities = new FetchHealthfacilities().execute();
+                        for(HealthFacility hf: healthFacilities){
+                            JSONArray programsArr = new JSONArray(hf.getHfPrograms());
+                            sqlHandler.InsertHealthFacilities(hf.getId(), programsArr.toString());
                         }
 
                         runOnUiThread(() -> {

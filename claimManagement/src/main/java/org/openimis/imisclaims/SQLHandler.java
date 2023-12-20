@@ -45,7 +45,8 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String CreateTableMapping = "CREATE TABLE IF NOT EXISTS tblMapping(Code TEXT,Name TEXT,Type TEXT, Program TEXT);";
     private static final String createTablePolicyInquiry = "CREATE TABLE IF NOT EXISTS tblPolicyInquiry(InsureeNumber text,Photo BLOB, InsureeName Text, DOB Text, Gender Text, ProductCode Text, ProductName Text, ExpiryDate Text, Status Text, DedType Int, Ded1 Int, Ded2 Int, Ceiling1 Int, Ceiling2 Int);";
     private static final String CreateTableControls = "CREATE TABLE IF NOT EXISTS tblControls(FieldName TEXT, Adjustability TEXT);";
-    private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Code TEXT, HFCode TEXT ,Name TEXT);";
+    private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Id TEXT, Code TEXT, HFCode TEXT, HFId TEXT ,Name TEXT);";
+    private static final String CreateTableHealthFacilities = "CREATE TABLE IF NOT EXISTS tblHealthFacilities(Id TEXT, Programs TEXT);";
     private static final String CreateTablePrograms = "CREATE TABLE IF NOT EXISTS tblPrograms(Id TEXT, Code TEXT, Name TEXT);";
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code TEXT, Name TEXT, Type TEXT, Price TEXT);";
     private static final String createTableClaimDetails = "CREATE TABLE IF NOT EXISTS tblClaimDetails(ClaimUUID TEXT, ClaimDate TEXT, HFCode TEXT, ClaimAdmin TEXT, ClaimCode TEXT, GuaranteeNumber TEXT, InsureeNumber TEXT, StartDate TEXT, EndDate TEXT, Program TEXT, ICDCode TEXT, Comment TEXT, Total TEXT, ICDCode1 TEXT, ICDCode2 TEXT, ICDCode3 TEXT, ICDCode4 TEXT, VisitType TEXT);";
@@ -306,12 +307,14 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void InsertClaimAdmins(String Code, String hfCode, String Name) {
+    public void InsertClaimAdmins(String Id, String Code, String hfCode, String Name, String hfId) {
         try {
             ContentValues cv = new ContentValues();
+            cv.put("Id", Id);
             cv.put("Code", Code);
             cv.put("Name", Name);
             cv.put("hfCode", hfCode);
+            cv.put("hfId", hfId);
             db.insert("tblClaimAdmins", null, cv);
         } catch (Exception e) {
             e.printStackTrace();
@@ -326,6 +329,18 @@ public class SQLHandler extends SQLiteOpenHelper {
             cv.put("Code", Code);
             cv.put("Name", Name);
             db.insert("tblPrograms", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //insert programs
+    public void InsertHealthFacilities(String Id, String programs) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Id", Id);
+            cv.put("Programs", programs);
+            db.insert("tblHealthFacility", null, cv);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -773,7 +788,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     public void createTables() {
         String[] commands = {CreateTableControls, CreateTableReferences, CreateTableClaimAdmins,CreateTablePrograms,
                 createTablePolicyInquiry, createTableClaimDetails, createTableClaimItems, createTableClaimServices,CreateTableSubItems,
-                CreateTableSubServices,CreateTableItems,CreateTableServices, createTableClaimUploadStatus};
+                CreateTableSubServices,CreateTableItems,CreateTableServices, createTableClaimUploadStatus, CreateTableHealthFacilities};
         for (String command : commands) {
             try {
                 db.execSQL(command);
@@ -942,7 +957,7 @@ public class SQLHandler extends SQLiteOpenHelper {
         // Rename InsureeNumber to CHFID
         // This is required to support legacy Rest API and Web App
         JSONArray claims = getQueryResultAsJsonArray(
-                "SELECT ClaimUUID, ClaimDate, HFCode, ClaimAdmin, ClaimCode, GuaranteeNumber, InsureeNumber AS CHFID, StartDate, EndDate, ICDCode, Comment, Total, ICDCode1, ICDCode2, ICDCode3, ICDCode4, VisitType" +
+                "SELECT ClaimUUID, ClaimDate, HFCode, ClaimAdmin, ClaimCode, Program, GuaranteeNumber, InsureeNumber AS CHFID, StartDate, EndDate, ICDCode, Comment, Total, ICDCode1, ICDCode2, ICDCode3, ICDCode4, VisitType" +
                         " FROM tblClaimDetails cd" +
                         " WHERE NOT EXISTS (SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus != ?)",
                 new String[]{CLAIM_UPLOAD_STATUS_ERROR}

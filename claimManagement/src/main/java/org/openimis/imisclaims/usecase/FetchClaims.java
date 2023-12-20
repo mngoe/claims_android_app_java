@@ -155,7 +155,9 @@ public class FetchClaims {
                 /* priceValuated = */ service.priceValuated() != null ? service.priceValuated().toString() : null,
                 /* explanation = */ service.explanation(),
                 /* justification = */ service.justification(),
-                /* packageType = */ service.service().packagetype()
+                /* packageType = */ service.service().packagetype(),
+                null,
+                null
         );
     }
 

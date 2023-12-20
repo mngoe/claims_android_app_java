@@ -12,7 +12,7 @@ public class GetPractitionersGraphQLRequest extends  BaseGraphQLRequest{
 
     @NonNull
     @WorkerThread
-    public GetClaimAdminsQuery.ClaimAdmins get() throws Exception {
-        return makeSynchronous(new GetClaimAdminsQuery()).getData().claimAdmins();
+    public GetClaimAdminsQuery.ClaimAdmins get(@NonNull int page) throws Exception {
+        return makeSynchronous(new GetClaimAdminsQuery(Input.fromNullable(page))).getData().claimAdmins();
     }
 }

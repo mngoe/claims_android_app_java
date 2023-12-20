@@ -1,9 +1,13 @@
 package org.openimis.imisclaims.util;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.text.ParseException;
+import java.util.Date;
 
 public class JsonUtils {
     /**
@@ -39,6 +43,29 @@ public class JsonUtils {
                 return defaultValue;
             }
         } catch (JSONException e) {
+            return defaultValue;
+        }
+    }
+
+    @Nullable
+    public static Date getDateOrDefault(@NonNull JSONObject object, @NonNull String field) {
+        return getDateOrDefault(object, field, null);
+    }
+
+    @Nullable
+    public static Date getDateOrDefault(@NonNull JSONObject object, @NonNull String field, @Nullable Date defaultValue) {
+        return getDateOrDefault(object, field, defaultValue, true);
+    }
+
+    @Nullable
+    public static Date getDateOrDefault(@NonNull JSONObject object, @NonNull String field, @Nullable Date defaultValue, boolean checkNullString) {
+        String string = getStringOrDefault(object, field, null, checkNullString);
+        if (string == null) {
+            return defaultValue;
+        }
+        try {
+            return DateUtils.dateFromString(string);
+        } catch (ParseException e) {
             return defaultValue;
         }
     }
