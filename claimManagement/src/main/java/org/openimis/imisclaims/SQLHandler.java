@@ -17,6 +17,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.openimis.imisclaims.tools.Log;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 public class SQLHandler extends SQLiteOpenHelper {
@@ -340,7 +342,7 @@ public class SQLHandler extends SQLiteOpenHelper {
             ContentValues cv = new ContentValues();
             cv.put("Id", Id);
             cv.put("Programs", programs);
-            db.insert("tblHealthFacility", null, cv);
+            db.insert("tblHealthFacilities", null, cv);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -373,9 +375,9 @@ public class SQLHandler extends SQLiteOpenHelper {
         return c;
     }
 
-    public Cursor SearchProgram(String InputText) {
+    public Cursor SearchProgram(String InputText, List<String> hfPrograms) {
         //Cursor c = db.rawQuery("SELECT Code as _id,Code, Name,Code + ' ' + Name AS Disease FROM tblReferences WHERE Type = 'D' AND (Code LIKE '%"+ InputText +"%' OR Name LIKE '%"+ InputText +"%')",null);
-        Cursor c = db.rawQuery("SELECT Name as _id,Id, Name, Code FROM tblPrograms WHERE (Name LIKE '%" + InputText + "%')", null);
+        Cursor c = db.rawQuery("SELECT Name as _id,Id, Name, Code FROM tblPrograms WHERE (Name LIKE '%" + InputText + "%') AND Id IN ("+TextUtils.join(",", Collections.nCopies(hfPrograms.size(),"?")) + ")", hfPrograms.toArray(new String[hfPrograms.size()]));
         if (c != null) {
             c.moveToFirst();
         }
@@ -519,6 +521,23 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
 
         return Info;
+    }
+
+    public String getHealthFacilityPrograms(String hfId) {
+        String programs = "";
+        String query = "SELECT Programs FROM tblHealthFacilities WHERE Id like '" + hfId + "'";
+        try (Cursor cursor1 = db.rawQuery(query, null)) {
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    programs = cursor1.getString(0);
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            return programs;
+        }
+
+        return programs;
     }
 
     public JSONArray getServices() {

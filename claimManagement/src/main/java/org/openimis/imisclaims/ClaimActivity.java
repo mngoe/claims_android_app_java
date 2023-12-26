@@ -41,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 public class ClaimActivity extends ImisActivity {
@@ -125,7 +126,9 @@ public class ClaimActivity extends ImisActivity {
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
 
-        ProgramAdapter progam_Adapter = new ProgramAdapter(ClaimActivity.this, sqlHandler);
+        String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(), "HFId");
+        String hfPrograms = sqlHandler.getHealthFacilityPrograms(hfId);
+        ProgramAdapter progam_Adapter = new ProgramAdapter(ClaimActivity.this, sqlHandler, hfPrograms);
         etProgram.setAdapter(progam_Adapter);
         etProgram.setThreshold(1);
         etProgram.setOnItemClickListener((parent, view,position, l) ->{
