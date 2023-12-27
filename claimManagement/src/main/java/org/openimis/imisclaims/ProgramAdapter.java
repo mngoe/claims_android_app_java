@@ -20,12 +20,12 @@ import java.util.List;
 public class ProgramAdapter extends CursorAdapter implements AdapterView.OnItemClickListener {
     SQLHandler sqlHandler;
     SQLiteDatabase db;
-    String hfPrograms;
+    List<String> filterPrograms;
 
-    public ProgramAdapter(Context context, SQLHandler sqlHandler, String hfPrograms) {
+    public ProgramAdapter(Context context, SQLHandler sqlHandler, List<String> filterPrograms) {
         super(context, null, 0);
         this.sqlHandler = sqlHandler;
-        this.hfPrograms = hfPrograms;
+        this.filterPrograms = filterPrograms;
     }
 
     @Override
@@ -47,17 +47,8 @@ public class ProgramAdapter extends CursorAdapter implements AdapterView.OnItemC
         if (getFilterQueryProvider() != null) {
             return getFilterQueryProvider().runQuery(constraint);
         }
-        List<String> hfProg = new ArrayList<>();
-        try {
-            JSONArray array = new JSONArray(hfPrograms);
-            for (int i = 0 ; i< array.length(); i++){
-                hfProg.add(array.get(i).toString());
-            }
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
 
-        return sqlHandler.SearchProgram((constraint != null ? constraint.toString() : ""), hfProg);
+        return sqlHandler.SearchProgram((constraint != null ? constraint.toString() : ""), filterPrograms);
     }
 
     @Override

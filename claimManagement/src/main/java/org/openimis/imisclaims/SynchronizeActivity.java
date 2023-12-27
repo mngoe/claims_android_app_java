@@ -519,12 +519,14 @@ public class SynchronizeActivity extends ImisActivity {
                     List<ClaimAdmin> claimAdmins = new FetchClaimAdmins().execute();
                     sqlHandler.ClearAll("tblClaimAdmins");
                     for (ClaimAdmin claimAdmin : claimAdmins) {
+                        JSONArray programs = new JSONArray(claimAdmin.getPrograms());
                         sqlHandler.InsertClaimAdmins(
                                 claimAdmin.getId(),
                                 claimAdmin.getClaimAdminCode(),
                                 claimAdmin.getHealthFacilityCode(),
                                 claimAdmin.getDisplayName(),
-                                claimAdmin.getHfId()
+                                claimAdmin.getHfId(),
+                                programs.toString()
                         );
                     }
 

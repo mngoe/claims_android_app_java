@@ -47,7 +47,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String CreateTableMapping = "CREATE TABLE IF NOT EXISTS tblMapping(Code TEXT,Name TEXT,Type TEXT, Program TEXT);";
     private static final String createTablePolicyInquiry = "CREATE TABLE IF NOT EXISTS tblPolicyInquiry(InsureeNumber text,Photo BLOB, InsureeName Text, DOB Text, Gender Text, ProductCode Text, ProductName Text, ExpiryDate Text, Status Text, DedType Int, Ded1 Int, Ded2 Int, Ceiling1 Int, Ceiling2 Int);";
     private static final String CreateTableControls = "CREATE TABLE IF NOT EXISTS tblControls(FieldName TEXT, Adjustability TEXT);";
-    private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Id TEXT, Code TEXT, HFCode TEXT, HFId TEXT ,Name TEXT);";
+    private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Id TEXT, Code TEXT, HFCode TEXT, HFId TEXT ,Name TEXT, Programs TEXT);";
     private static final String CreateTableHealthFacilities = "CREATE TABLE IF NOT EXISTS tblHealthFacilities(Id TEXT, Programs TEXT);";
     private static final String CreateTablePrograms = "CREATE TABLE IF NOT EXISTS tblPrograms(Id TEXT, Code TEXT, Name TEXT);";
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code TEXT, Name TEXT, Type TEXT, Price TEXT);";
@@ -309,7 +309,7 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void InsertClaimAdmins(String Id, String Code, String hfCode, String Name, String hfId) {
+    public void InsertClaimAdmins(String Id, String Code, String hfCode, String Name, String hfId, String programs) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("Id", Id);
@@ -317,6 +317,7 @@ public class SQLHandler extends SQLiteOpenHelper {
             cv.put("Name", Name);
             cv.put("hfCode", hfCode);
             cv.put("hfId", hfId);
+            cv.put("Programs", programs);
             db.insert("tblClaimAdmins", null, cv);
         } catch (Exception e) {
             e.printStackTrace();

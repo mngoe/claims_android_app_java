@@ -4,6 +4,9 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import java.util.List;
 
 public class ClaimAdmin implements Parcelable {
 
@@ -19,6 +22,8 @@ public class ClaimAdmin implements Parcelable {
     private final String hfCode;
     @NonNull
     private final String hfId;
+    @Nullable
+    private final List<String> programs;
 
     public ClaimAdmin(
             @NonNull String id,
@@ -26,7 +31,8 @@ public class ClaimAdmin implements Parcelable {
             @NonNull String otherNames,
             @NonNull String claimAdminCode,
             @NonNull String healthFacilityCode,
-            @NonNull String hfId
+            @NonNull String hfId,
+            @Nullable List<String> programs
     ){
         this.id = id;
         this.lastName = lastName;
@@ -34,6 +40,7 @@ public class ClaimAdmin implements Parcelable {
         this.claimAdminCode = claimAdminCode;
         this.hfCode = healthFacilityCode;
         this.hfId = hfId;
+        this.programs = programs;
     }
 
     protected ClaimAdmin(Parcel in) {
@@ -43,6 +50,7 @@ public class ClaimAdmin implements Parcelable {
         claimAdminCode = in.readString();
         hfCode = in.readString();
         hfId = in.readString();
+        programs = in.createStringArrayList();
     }
 
     @Override
@@ -53,6 +61,7 @@ public class ClaimAdmin implements Parcelable {
         dest.writeString(claimAdminCode);
         dest.writeString(hfCode);
         dest.writeString(hfId);
+        dest.writeStringList(programs);
     }
 
     @Override
@@ -90,6 +99,11 @@ public class ClaimAdmin implements Parcelable {
 
     @NonNull
     public String getHfId(){return hfId;}
+
+    @Nullable
+    public List<String> getPrograms(){
+        return programs;
+    }
 
     public static final Creator<ClaimAdmin> CREATOR = new Creator<>() {
         @Override

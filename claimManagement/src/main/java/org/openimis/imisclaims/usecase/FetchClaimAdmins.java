@@ -7,6 +7,7 @@ import androidx.annotation.WorkerThread;
 import org.apache.commons.codec.binary.Base64;
 import org.openimis.imisclaims.GetClaimAdminsQuery;
 import org.openimis.imisclaims.GetControlsQuery;
+import org.openimis.imisclaims.GetProgramsQuery;
 import org.openimis.imisclaims.domain.entity.ClaimAdmin;
 import org.openimis.imisclaims.network.dto.IdentifierDto;
 import org.openimis.imisclaims.network.request.GetPractitionersGraphQLRequest;
@@ -39,6 +40,7 @@ public class FetchClaimAdmins {
         List<ClaimAdmin> claimAdmins = new ArrayList<>();
         int page = 0;
         boolean hasNextPage;
+        Mapper<GetClaimAdminsQuery.Edge2, String> programMapper = new Mapper<>(this::toProgram);
         do{
             GetClaimAdminsQuery.ClaimAdmins response = request.get(page);
             claimAdmins.addAll(
@@ -53,13 +55,18 @@ public class FetchClaimAdmins {
                                     byte[] fosaBytes = node.healthFacility().id().getBytes();
                                     fosaId = new String(Base64.decodeBase64(fosaBytes)).split(":")[1];
                                 }
+
                                 return new ClaimAdmin(
                                         /* id = */ id,
                                         /* lastName = */ node.lastName(),
                                         /* otherNames = */ node.otherNames(),
                                         /* claimAdminCode = */ node.code(),
                                         /* healthFacilityCode = */ node.healthFacility() != null ? node.healthFacility().code() : null,
-                                        /* healthFacilityId = */ fosaId
+                                        /* healthFacilityId = */ fosaId,
+                                        /* programs = */ programMapper.map(
+                                                node.userSet().edges().get(0).node().iUser().programSet().edges(),
+                                        dt -> dt.node().idProgram()
+                                )
                                 );
                             }
                     )
@@ -69,5 +76,11 @@ public class FetchClaimAdmins {
         }while(hasNextPage);
 
         return claimAdmins;
+    }
+
+    private String toProgram (
+            @NonNull GetClaimAdminsQuery.Edge2 dto
+    ){
+        return dto.node().idProgram();
     }
 }

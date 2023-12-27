@@ -13,6 +13,21 @@ query GetClaimAdmins($offset: Int){
                    id
                    code
                 }
+                userSet{
+                  edges{
+                    node{
+                      iUser{
+                        programSet{
+                          edges{
+                            node{
+                              idProgram
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
             }
         }
     }

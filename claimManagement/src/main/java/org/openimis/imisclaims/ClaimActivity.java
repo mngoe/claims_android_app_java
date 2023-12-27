@@ -126,9 +126,26 @@ public class ClaimActivity extends ImisActivity {
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
 
-        String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(), "HFId");
-        String hfPrograms = sqlHandler.getHealthFacilityPrograms(hfId);
-        ProgramAdapter progam_Adapter = new ProgramAdapter(ClaimActivity.this, sqlHandler, hfPrograms);
+        List<String> filterPrograms = new ArrayList<>();
+        try {
+            String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(), "HFId");
+            String hfPrograms = sqlHandler.getHealthFacilityPrograms(hfId);
+            String userPrograms = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"Programs");
+            Log.e("userProg",userPrograms);
+            Log.e("hfProg",hfPrograms);
+            JSONArray arrayHfPrograms = new JSONArray(hfPrograms);
+            JSONArray arrayAdminPrograms = new JSONArray(userPrograms);
+            for (int i = 0 ; i< arrayHfPrograms.length(); i++){
+                for (int j = 0 ; j < arrayAdminPrograms.length() ; j++){
+                    if(arrayHfPrograms.get(i).toString().equals(arrayAdminPrograms.get(j).toString())){
+                        filterPrograms.add(arrayHfPrograms.get(i).toString());
+                    }
+                }
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        ProgramAdapter progam_Adapter = new ProgramAdapter(ClaimActivity.this, sqlHandler, filterPrograms);
         etProgram.setAdapter(progam_Adapter);
         etProgram.setThreshold(1);
         etProgram.setOnItemClickListener((parent, view,position, l) ->{
