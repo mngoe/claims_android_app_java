@@ -54,8 +54,8 @@
                     android:ems="10"
                     android:fontFamily="sans-serif-light"
                     android:hint="@string/CHFID"
-                    android:inputType="number"
-                    android:maxLength="12"></EditText>
+                    android:inputType="text"
+                    android:maxLength="20"></EditText>
 
                 <ImageButton
                     android:id="@+id/btnScan"
@@ -116,7 +116,7 @@
                 android:ems="10"
                 android:fontFamily="sans-serif-light"
                 android:hint="@string/ClaimCode"
-                android:maxLength="20">
+                android:maxLength="6">
 
                 <requestFocus />
             </EditText>

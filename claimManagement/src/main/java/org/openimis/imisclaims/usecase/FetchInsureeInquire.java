@@ -32,7 +32,10 @@ public class FetchInsureeInquire {
     @WorkerThread
     public Insuree execute(@NonNull String chfId) throws Exception {
         GetInsureeInquireQuery.Node node = request.get(chfId);
+        byte[] bytes = node.id().getBytes();
+        String id = new String(org.apache.commons.codec.binary.Base64.decodeBase64(bytes)).split(":")[1];
         return new Insuree(
+                /* id = */  id,
                 /* chfId = */ Objects.requireNonNull(node.chfId()),
                 /* name = */ node.lastName() + " " + node.otherNames(),
                 /* dateOfBirth = */ node.dob(),

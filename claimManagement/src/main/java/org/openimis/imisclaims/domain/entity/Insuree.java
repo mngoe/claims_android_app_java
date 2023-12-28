@@ -11,6 +11,8 @@ import java.util.List;
 
 public class Insuree implements Parcelable {
 
+    @Nullable
+    private final String id;
     @NonNull
     private final String chfId;
     @NonNull
@@ -27,6 +29,7 @@ public class Insuree implements Parcelable {
     private final List<Policy> policies;
 
     public Insuree(
+            @Nullable String id,
             @NonNull String chfId,
             @NonNull String name,
             @NonNull Date dateOfBirth,
@@ -35,6 +38,7 @@ public class Insuree implements Parcelable {
             @Nullable byte[] photo,
             @NonNull List<Policy> policies
             ) {
+        this.id = id;
         this.chfId = chfId.trim();
         this.name = name;
         this.dateOfBirth = dateOfBirth;
@@ -45,6 +49,7 @@ public class Insuree implements Parcelable {
     }
 
     protected Insuree(Parcel in) {
+        id = in.readString();
         chfId = in.readString();
         name = in.readString();
         dateOfBirth = new Date(in.readLong());
@@ -56,6 +61,7 @@ public class Insuree implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
         dest.writeString(chfId);
         dest.writeString(name);
         dest.writeLong(dateOfBirth.getTime());
@@ -69,6 +75,9 @@ public class Insuree implements Parcelable {
     public int describeContents() {
         return 0;
     }
+
+    @NonNull
+    public String getId() { return id; }
 
     @NonNull
     public String getChfId() {

@@ -4,6 +4,7 @@ query GetInsureeInquire($chfId: String) {
     ) {
         edges {
             node {
+                id
                 chfId
                 lastName
                 otherNames

@@ -179,7 +179,23 @@ public class SQLHandler extends SQLiteOpenHelper {
         return packageType;
     }
 
-    public String getId(String code) {
+    public String getServiceId(String code) {
+        String id = "";
+        try (Cursor c = db.query("tblServices", new String[]{"Id"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    id = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return id;
+    }
+
+    public String getItemId(String code) {
         String id = "";
         try (Cursor c = db.query("tblServices", new String[]{"Id"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
             c.moveToFirst();
@@ -422,6 +438,25 @@ public class SQLHandler extends SQLiteOpenHelper {
             e.printStackTrace();
         }
         return name;
+    }
+
+    public int getProgamId(String programName) {
+        String id = "0";
+        try {
+            String table = "tblPrograms";
+            String[] columns = {"Id"};
+            String selection = "Name=?";
+            String[] selectionArgs = {programName};
+            String limit = "1";
+            Cursor c = db.query(table, columns, selection, selectionArgs, null, null, null, limit);
+            if (c.getCount() == 1) {
+                c.moveToFirst();
+                id = c.getString(c.getColumnIndexOrThrow("Id"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Integer.valueOf(id);
     }
 
     public Cursor filterItemsServices(String nameFilter, String typeFilter, String programFilter) {
@@ -1002,6 +1037,7 @@ public class SQLHandler extends SQLiteOpenHelper {
                         JSONArray subServicesItems = new JSONArray(subServices);
                         service.put("SubServicesItems",subServicesItems);
                     }
+                    service.put("ServiceId",getServiceId(service.getString("ServiceCode")));
                 }
                 resultClaim.put("services", claimServices);
                 result.put(resultClaim);
@@ -1013,13 +1049,18 @@ public class SQLHandler extends SQLiteOpenHelper {
     }
 
     @NonNull
-    public JSONArray getClaimItems(String claimUUID) {
-        return getQueryResultAsJsonArray(
+    public JSONArray getClaimItems(String claimUUID) throws JSONException {
+        JSONArray arrItems = getQueryResultAsJsonArray(
                 "tblClaimItems",
                 new String[]{"ItemCode", "ItemPrice", "ItemQuantity"},
                 "ClaimUUID = ?",
                 new String[]{claimUUID}
         );
+        for (int i = 0; i< arrItems.length(); i++){
+            JSONObject obj = arrItems.getJSONObject(i);
+            obj.put("ItemId", getItemId(obj.getString("ItemCode")));
+        }
+        return arrItems;
     }
 
     @NonNull

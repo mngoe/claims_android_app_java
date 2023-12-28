@@ -13,10 +13,15 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.openimis.imisclaims.domain.entity.Claim;
+import org.openimis.imisclaims.domain.entity.Insuree;
+import org.openimis.imisclaims.domain.entity.Medication;
 import org.openimis.imisclaims.domain.entity.PendingClaim;
+import org.openimis.imisclaims.domain.entity.Service;
+import org.openimis.imisclaims.domain.entity.SubServiceItem;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.tools.StorageManager;
 import org.openimis.imisclaims.usecase.CreateClaim;
+import org.openimis.imisclaims.usecase.FetchInsureeInquire;
 import org.openimis.imisclaims.usecase.PostNewClaims;
 import org.openimis.imisclaims.util.DateUtils;
 import org.openimis.imisclaims.util.FileUtils;
@@ -120,8 +125,19 @@ public class SynchronizeService extends JobIntentService {
             //broadcastSyncSuccess(claimStatus);
             String adminId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"Id");
 
-            List<Claim> claims = claimFromJSONObject(claimsArray);
-            //new CreateClaim().execute(claims, Integer.valueOf(adminId),0);
+            //List<Claim> claims = claimFromJSONObject(claimsArray);
+            String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"HFId");
+
+            for (int i=0; i<claimsArray.length();i++) {
+                JSONObject claimObject = claimsArray.getJSONObject(i);
+                int insureeId = 0;
+                int programId = sqlHandler.getProgamId(claimObject.getJSONObject("details").getString("Program"));
+                Insuree insuree = new FetchInsureeInquire().execute(claimObject.getJSONObject("details").getString("CHFID"));
+                if(insuree != null){
+                    insureeId = Integer.valueOf(insuree.getId());
+                }
+                new CreateClaim().execute(claimObject, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             broadcastError(getResources().getString(R.string.ErrorOccurred) + ": " + e.getMessage(), ACTION_UPLOAD_CLAIMS);

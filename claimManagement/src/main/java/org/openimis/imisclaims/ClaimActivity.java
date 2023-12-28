@@ -400,9 +400,11 @@ public class ClaimActivity extends ImisActivity {
 
             if (etEndDate.getText().length() == 0) {
                 etEndDate.setText(etStartDate.getText().toString());
-                prefixYear = String.valueOf(year);
-                claimPrefix = prefixHfCode + "." + prefixYear + "." + prefixProgramCode + ".";
-                etClaimPrefix.setText(claimPrefix);
+                if(!etProgram.getText().toString().equals("Cheque Santé") && !etProgram.getText().toString().equals("Chèque Santé")){
+                    prefixYear = String.valueOf(year);
+                    claimPrefix = prefixHfCode + "." + prefixYear + "." + prefixProgramCode + ".";
+                    etClaimPrefix.setText(claimPrefix);
+                }
             }
         }
     };
@@ -416,9 +418,11 @@ public class ClaimActivity extends ImisActivity {
             day = SelectedDay;
             Date date = new Date(year - 1900, month, day);
             TextViewUtils.setDate(etEndDate, date);
-            prefixYear = String.valueOf(year);
-            claimPrefix = prefixHfCode + "." + prefixYear + "." + prefixProgramCode + ".";
-            etClaimPrefix.setText(claimPrefix);
+            if(!etProgram.getText().toString().equals("Cheque Santé") && !etProgram.getText().toString().equals("Chèque Santé")){
+                prefixYear = String.valueOf(year);
+                claimPrefix = prefixHfCode + "." + prefixYear + "." + prefixProgramCode + ".";
+                etClaimPrefix.setText(claimPrefix);
+            }
         }
     };
 
