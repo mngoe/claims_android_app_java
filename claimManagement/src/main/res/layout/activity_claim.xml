@@ -116,7 +116,7 @@
                 android:ems="10"
                 android:fontFamily="sans-serif-light"
                 android:hint="@string/ClaimCode"
-                android:maxLength="6">
+                android:maxLength="7">
 
                 <requestFocus />
             </EditText>

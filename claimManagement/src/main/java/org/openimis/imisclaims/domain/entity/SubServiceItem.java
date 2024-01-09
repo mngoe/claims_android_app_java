@@ -4,11 +4,15 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 public class SubServiceItem implements Parcelable{
 
-    @NonNull
+    @Nullable
     private final String id;
+
+    @Nullable
+    private  final String code;
 
     @NonNull
     private final int qty;
@@ -17,17 +21,20 @@ public class SubServiceItem implements Parcelable{
     private final String price;
 
     public SubServiceItem(
-            @NonNull String id,
+            @Nullable String id,
+            @Nullable String code,
             @NonNull int qty,
             @NonNull String price
     ) {
         this.id = id;
+        this.code = code;
         this.qty = qty;
         this.price = price;
     }
 
     protected SubServiceItem(Parcel in) {
         id = in.readString();
+        code = in.readString();
         qty = in.readInt();
         price = in.readString();
     }
@@ -35,6 +42,7 @@ public class SubServiceItem implements Parcelable{
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(id);
+        dest.writeString(code);
         dest.writeDouble(qty);
         dest.writeString(price);
     }
@@ -48,6 +56,9 @@ public class SubServiceItem implements Parcelable{
     public String getId() {
         return id;
     }
+
+    @NonNull
+    public String getCode(){ return code; }
 
     @NonNull
     public int getQty() {

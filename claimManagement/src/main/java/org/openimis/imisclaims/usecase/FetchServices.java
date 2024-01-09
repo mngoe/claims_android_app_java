@@ -78,6 +78,7 @@ public class FetchServices {
         String id = new String(Base64.decodeBase64(bytes)).split(":")[1];
         return new SubServiceItem(
                 /* id = */ id,
+                null,
                 /* quantity = */ service.qtyProvided(),
                 /* price = */ service.priceAsked()
         );
@@ -88,6 +89,7 @@ public class FetchServices {
         String id = new String(Base64.decodeBase64(bytes)).split(":")[1];
         return new SubServiceItem(
                 /* id = */ id,
+                null,
                 /* quantity = */ item.qtyProvided(),
                 /* price = */ item.priceAsked()
         );

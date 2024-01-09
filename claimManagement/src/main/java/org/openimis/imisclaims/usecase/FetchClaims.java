@@ -145,6 +145,7 @@ public class FetchClaims {
 
     private Claim.Service toService(@NonNull GetClaimsQuery.Service service) {
         return new Claim.Service(
+                /* id = */ null,
                 /* code = */ service.service().code(),
                 /* name = */ service.service().name(),
                 /* price = */ service.service().price(),
@@ -163,6 +164,7 @@ public class FetchClaims {
 
     private Claim.Medication toMedication(@NonNull GetClaimsQuery.Item item) {
         return new Claim.Medication(
+                /* id = */ null,
                 /* code = */ item.item().code(),
                 /* name = */ item.item().name(),
                 /* price = */ item.item().price(),

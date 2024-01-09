@@ -120,24 +120,25 @@ public class SynchronizeService extends JobIntentService {
         }
 
         try {
-            //List<PostNewClaims.Result> results = new PostNewClaims().execute(PendingClaim.fromJson(claims));
-            //JSONArray claimStatus = processClaimResponse(results);
-            //broadcastSyncSuccess(claimStatus);
             String adminId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"Id");
 
-            //List<Claim> claims = claimFromJSONObject(claimsArray);
+            List<Claim> claims = claimFromJSONObject(claimsArray);
             String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"HFId");
 
-            for (int i=0; i<claimsArray.length();i++) {
-                JSONObject claimObject = claimsArray.getJSONObject(i);
+            List<PostNewClaims.Result> results = new ArrayList<>();
+            for (Claim claim: claims) {
                 int insureeId = 0;
-                int programId = sqlHandler.getProgamId(claimObject.getJSONObject("details").getString("Program"));
-                Insuree insuree = new FetchInsureeInquire().execute(claimObject.getJSONObject("details").getString("CHFID"));
+                int programId = sqlHandler.getProgamId(claim.getClaimProgram());
+                Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
                 if(insuree != null){
                     insureeId = Integer.valueOf(insuree.getId());
                 }
-                new CreateClaim().execute(claimObject, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId);
+                new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId);
+                PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);
+                results.add(result);
             }
+            JSONArray claimStatus = processClaimResponse(results);
+            broadcastSyncSuccess(claimStatus);
         } catch (Exception e) {
             e.printStackTrace();
             broadcastError(getResources().getString(R.string.ErrorOccurred) + ": " + e.getMessage(), ACTION_UPLOAD_CLAIMS);
@@ -148,22 +149,23 @@ public class SynchronizeService extends JobIntentService {
             @NonNull JSONArray array
     )throws JSONException {
         List<Claim> claims = new ArrayList<>();
-        for (int i = 0; i < array.length(); i++) {
-            JSONObject object = array.getJSONObject(i);
-            claims.add(new Claim(
-                    /* uuid = */ object.getString("ClaimUUID"),
-                    /* hfCode = */ object.getString("HFCode"),
+        for (int i=0; i<array.length();i++){
+            JSONArray arrayItems = array.getJSONObject(i).getJSONArray("items");
+            JSONArray arrayServices = array.getJSONObject(i).getJSONArray("services");
+            claims.add( new Claim(
+                    /* uuid = */ null,
+                    /* hfCode = */ array.getJSONObject(i).getJSONObject("details").getString("HFCode"),
                     /* hfName = */ null,
-                    /* insureeNumber = */ Objects.requireNonNull(object.getString("InsureeNumber")),
+                    /* insureeNumber = */ Objects.requireNonNull(array.getJSONObject(i).getJSONObject("details").getString("CHFID")),
                     /* patientName = */ null,
-                    /* claimNumber = */ Objects.requireNonNull(object.getString("ClaimCode")),
-                    /* claimProgram = */ Objects.requireNonNull(object.getString("ClaimProgram")),
-                    /* dateClaimed = */ Objects.requireNonNull(JsonUtils.getDateOrDefault(object, "ClaimDate")),
-                    /* visitDatefrom = */ Objects.requireNonNull(JsonUtils.getDateOrDefault(object, "StartDate")),
-                    /* visitDateTo = */ Objects.requireNonNull(JsonUtils.getDateOrDefault(object, "EndDate")),
-                    /* visitType = */ object.getString("VisitType"),
+                    /* claimNumber = */ Objects.requireNonNull(array.getJSONObject(i).getJSONObject("details").getString("ClaimCode")),
+                    /* claimProgram = */ array.getJSONObject(i).getJSONObject("details").getString("Program"),
+                    /* dateClaimed = */ Objects.requireNonNull(JsonUtils.getDateOrDefault(array.getJSONObject(i).getJSONObject("details"), "ClaimDate")),
+                    /* visitDatefrom = */ Objects.requireNonNull(JsonUtils.getDateOrDefault(array.getJSONObject(i).getJSONObject("details"), "StartDate")),
+                    /* visitDateTo = */ Objects.requireNonNull(JsonUtils.getDateOrDefault(array.getJSONObject(i).getJSONObject("details"), "EndDate")),
+                    /* visitType = */ array.getJSONObject(i).getJSONObject("details").getString("VisitType"),
                     /* status = */null,
-                    /* mainDg = */ object.getString("ICDCode"),
+                    /* mainDg = */ "234",
                     null,
                     null,
                     null,
@@ -173,11 +175,91 @@ public class SynchronizeService extends JobIntentService {
                     null,
                     null,
                     null,
-                    null,
-                    null
+                    /* services */ fromJSONObjectService(arrayServices),
+                    /* items */ fromJSONObjectItem(arrayItems)
             ));
         }
         return claims;
+    }
+
+    private List<Claim.Medication> fromJSONObjectItem(
+            @NonNull JSONArray arrItems
+    ) throws JSONException{
+        List<Claim.Medication> items = new ArrayList<>();
+        for( int i = 0; i<arrItems.length(); i++){
+            items.add(
+                    new Claim.Medication(
+                            /* id */ arrItems.getJSONObject(i).getString("ItemId"),
+                            /* code */ arrItems.getJSONObject(i).getString("ItemCode"),
+                            null,
+                            /* price */ Double.valueOf(arrItems.getJSONObject(i).getString("ItemPrice")),
+                            null,
+                            /* qty provide = */ arrItems.getJSONObject(i).getString("ItemQuantity"),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null
+                    )
+            );
+        }
+        return items;
+    }
+
+
+    private List<Claim.Service> fromJSONObjectService(
+            @NonNull JSONArray arrServices
+    ) throws JSONException{
+        List<Claim.Service> services = new ArrayList<>();
+        for( int i = 0; i<arrServices.length(); i++){
+            JSONArray arrSubServices = new JSONArray();
+            JSONArray arrSubItems = new JSONArray();
+            if (arrServices.getJSONObject(i).has("SubServicesItems")){
+                JSONArray arrSubServicesItems = arrServices.getJSONObject(i).getJSONArray("SubServicesItems");
+                for (int j=0; j< arrSubServicesItems.length();j++){
+                    if(arrSubServicesItems.getJSONObject(j).getString("Type").equals("S")){
+                        arrSubServices.put(arrSubServicesItems.getJSONObject(j));
+                    }else if(arrSubServicesItems.getJSONObject(j).getString("Type").equals("I")){
+                        arrSubItems.put(arrSubServicesItems.getJSONObject(j));
+                    }
+                }
+            }
+
+            services.add(
+                    new Claim.Service(
+                            /* id */ arrServices.getJSONObject(i).getString("ServiceId"),
+                            /* code */ arrServices.getJSONObject(i).getString("ServiceCode"),
+                            null,
+                            /* price */ Double.valueOf(arrServices.getJSONObject(i).getString("ServicePrice")),
+                            null,
+                            /* packageType */ arrServices.getJSONObject(i).getString("ServicePackageType"),
+                            /* quantityProvide */ arrServices.getJSONObject(i).getString("ServiceQuantity"),
+                            null,
+                            null,
+                            null,
+                            null,
+                            null,
+                            /* subservices = */ fromSubServiceItemJson(arrSubServices),
+                            /* subItems = */ fromSubServiceItemJson(arrSubItems)
+                    )
+            );
+        }
+        return services;
+    }
+
+    private List<SubServiceItem> fromSubServiceItemJson(
+            @NonNull JSONArray array
+    ) throws JSONException{
+        List<SubServiceItem> subServiceItems = new ArrayList<>();
+        for(int i=0 ; i < array.length() ; i++){
+            subServiceItems.add(new SubServiceItem(
+                    null,
+                    /* code = */ array.getJSONObject(i).getString("Code"),
+                    /* quantity = */ Integer.valueOf(array.getJSONObject(i).getString("Quantity")),
+                    /* price = */ array.getJSONObject(i).getString("Price")
+            ));
+        }
+        return subServiceItems;
     }
 
     private JSONArray processClaimResponse(List<PostNewClaims.Result> results) {

@@ -31,7 +31,7 @@ public class CreateClaim {
     }
 
     @WorkerThread
-    public void execute(JSONObject claim, int adminId, int hfId, int insureeId, int programId) throws Exception {
+    public void execute(Claim claim, int adminId, int hfId, int insureeId, int programId) throws Exception {
         createClaimGraphQLRequest.create(claim,hfId ,adminId, insureeId, programId);
     }
 }

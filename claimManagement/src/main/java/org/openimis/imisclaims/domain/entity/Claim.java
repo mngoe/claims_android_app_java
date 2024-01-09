@@ -436,6 +436,7 @@ public class Claim implements Parcelable {
         private final List<SubServiceItem> subItems;
 
         public Service(
+                @Nullable String id,
                 @NonNull String code,
                 @NonNull String name,
                 double price,
@@ -450,7 +451,7 @@ public class Claim implements Parcelable {
                 @Nullable List<SubServiceItem> subServices,
                 @Nullable List<SubServiceItem> subItems
         ) {
-            super(null,code, name, price, currency,packageType,null,null,null);
+            super(id,code, name, price, currency,packageType,null,null,null);
             this.quantityProvided = quantityProvided;
             this.quantityApproved = quantityApproved;
             this.priceAdjusted = priceAdjusted;
@@ -463,6 +464,7 @@ public class Claim implements Parcelable {
 
         protected Service(Parcel in) {
             this(
+                    /* id = */ in.readString(),
                     /* code = */ in.readString(),
                     /* name = */ in.readString(),
                     /* price = */ in.readDouble(),
@@ -566,6 +568,7 @@ public class Claim implements Parcelable {
         private final String justification;
 
         public Medication(
+                @Nullable String id,
                 @NonNull String code,
                 @NonNull String name,
                 double price,
@@ -577,7 +580,7 @@ public class Claim implements Parcelable {
                 @Nullable String explanation,
                 @Nullable String justification
         ) {
-            super(null, code, name, price, currency, null);
+            super(id, code, name, price, currency, null);
             this.quantityProvided = quantityProvided;
             this.quantityApproved = quantityApproved;
             this.priceAdjusted = priceAdjusted;
@@ -588,6 +591,7 @@ public class Claim implements Parcelable {
 
         protected Medication(Parcel in) {
             this(
+                    /* id = */ in.readString(),
                     /* code = */ in.readString(),
                     /* name = */ in.readString(),
                     /* price = */ in.readDouble(),
