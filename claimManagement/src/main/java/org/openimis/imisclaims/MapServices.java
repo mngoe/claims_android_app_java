@@ -7,7 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.os.Bundle;
-import android.support.v7.view.menu.MenuBuilder;
+import androidx.appcompat.view.menu.MenuBuilder;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -226,7 +226,7 @@ public class MapServices extends ImisActivity {
             boolean checked = (Boolean) oService.get("isMapped");
             if (checked) {
                 count++;
-                if (!sqlHandler.InsertMapping(oService.get("Code").toString(), oService.get("Name").toString(), "S")) {
+                if (!sqlHandler.InsertMapping(oService.get("Code").toString(), oService.get("Name").toString(), "S",oService.get("Program").toString())) {
                     return 2;
                 }
 

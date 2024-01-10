@@ -25,6 +25,8 @@
 
 package org.openimis.imisclaims;
 
+import static org.openimis.imisclaims.BuildConfig.RAR_PASSWORD;
+
 import android.Manifest;
 import android.app.Application;
 import android.content.Context;
@@ -39,6 +41,8 @@ import android.net.Uri;
 import android.os.Environment;
 import android.util.Base64;
 import android.util.DisplayMetrics;
+
+import org.openimis.imisclaims.tools.Log;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -57,13 +61,8 @@ import java.util.Map;
 import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 
-import static org.openimis.imisclaims.BuildConfig.RAR_PASSWORD;
-
-import org.openimis.imisclaims.tools.Log;
-
 public class Global extends Application {
-    private static final String PREF_NAME = "SHPref";
-    private static final String PREF_LOG_TAG = "SHPREFS";
+    private static final String SHPREF_NAME = "SHPref";
     private static final String SHPREF_LANGUAGE = "language";
     private static final String DEFAULT_LANGUAGE_CODE = "en";
     private static Global instance;
@@ -104,14 +103,6 @@ public class Global extends Application {
         OfficerCode = officerCode;
     }
 
-    public String getOfficerHealthFacility() {
-        return OfficerHealthFacility;
-    }
-
-    public void setOfficerHealthFacility(String HealthFacility) {
-        OfficerHealthFacility = HealthFacility;
-    }
-
     public int getUserId() {
         return UserId;
     }
@@ -122,6 +113,14 @@ public class Global extends Application {
 
     public void setOfficerName(String officerName) {
         OfficerName = officerName;
+    }
+
+    public String getOfficerHealthFacility() {
+        return OfficerHealthFacility;
+    }
+
+    public void setOfficerHealthFacility(String HealthFacility) {
+        OfficerHealthFacility = HealthFacility;
     }
 
     public String getOfficeName() {
@@ -136,45 +135,6 @@ public class Global extends Application {
         if (JWTToken == null)
             JWTToken = new Token();
         return JWTToken;
-    }
-
-    public int getIntKey(String key, int defaultValue) {
-        try {
-            return getSharedPreferences(PREF_NAME, MODE_PRIVATE).getInt(key, defaultValue);
-        } catch (ClassCastException e) {
-            Log.e(PREF_LOG_TAG, String.format("%s key is not an int", key), e);
-        }
-        return defaultValue;
-    }
-
-    public void setIntKey(String key, int value) {
-        getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit().putInt(key, value).apply();
-    }
-
-    public long getLongKey(String key, long defaultValue) {
-        try {
-            return getSharedPreferences(PREF_NAME, MODE_PRIVATE).getLong(key, defaultValue);
-        } catch (ClassCastException e) {
-            Log.e(PREF_LOG_TAG, String.format("%s key is not a long", key), e);
-        }
-        return defaultValue;
-    }
-
-    public void setLongKey(String key, long value) {
-        getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit().putLong(key, value).apply();
-    }
-
-    public String getStringKey(String key, String defaultValue) {
-        try {
-            return getSharedPreferences(PREF_NAME, MODE_PRIVATE).getString(key, defaultValue);
-        } catch (ClassCastException e) {
-            Log.e(PREF_LOG_TAG, String.format("%s key is not a string", key), e);
-        }
-        return defaultValue;
-    }
-
-    public void setStringKey(String key, String value) {
-        getSharedPreferences(PREF_NAME, MODE_PRIVATE).edit().putString(key, value).apply();
     }
 
     public boolean isLoggedIn() {
@@ -350,7 +310,7 @@ public class Global extends Application {
     }
 
     public SharedPreferences getDefaultSharedPreferences() {
-        return this.getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        return this.getSharedPreferences(SHPREF_NAME, MODE_PRIVATE);
     }
 
     public String getSavedLanguage() {

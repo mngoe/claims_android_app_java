@@ -1,0 +1,34 @@
+query GetClaimAdmins($offset: Int){
+    claimAdmins(offset: $offset){
+        pageInfo{
+          hasNextPage
+        }
+        edges{
+            node{
+                id
+                code
+                lastName
+                otherNames
+                healthFacility{
+                   id
+                   code
+                }
+                userSet{
+                  edges{
+                    node{
+                      iUser{
+                        programSet{
+                          edges{
+                            node{
+                              idProgram
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+            }
+        }
+    }
+}

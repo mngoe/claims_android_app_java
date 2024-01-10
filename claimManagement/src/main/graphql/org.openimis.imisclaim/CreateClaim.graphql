@@ -1,0 +1,6 @@
+mutation CreateClaim($input: CreateClaimMutationInput!) {
+    createClaim(input: $input) {
+        clientMutationId
+        internalId
+    }
+}

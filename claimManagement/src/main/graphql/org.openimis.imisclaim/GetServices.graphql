@@ -1,0 +1,41 @@
+query GetServices ($offset: Int) {
+  medicalServices (offset: $offset) {
+    pageInfo{
+        hasNextPage
+    }
+    edges {
+      node {
+        id
+        code
+        name
+        packagetype
+        type
+        price
+        careType
+        program {
+          idProgram
+          code
+          nameProgram
+        }
+        serviceserviceSet {
+          service {
+            id
+            code
+            name
+          }
+          qtyProvided
+          priceAsked
+        }
+        servicesLinked {
+          item {
+            id
+            code
+            name
+          }
+          qtyProvided
+          priceAsked
+        }
+      }
+    }
+  }
+}

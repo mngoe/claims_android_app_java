@@ -1,12 +1,13 @@
 package org.openimis.imisclaims.util;
 
-import android.content.ContentValues;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.Map;
+import java.text.ParseException;
+import java.util.Date;
 
 public class JsonUtils {
     /**
@@ -46,16 +47,26 @@ public class JsonUtils {
         }
     }
 
-    public static ContentValues jsonToContentValues(JSONObject object, Map<String, String> mapping) {
-        ContentValues cv = new ContentValues();
+    @Nullable
+    public static Date getDateOrDefault(@NonNull JSONObject object, @NonNull String field) {
+        return getDateOrDefault(object, field, null);
+    }
 
-        for (String key : mapping.keySet()) {
-            String value = object.optString(key);
-            if (!StringUtils.isEmpty(value, true)) {
-                cv.put(mapping.get(key), value);
-            }
+    @Nullable
+    public static Date getDateOrDefault(@NonNull JSONObject object, @NonNull String field, @Nullable Date defaultValue) {
+        return getDateOrDefault(object, field, defaultValue, true);
+    }
+
+    @Nullable
+    public static Date getDateOrDefault(@NonNull JSONObject object, @NonNull String field, @Nullable Date defaultValue, boolean checkNullString) {
+        String string = getStringOrDefault(object, field, null, checkNullString);
+        if (string == null) {
+            return defaultValue;
         }
-
-        return cv;
+        try {
+            return DateUtils.dateFromString(string);
+        } catch (ParseException e) {
+            return defaultValue;
+        }
     }
 }

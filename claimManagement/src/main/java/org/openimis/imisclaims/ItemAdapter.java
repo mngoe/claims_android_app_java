@@ -11,7 +11,6 @@ import android.widget.TextView;
 
 public class ItemAdapter extends CursorAdapter {
     SQLHandler sqlHandler;
-    SQLiteDatabase db;
 
     public ItemAdapter(Context context, SQLHandler sqlHandler) {
         super(context, null, 0);
@@ -37,7 +36,7 @@ public class ItemAdapter extends CursorAdapter {
         if (getFilterQueryProvider() != null) {
             return getFilterQueryProvider().runQuery(constraint);
         }
-        return sqlHandler.searchItems((constraint != null ? constraint.toString() : ""));
+        return sqlHandler.searchItems((constraint != null ? constraint.toString() : ""),ClaimActivity.claimProgram);
     }
 
     @Override

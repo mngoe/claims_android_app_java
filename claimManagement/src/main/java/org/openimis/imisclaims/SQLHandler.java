@@ -7,7 +7,9 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteFullException;
 import android.database.sqlite.SQLiteOpenHelper;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import android.text.TextUtils;
 
 import org.json.JSONArray;
@@ -15,11 +17,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.openimis.imisclaims.tools.Log;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
 public class SQLHandler extends SQLiteOpenHelper {
+
     private static final String LOG_TAG = "SQLHELPER";
 
     public static final String CA_NAME_COLUMN = "Name";
@@ -29,33 +32,37 @@ public class SQLHandler extends SQLiteOpenHelper {
     public static final String CLAIM_UPLOAD_STATUS_REJECTED = "Rejected";
     public static final String CLAIM_UPLOAD_STATUS_ERROR = "Error";
     public static final String CLAIM_UPLOAD_STATUS_EXPORTED = "Exported";
-    public static final String CLAIM_UPLOAD_STATUS_CHECKED = "Checked";
     public static final String CLAIM_UPLOAD_STATUS_ENTERED = "Entered";
     public static final String CLAIM_UPLOAD_STATUS_ARCHIVED = "Archived";
 
     public static final String DB_NAME_MAPPING = Global.getGlobal().getSubdirectory("Databases") + "/" + "Mapping.db3";
     public static final String DB_NAME_DATA = Global.getGlobal().getSubdirectory("Databases") + "/" + "ImisData.db3";
 
-    private static final String CreateTableMapping = "CREATE TABLE IF NOT EXISTS tblMapping(Code TEXT,Name TEXT,Type TEXT);";
+    private static final String CreateTableServices = "CREATE TABLE IF NOT EXISTS tblServices(Id text, Code text, Name text, Type text, Price text, PackageType text, Program text);";
+    private static final String CreateTableItems = "CREATE TABLE IF NOT EXISTS tblItems(Id text, Code text, Name text, Type text, Price text, Program text);";
+    private static final String CreateTableSubServices = "CREATE TABLE IF NOT EXISTS tblSubServices(ServiceId text, ServiceLinked text, Quantity text, Price text);";
+    private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text, Quantity text, Price text);";
+
+
+    private static final String CreateTableMapping = "CREATE TABLE IF NOT EXISTS tblMapping(Code TEXT,Name TEXT,Type TEXT, Program TEXT);";
     private static final String createTablePolicyInquiry = "CREATE TABLE IF NOT EXISTS tblPolicyInquiry(InsureeNumber text,Photo BLOB, InsureeName Text, DOB Text, Gender Text, ProductCode Text, ProductName Text, ExpiryDate Text, Status Text, DedType Int, Ded1 Int, Ded2 Int, Ceiling1 Int, Ceiling2 Int);";
     private static final String CreateTableControls = "CREATE TABLE IF NOT EXISTS tblControls(FieldName TEXT, Adjustability TEXT);";
-    private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Code TEXT, HFCode TEXT ,Name TEXT);";
-    private static final String CreateTablePrograms = "CREATE TABLE IF NOT EXISTS tblPrograms(Id TEXT, Name TEXT);";
+    private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Id TEXT, Code TEXT, HFCode TEXT, HFId TEXT ,Name TEXT, Programs TEXT);";
+    private static final String CreateTableHealthFacilities = "CREATE TABLE IF NOT EXISTS tblHealthFacilities(Id TEXT, Programs TEXT);";
+    private static final String CreateTablePrograms = "CREATE TABLE IF NOT EXISTS tblPrograms(Id TEXT, Code TEXT, Name TEXT);";
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code TEXT, Name TEXT, Type TEXT, Price TEXT);";
-    private static final String createTableClaimDetails = "CREATE TABLE IF NOT EXISTS tblClaimDetails(ClaimUUID TEXT, ClaimDate TEXT, HFCode TEXT, ClaimAdmin TEXT, ClaimCode TEXT, GuaranteeNumber TEXT, InsureeNumber TEXT, StartDate TEXT, EndDate TEXT,Program TEXT, ICDCode TEXT, Comment TEXT, Total TEXT, ICDCode1 TEXT, ICDCode2 TEXT, ICDCode3 TEXT, ICDCode4 TEXT, VisitType TEXT, TotalApproved TEXT, TotalAdjusted TEXT, Explanation TEXT, Adjustment TEXT, LastUpdated TEXT);";
-    private static final String createTableClaimItems = "CREATE TABLE IF NOT EXISTS tblClaimItems(ClaimUUID TEXT, ItemCode TEXT, ItemPrice TEXT, ItemQuantity TEXT, ItemPriceAdjusted TEXT, ItemQuantityAdjusted TEXT, ItemExplanation TEXT, ItemJustification TEXT, ItemValuated TEXT, ItemResult TEXT, LastUpdated TEXT);";
-    private static final String createTableClaimServices = "CREATE TABLE IF NOT EXISTS tblClaimServices(ClaimUUID TEXT, ServiceCode TEXT, ServicePrice TEXT, ServiceQuantity TEXT, ServicePriceAdjusted TEXT, ServiceQuantityAdjusted TEXT, ServiceExplanation TEXT, ServiceJustification TEXT, ServiceValuated TEXT, ServiceResult TEXT, LastUpdated TEXT);";
+    private static final String createTableClaimDetails = "CREATE TABLE IF NOT EXISTS tblClaimDetails(ClaimUUID TEXT, ClaimDate TEXT, HFCode TEXT, ClaimAdmin TEXT, ClaimCode TEXT, GuaranteeNumber TEXT, InsureeNumber TEXT, StartDate TEXT, EndDate TEXT, Program TEXT, ICDCode TEXT, Comment TEXT, Total TEXT, ICDCode1 TEXT, ICDCode2 TEXT, ICDCode3 TEXT, ICDCode4 TEXT, VisitType TEXT);";
+    private static final String createTableClaimItems = "CREATE TABLE IF NOT EXISTS tblClaimItems(ClaimUUID TEXT, ItemCode TEXT, ItemPrice TEXT, ItemQuantity TEXT);";
+    private static final String createTableClaimServices = "CREATE TABLE IF NOT EXISTS tblClaimServices(ClaimUUID TEXT, ServiceCode TEXT, ServicePrice TEXT, ServiceQuantity TEXT, ServicePackageType TEXT, SubServicesItems TEXT);";
     private static final String createTableClaimUploadStatus = "CREATE TABLE IF NOT EXISTS tblClaimUploadStatus(ClaimUUID TEXT, UploadDate TEXT, UploadStatus TEXT, UploadMessage TEXT);";
 
     public final String REFERENCE_UNKNOWN;
 
-    private final Global global;
     private SQLiteDatabase db;
     private SQLiteDatabase dbMapping;
 
     public SQLHandler(Context context) {
         super(context, DB_NAME_MAPPING, null, 3);
-        global = (Global) context.getApplicationContext();
         REFERENCE_UNKNOWN = context.getResources().getString(R.string.Unknown);
         createOrOpenDatabases();
     }
@@ -78,11 +85,14 @@ public class SQLHandler extends SQLiteOpenHelper {
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
     }
 
+    @Nullable
     public Cursor getMapping(String Type) {
         try {
-            db.execSQL("ATTACH DATABASE '" + DB_NAME_MAPPING + "' AS dbMapping1");
-            Cursor c = db.rawQuery("select I.code,I.name,M.Type AS isMapped FROM tblReferences I LEFT OUTER JOIN dbMapping1.tblMapping M ON I.Code = M.Code WHERE I.Type =?", new String[]{Type});
-            return c;
+            try {
+                db.execSQL("ATTACH DATABASE '" + DB_NAME_MAPPING + "' AS dbMapping1");
+            } catch (SQLException ignored) {
+            }
+            return db.rawQuery("select I.code,I.name,M.Type AS isMapped FROM tblReferences I LEFT OUTER JOIN dbMapping1.tblMapping M ON I.Code = M.Code WHERE I.Type =?", new String[]{Type});
         } catch (SQLException e) {
             Log.d("ErrorOnFetchingData", e.getMessage());
             return null;
@@ -105,20 +115,121 @@ public class SQLHandler extends SQLiteOpenHelper {
         return price;
     }
 
+    public String getPriceService(String code) {
+        String price = "0";
+        try (Cursor c = db.query("tblServices", new String[]{"Price"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    price = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return price;
+    }
+
+    public String getPriceItem(String code) {
+        String price = "0";
+        try (Cursor c = db.query("tblItems", new String[]{"Price"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    price = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return price;
+    }
+
+    public String getNameService(String code) {
+        String name = "";
+        try (Cursor c = db.query("tblServices", new String[]{"Name"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    name = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return name;
+    }
+
+    public String getPackageType(String code) {
+        String packageType = "";
+        try (Cursor c = db.query("tblServices", new String[]{"PackageType"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    packageType = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return packageType;
+    }
+
+    public String getServiceId(String code) {
+        String id = "";
+        try (Cursor c = db.query("tblServices", new String[]{"Id"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    id = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return id;
+    }
+
+    public String getItemId(String code) {
+        String id = "";
+        try (Cursor c = db.query("tblServices", new String[]{"Id"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    id = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return id;
+    }
+
     public String getItemPrice(String code) {
-        return getPrice(code, "I");
+        return getPriceItem(code);
     }
 
     public String getServicePrice(String code) {
-        return getPrice(code, "S");
+        return getPriceService(code);
     }
 
-    public boolean InsertMapping(String Code, String Name, String Type) {
+    public String getServiceName(String code) {
+        return getNameService(code);
+    }
+
+    public boolean InsertMapping(String Code, String Name, String Type, String Program) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("Code", Code);
             cv.put("Name", Name);
             cv.put("Type", Type);
+            cv.put("Program", Program);
 
             dbMapping.insert("tblMapping", null, cv);
         } catch (SQLiteFullException e) {
@@ -141,6 +252,68 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
+
+    public void InsertService(String Id, String Code, String Name, String Type, String Price, String PackageType, String Program) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Id", Id);
+            cv.put("Code", Code);
+            cv.put("Name", Name);
+            cv.put("Type", Type);
+            cv.put("Price", Price);
+            cv.put("PackageType", PackageType);
+            cv.put("Program", Program);
+
+            db.insert("tblServices", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void InsertItem(String Id, String Code, String Name, String Type, String Price, String Program) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Id", Id);
+            cv.put("Code", Code);
+            cv.put("Name", Name);
+            cv.put("Type", Type);
+            cv.put("Price", Price);
+            cv.put("Program", Program);
+
+            db.insert("tblItems", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void InsertSubServices(String ServiceId, String ServiceLinked, String qty, String price) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("ServiceId", ServiceId);
+            cv.put("ServiceLinked", ServiceLinked);
+            cv.put("Quantity", qty);
+            cv.put("Price", price);
+
+            db.insert("tblSubServices", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void InsertSubItems(String ItemId, String ServiceId, String Qty, String price) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("ItemId", ItemId);
+            cv.put("ServiceId", ServiceId);
+            cv.put("Quantity", Qty);
+            cv.put("Price", price);
+
+            db.insert("tblSubItems", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public void InsertControls(String FieldName, String Adjustability) {
         try {
             ContentValues cv = new ContentValues();
@@ -152,12 +325,15 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void InsertClaimAdmins(String Code, String hfCode, String Name) {
+    public void InsertClaimAdmins(String Id, String Code, String hfCode, String Name, String hfId, String programs) {
         try {
             ContentValues cv = new ContentValues();
+            cv.put("Id", Id);
             cv.put("Code", Code);
             cv.put("Name", Name);
             cv.put("hfCode", hfCode);
+            cv.put("hfId", hfId);
+            cv.put("Programs", programs);
             db.insert("tblClaimAdmins", null, cv);
         } catch (Exception e) {
             e.printStackTrace();
@@ -165,12 +341,25 @@ public class SQLHandler extends SQLiteOpenHelper {
     }
 
     //insert programs
-    public void InsertPrograms(String Id, String Name) {
+    public void InsertPrograms(String Id, String Code, String Name) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("Id", Id);
+            cv.put("Code", Code);
             cv.put("Name", Name);
             db.insert("tblPrograms", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //insert programs
+    public void InsertHealthFacilities(String Id, String programs) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Id", Id);
+            cv.put("Programs", programs);
+            db.insert("tblHealthFacilities", null, cv);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -190,6 +379,7 @@ public class SQLHandler extends SQLiteOpenHelper {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
     }
 
     public Cursor SearchDisease(String InputText) {
@@ -202,9 +392,9 @@ public class SQLHandler extends SQLiteOpenHelper {
         return c;
     }
 
-    public Cursor SearchProgram(String InputText) {
+    public Cursor SearchProgram(String InputText, List<String> hfPrograms) {
         //Cursor c = db.rawQuery("SELECT Code as _id,Code, Name,Code + ' ' + Name AS Disease FROM tblReferences WHERE Type = 'D' AND (Code LIKE '%"+ InputText +"%' OR Name LIKE '%"+ InputText +"%')",null);
-        Cursor c = db.rawQuery("SELECT Name as _id,Id, Name FROM tblPrograms WHERE (Name LIKE '%" + InputText + "%')", null);
+        Cursor c = db.rawQuery("SELECT Name as _id,Id, Name, Code FROM tblPrograms WHERE (Name LIKE '%" + InputText + "%') AND Id IN ("+TextUtils.join(",", Collections.nCopies(hfPrograms.size(),"?")) + ")", hfPrograms.toArray(new String[hfPrograms.size()]));
         if (c != null) {
             c.moveToFirst();
         }
@@ -250,12 +440,31 @@ public class SQLHandler extends SQLiteOpenHelper {
         return name;
     }
 
-    public Cursor filterItemsServices(String nameFilter, String typeFilter) {
+    public int getProgamId(String programName) {
+        String id = "0";
+        try {
+            String table = "tblPrograms";
+            String[] columns = {"Id"};
+            String selection = "Name=?";
+            String[] selectionArgs = {programName};
+            String limit = "1";
+            Cursor c = db.query(table, columns, selection, selectionArgs, null, null, null, limit);
+            if (c.getCount() == 1) {
+                c.moveToFirst();
+                id = c.getString(c.getColumnIndexOrThrow("Id"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Integer.valueOf(id);
+    }
+
+    public Cursor filterItemsServices(String nameFilter, String typeFilter, String programFilter) {
         String wildcardNameFilter = "%" + nameFilter + "%";
         Cursor c = dbMapping.query("tblMapping",
                 new String[]{"Code AS _id", "Code", "Name"},
-                "type = ? AND (Code LIKE ? OR Name LIKE ?)",
-                new String[]{typeFilter, wildcardNameFilter, wildcardNameFilter},
+                "type = ? AND (Code LIKE ? OR Name LIKE ?) AND Program = ?",
+                new String[]{typeFilter, wildcardNameFilter, wildcardNameFilter, programFilter},
                 null,
                 null,
                 null);
@@ -267,12 +476,12 @@ public class SQLHandler extends SQLiteOpenHelper {
         return c;
     }
 
-    public Cursor searchItems(String filter) {
-        return filterItemsServices(filter, "I");
+    public Cursor searchItems(String filter, String program) {
+        return filterItemsServices(filter, "I",program);
     }
 
-    public Cursor searchServices(String filter) {
-        return filterItemsServices(filter, "S");
+    public Cursor searchServices(String filter, String program) {
+        return filterItemsServices(filter, "S",program);
     }
 
     public String getAdjustability(String FieldName) {
@@ -350,10 +559,291 @@ public class SQLHandler extends SQLiteOpenHelper {
         return Info;
     }
 
+    public String getHealthFacilityPrograms(String hfId) {
+        String programs = "";
+        String query = "SELECT Programs FROM tblHealthFacilities WHERE Id like '" + hfId + "'";
+        try (Cursor cursor1 = db.rawQuery(query, null)) {
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    programs = cursor1.getString(0);
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            return programs;
+        }
+
+        return programs;
+    }
+
+    public JSONArray getServices() {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblServices ";
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONArray getItems() {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblItems ";
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONArray getSubServices() {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblSubServices ";
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONArray getSubServicesIds(String id) {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblSubServices WHERE ServiceLinked = "+ id;
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONArray getSubItemsId(String id) {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblSubItems WHERE ServiceId = "+ id;
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONArray getSubItems() {
+        String nullOverride="";
+        JSONArray resultSet = new JSONArray();
+        try {
+            String query = "SELECT * FROM tblSubItems ";
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet.put(rowObject);
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONObject getService(String serviceId) {
+        String nullOverride="";
+        JSONObject resultSet = new JSONObject();
+        try {
+            String query = "SELECT * FROM tblServices WHERE Id = "+ serviceId;
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet = rowObject;
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
+    public JSONObject getItem(String itemId) {
+        String nullOverride="";
+        JSONObject resultSet = new JSONObject();
+        try {
+            String query = "SELECT * FROM tblItems WHERE Id = "+ itemId;
+            Cursor cursor1 = db.rawQuery(query, null);
+            cursor1.moveToFirst();
+            // looping through all rows
+            while (!cursor1.isAfterLast()) {
+                int totalColumns = cursor1.getColumnCount();
+                JSONObject rowObject = new JSONObject();
+                for (int i = 0; i < totalColumns; i++) {
+                    try {
+                        if (cursor1.getString(i) != null)
+                            rowObject.put(cursor1.getColumnName(i), cursor1.getString(i));
+                        else
+                            rowObject.put(cursor1.getColumnName(i), nullOverride);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("Tag Name", e.getMessage());
+                    }
+                }
+                resultSet = rowObject;
+                cursor1.moveToNext();
+            }
+            cursor1.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return resultSet;
+    }
+
     public void createTables() {
         String[] commands = {CreateTableControls, CreateTableReferences, CreateTableClaimAdmins,CreateTablePrograms,
-                createTablePolicyInquiry, createTableClaimDetails, createTableClaimItems, createTableClaimServices,
-                createTableClaimUploadStatus};
+                createTablePolicyInquiry, createTableClaimDetails, createTableClaimItems, createTableClaimServices,CreateTableSubItems,
+                CreateTableSubServices,CreateTableItems,CreateTableServices, createTableClaimUploadStatus, CreateTableHealthFacilities};
         for (String command : commands) {
             try {
                 db.execSQL(command);
@@ -385,6 +875,43 @@ public class SQLHandler extends SQLiteOpenHelper {
 
     public boolean checkMapping() {
         return dbMapping != null && dbMapping.isOpen();
+    }
+
+ 
+    public String getSubServiceQty(String ServId) {
+        String qty = "";
+        try {
+            String query = "SELECT Quantity FROM tblSubServices WHERE ServiceId = " + ServId;
+            Cursor cursor1 = db.rawQuery(query, null);
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    qty = cursor1.getString(0);
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            return qty;
+        }
+
+        return qty;
+    }
+
+    public String getSubItemQty(String ItemId) {
+        String qty = "";
+        try {
+            String query = "SELECT Quantity FROM tblSubItems WHERE ItemId = " + ItemId;
+            Cursor cursor1 = db.rawQuery(query, null);
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    qty = cursor1.getString(0);
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            return qty;
+        }
+
+        return qty;
     }
 
     public void saveClaim(@NonNull ContentValues claimDetails, @NonNull Iterable<ContentValues> claimItems, @NonNull Iterable<ContentValues> claimServices) {
@@ -453,7 +980,7 @@ public class SQLHandler extends SQLiteOpenHelper {
 
     public JSONObject getClaim(String claimUUID) {
         JSONArray claimDetails = getQueryResultAsJsonArray("tblClaimDetails",
-                new String[]{"ClaimUUID", "ClaimDate", "HFCode", "ClaimAdmin", "ClaimCode", "GuaranteeNumber", "InsureeNumber", "StartDate", "EndDate", "Program", "ICDCode", "Comment", "Total", "ICDCode1", "ICDCode2", "ICDCode3", "ICDCode4", "VisitType", "TotalApproved", "TotalAdjusted", "Explanation", "Adjustment"},
+                new String[]{"ClaimUUID", "ClaimDate", "HFCode", "ClaimAdmin", "ClaimCode", "GuaranteeNumber", "InsureeNumber", "StartDate", "EndDate", "Program", "ICDCode", "Comment", "Total", "ICDCode1", "ICDCode2", "ICDCode3", "ICDCode4", "VisitType"},
                 "LOWER(ClaimUUID) = ?",
                 new String[]{claimUUID.toLowerCase(Locale.ROOT)});
 
@@ -485,9 +1012,9 @@ public class SQLHandler extends SQLiteOpenHelper {
         // Rename InsureeNumber to CHFID
         // This is required to support legacy Rest API and Web App
         JSONArray claims = getQueryResultAsJsonArray(
-                "SELECT ClaimUUID, ClaimDate, HFCode, ClaimAdmin, ClaimCode, GuaranteeNumber, InsureeNumber AS CHFID, StartDate, EndDate, ICDCode, Comment, Total, ICDCode1, ICDCode2, ICDCode3, ICDCode4, VisitType" +
+                "SELECT ClaimUUID, ClaimDate, HFCode, ClaimAdmin, ClaimCode, Program, GuaranteeNumber, InsureeNumber AS CHFID, StartDate, EndDate, ICDCode, Comment, Total, ICDCode1, ICDCode2, ICDCode3, ICDCode4, VisitType" +
                         " FROM tblClaimDetails cd" +
-                        " WHERE NOT EXISTS (SELECT cus.ClaimUUID FROM (SELECT * FROM tblClaimUploadStatus GROUP BY ClaimUUID HAVING UploadDate=MAX(UploadDate)) AS cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus != ?)",
+                        " WHERE NOT EXISTS (SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus != ?)",
                 new String[]{CLAIM_UPLOAD_STATUS_ERROR}
         );
 
@@ -500,7 +1027,19 @@ public class SQLHandler extends SQLiteOpenHelper {
                 JSONObject resultClaim = new JSONObject();
                 resultClaim.put("details", claim);
                 resultClaim.put("items", getClaimItems(ClaimUUID));
-                resultClaim.put("services", getClaimServices(ClaimUUID));
+
+                JSONArray claimServices = getClaimServices(ClaimUUID);
+
+                for(int j = 0; j<claimServices.length(); j++){
+                    JSONObject service = claimServices.getJSONObject(j);
+                    if(service.has("SubServicesItems")){
+                        String subServices = service.getString("SubServicesItems");
+                        JSONArray subServicesItems = new JSONArray(subServices);
+                        service.put("SubServicesItems",subServicesItems);
+                    }
+                    service.put("ServiceId",getServiceId(service.getString("ServiceCode")));
+                }
+                resultClaim.put("services", claimServices);
                 result.put(resultClaim);
             }
         } catch (Exception e) {
@@ -510,20 +1049,25 @@ public class SQLHandler extends SQLiteOpenHelper {
     }
 
     @NonNull
-    public JSONArray getClaimItems(String claimUUID) {
-        return getQueryResultAsJsonArray(
+    public JSONArray getClaimItems(String claimUUID) throws JSONException {
+        JSONArray arrItems = getQueryResultAsJsonArray(
                 "tblClaimItems",
-                new String[]{"ItemCode", "ItemPrice", "ItemQuantity", "ItemPriceAdjusted", "ItemQuantityAdjusted", "ItemExplanation", "ItemJustification", "ItemValuated", "ItemResult"},
+                new String[]{"ItemCode", "ItemPrice", "ItemQuantity"},
                 "ClaimUUID = ?",
                 new String[]{claimUUID}
         );
+        for (int i = 0; i< arrItems.length(); i++){
+            JSONObject obj = arrItems.getJSONObject(i);
+            obj.put("ItemId", getItemId(obj.getString("ItemCode")));
+        }
+        return arrItems;
     }
 
     @NonNull
     public JSONArray getClaimServices(String claimUUID) {
         return getQueryResultAsJsonArray(
                 "tblClaimServices",
-                new String[]{"ServiceCode", "ServicePrice", "ServiceQuantity", "ServicePriceAdjusted", "ServiceQuantityAdjusted", "ServiceExplanation", "ServiceJustification", "ServiceValuated", "ServiceResult"},
+                new String[]{"ServiceCode", "ServicePrice", "ServiceQuantity","ServicePackageType","SubServicesItems"},
                 "ClaimUUID = ?",
                 new String[]{claimUUID}
         );
@@ -584,21 +1128,31 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public String getClaimUuid(@NonNull String claimCode) {
-        return getSingleValue("tblClaimDetails", "ClaimUUID", "ClaimCode = ?", new String[]{claimCode});
-    }
+    public String getClaimUUIDForCode(@NonNull String claimCode) {
+        JSONArray claims = getQueryResultAsJsonArray("tblClaimDetails", new String[]{"ClaimUUID"}, "ClaimCode = ?", new String[]{claimCode});
+        if (claims.length() < 1) {
+            return null;
+        }
+        if (claims.length() > 1) {
+            Log.e(LOG_TAG, "Multiple claims for claim code: " + claimCode);
+        }
 
-    public String getClaimUuid(@NonNull String claimCode, @NonNull String hfCode) {
-        return getSingleValue("tblClaimDetails", "ClaimUUID", "ClaimCode = ? AND HFCode = ?", new String[]{claimCode, hfCode});
+        try {
+            return claims.getJSONObject(0).getString("ClaimUUID");
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Error while getting claim uuid", e);
+        }
+
+        return null;
     }
 
     @NonNull
     public JSONObject getClaimCounts() {
         JSONArray claimCounts = getQueryResultAsJsonArray(
-                "SELECT CASE WHEN cus.UploadStatus IS NULL OR cus.UploadStatus = ? THEN ? WHEN cus.UploadStatus = ? THEN ? ELSE cus.UploadStatus END" +
-                        " AS Status, count(*) AS Amount FROM tblClaimDetails cd LEFT JOIN (SELECT * FROM tblClaimUploadStatus GROUP BY ClaimUUID HAVING UploadDate=MAX(UploadDate))" +
-                        " AS cus on cd.ClaimUUID=cus.ClaimUUID GROUP BY Status;",
-                new String[]{CLAIM_UPLOAD_STATUS_ERROR, CLAIM_UPLOAD_STATUS_ENTERED, CLAIM_UPLOAD_STATUS_CHECKED, CLAIM_UPLOAD_STATUS_ACCEPTED}
+                "SELECT CASE WHEN cus.UploadStatus IS NULL OR cus.UploadStatus = ? THEN ? ELSE cus.UploadStatus END AS Status, count(*) AS Amount" +
+                        " FROM tblClaimDetails cd LEFT JOIN tblClaimUploadStatus cus on cd.ClaimUUID=cus.ClaimUUID" +
+                        " GROUP BY Status",
+                new String[]{CLAIM_UPLOAD_STATUS_ERROR, CLAIM_UPLOAD_STATUS_ENTERED}
         );
 
         JSONObject result = new JSONObject();
@@ -623,29 +1177,27 @@ public class SQLHandler extends SQLiteOpenHelper {
                 "FROM tblClaimDetails cd";
 
         if (selection != null) {
-            query += " WHERE " + selection;
+            query = query + " WHERE " + selection;
         }
-
-        query += "  ORDER BY LastUpdated DESC";
 
         return getQueryResultAsJsonArray(query, selectionArgs);
     }
 
     @NonNull
     public JSONArray getEnteredClaimInfo() {
-        return getClaimInfo("NOT EXISTS (SELECT cus.ClaimUUID FROM (SELECT * FROM tblClaimUploadStatus GROUP BY ClaimUUID HAVING UploadDate=MAX(UploadDate)) AS cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus != ?)", new String[]{CLAIM_UPLOAD_STATUS_ERROR});
+        return getClaimInfo("NOT EXISTS (SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus != ?)", new String[]{CLAIM_UPLOAD_STATUS_ERROR});
     }
 
     @NonNull
     public JSONArray getAcceptedClaimInfo() {
-        return getClaimInfo("EXISTS (SELECT cus.ClaimUUID FROM (SELECT * FROM tblClaimUploadStatus GROUP BY ClaimUUID HAVING UploadDate=MAX(UploadDate)) AS cus WHERE cus.ClaimUUID = cd.ClaimUUID AND (cus.UploadStatus = ? OR cus.UploadStatus = ? OR cus.UploadStatus = ?))" +
-                " AND NOT EXISTS (SELECT cus.ClaimUUID FROM (SELECT * FROM tblClaimUploadStatus GROUP BY ClaimUUID HAVING UploadDate=MAX(UploadDate)) AS cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus = ?)", new String[]{CLAIM_UPLOAD_STATUS_ACCEPTED, CLAIM_UPLOAD_STATUS_EXPORTED, CLAIM_UPLOAD_STATUS_CHECKED, CLAIM_UPLOAD_STATUS_ARCHIVED});
+        return getClaimInfo("EXISTS (SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus WHERE cus.ClaimUUID = cd.ClaimUUID AND (cus.UploadStatus = ? OR cus.UploadStatus = ?))" +
+                " AND NOT EXISTS (SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus = ?)", new String[]{CLAIM_UPLOAD_STATUS_ACCEPTED, CLAIM_UPLOAD_STATUS_EXPORTED, CLAIM_UPLOAD_STATUS_ARCHIVED});
     }
 
     @NonNull
     public JSONArray getRejectedClaimInfo() {
-        return getClaimInfo("EXISTS (SELECT cus.ClaimUUID FROM (SELECT * FROM tblClaimUploadStatus GROUP BY ClaimUUID HAVING UploadDate=MAX(UploadDate)) AS cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus = ?)" +
-                " AND NOT EXISTS (SELECT cus.ClaimUUID FROM (SELECT * FROM tblClaimUploadStatus GROUP BY ClaimUUID HAVING UploadDate=MAX(UploadDate)) AS cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus = ?)", new String[]{CLAIM_UPLOAD_STATUS_REJECTED, CLAIM_UPLOAD_STATUS_ARCHIVED});
+        return getClaimInfo("EXISTS (SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus = ?)" +
+                " AND NOT EXISTS (SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus = ?)", new String[]{CLAIM_UPLOAD_STATUS_REJECTED, CLAIM_UPLOAD_STATUS_ARCHIVED});
     }
 
     @NonNull
@@ -668,39 +1220,4 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
-    public void updateClaimAdjustment(String claimUuid, ContentValues claimCv, List<ContentValues> itemsCvs, List<ContentValues> servicesCvs) {
-        try {
-            db.beginTransaction();
-            db.update("tblClaimDetails", claimCv, "ClaimUUID = ?", new String[]{claimUuid});
-            for (ContentValues itemCv : itemsCvs) {
-                db.update("tblClaimItems", itemCv, "ClaimUUID = ? AND ItemCode = ?", new String[]{claimUuid, itemCv.get("ItemCode").toString()});
-            }
-            for (ContentValues serviceCv : servicesCvs) {
-                db.update("tblClaimServices", serviceCv, "ClaimUUID = ? AND ServiceCode = ?", new String[]{claimUuid, serviceCv.get("ServiceCode").toString()});
-            }
-            db.setTransactionSuccessful();
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "Error while updating claim adjustment values", e);
-        } finally {
-            db.endTransaction();
-        }
-    }
-
-    private String getSingleValue(@NonNull String tableName, @NonNull String column, @NonNull String selection, @NonNull String[] selectionArgs) {
-        JSONArray result = getQueryResultAsJsonArray(tableName, new String[]{column}, selection, selectionArgs);
-        if (result.length() < 1) {
-            return null;
-        }
-        if (result.length() > 1) {
-            Log.e(LOG_TAG, String.format("Multiple result rows for selection (%s, %s, %s, %s)", tableName, column, selection, Arrays.toString(selectionArgs)));
-        }
-
-        try {
-            return result.getJSONObject(0).getString(column);
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "Error while getting single value", e);
-        }
-
-        return null;
-    }
 }

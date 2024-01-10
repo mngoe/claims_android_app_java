@@ -10,13 +10,22 @@ import android.widget.AdapterView;
 import android.widget.CursorAdapter;
 import android.widget.TextView;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.openimis.imisclaims.tools.Log;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class ProgramAdapter extends CursorAdapter implements AdapterView.OnItemClickListener {
     SQLHandler sqlHandler;
     SQLiteDatabase db;
+    List<String> filterPrograms;
 
-    public ProgramAdapter(Context context, SQLHandler sqlHandler) {
+    public ProgramAdapter(Context context, SQLHandler sqlHandler, List<String> filterPrograms) {
         super(context, null, 0);
         this.sqlHandler = sqlHandler;
+        this.filterPrograms = filterPrograms;
     }
 
     @Override
@@ -39,7 +48,7 @@ public class ProgramAdapter extends CursorAdapter implements AdapterView.OnItemC
             return getFilterQueryProvider().runQuery(constraint);
         }
 
-        return sqlHandler.SearchProgram((constraint != null ? constraint.toString() : ""));
+        return sqlHandler.SearchProgram((constraint != null ? constraint.toString() : ""), filterPrograms);
     }
 
     @Override
