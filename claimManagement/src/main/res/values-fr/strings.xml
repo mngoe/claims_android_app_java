@@ -603,5 +603,5 @@
   <string name="Prefix">Préfixe</string>
   <string name="ChequeNumber">Numéro de chèque</string>
   <string name="MissingChequeNumber">Veuillez entrer le numéro de chèque</string>
-  <string name="InvalidClaimCode">Le code de la prestation doit contenir maximum 6 caractères</string>
+  <string name="InvalidClaimCode">Le code de la prestation doit contenir maximum 7 caractères</string>
 </resources>

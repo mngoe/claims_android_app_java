@@ -744,7 +744,7 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
-        if(etClaimCode.getText().length() > 6){
+        if(etClaimCode.getText().length() > 7){
             showValidationDialog(etClaimPrefix, getResources().getString(R.string.InvalidClaimCode));
             return false;
         }
