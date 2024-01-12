@@ -1,0 +1,14 @@
+query GetDiagnosis($offset: Int) {
+    diagnoses(offset: $offset){
+        pageInfo{
+            hasNextPage
+        }
+        edges{
+            node{
+                id
+                code
+                name
+            }
+        }
+    }
+}

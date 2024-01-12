@@ -41,20 +41,9 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
             @NonNull int hfId,
             @NonNull int adminId,
             @NonNull int insureeId,
-            @NonNull int programId
+            @NonNull int programId,
+            @NonNull int diagnosisId
     ) throws Exception{
-
-        JSONObject variables = new JSONObject();
-        variables.put("code", claim.getClaimNumber());
-        variables.put("insureeId", insureeId);
-        variables.put("adminId", adminId);
-        variables.put("dateFrom", DateUtils.toDateString(claim.getVisitDateFrom()));
-        variables.put("dateTo", DateUtils.toDateString(claim.getVisitDateTo()));
-        variables.put("icdId", 2500);
-        variables.put("dateClaimed", DateUtils.toDateString(claim.getDateClaimed()));
-        variables.put("healthFacilityId", hfId);
-        variables.put("program", programId);
-        variables.put("visitType", claim.getVisitType());
 
         String claimServices = "";
         if(claim.getServices().size() == 0){
@@ -135,7 +124,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
                         + " adminId: " + adminId
                         + " dateFrom: \"" + DateUtils.toDateString(claim.getVisitDateFrom()) + "\""
                         + " dateTo: \"" + DateUtils.toDateString(claim.getVisitDateTo()) + "\""
-                        + " icdId: " + 2500
+                        + " icdId: " + diagnosisId
                         + " dateClaimed: \"" + DateUtils.toDateString(claim.getDateClaimed()) + "\""
                         + " healthFacilityId: " + hfId
                         + " program: " + programId
@@ -186,10 +175,6 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
         });
 
         OkHttpClient httpClient = builder.build();
-
-        RequestBody formBody = new FormBody.Builder()
-                .add("Create claim", QUERY_DOCUMENT)
-                .build();
 
         RequestBody body = RequestBody.create(json.toString(), JSON);
 

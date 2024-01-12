@@ -70,6 +70,7 @@ public class FetchDiagnosesServicesItems {
     @NonNull
     private Diagnosis toDiagnosis(@NonNull DiagnosisDto dto) {
         return new Diagnosis(
+                null,
                 /* code = */ dto.getCode(),
                 /* name = */ dto.getDisplay()
         );
