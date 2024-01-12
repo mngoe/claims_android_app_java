@@ -42,6 +42,8 @@ import java.util.Locale;
 import java.util.Objects;
 import java.util.UUID;
 
+import okhttp3.Response;
+
 public class SynchronizeService extends JobIntentService {
     private static final int JOB_ID = 6541259; //Random unique Job id
     private static final String LOG_TAG = "SYNCSERVICE";
@@ -129,13 +131,22 @@ public class SynchronizeService extends JobIntentService {
             for (Claim claim: claims) {
                 int insureeId = 0;
                 int programId = sqlHandler.getProgamId(claim.getClaimProgram());
-                Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
-                if(insuree != null){
+                int diagnosisId = sqlHandler.getDiagnosisId(claim.getMainDg());
+                try{
+                    Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
                     insureeId = Integer.valueOf(insuree.getId());
+                    Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId);
+                    if(response.code() == 200){
+                        PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);
+                        results.add(result);
+                    }else{
+                        PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,response.message());
+                        results.add(result);
+                    }
+                }catch(Exception e){
+                    PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.NoInsureeFound));
+                    results.add(result);
                 }
-                new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId);
-                PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);
-                results.add(result);
             }
             JSONArray claimStatus = processClaimResponse(results);
             broadcastSyncSuccess(claimStatus);
@@ -165,7 +176,7 @@ public class SynchronizeService extends JobIntentService {
                     /* visitDateTo = */ Objects.requireNonNull(JsonUtils.getDateOrDefault(array.getJSONObject(i).getJSONObject("details"), "EndDate")),
                     /* visitType = */ array.getJSONObject(i).getJSONObject("details").getString("VisitType"),
                     /* status = */null,
-                    /* mainDg = */ "234",
+                    /* mainDg = */ array.getJSONObject(i).getJSONObject("details").getString("ICDCode"),
                     null,
                     null,
                     null,
@@ -275,9 +286,9 @@ public class SynchronizeService extends JobIntentService {
             } else {
                 if (claimResponseCode == PostNewClaims.Result.Status.REJECTED) {
                     sqlHandler.insertClaimUploadStatus(claimUUID, date, SQLHandler.CLAIM_UPLOAD_STATUS_REJECTED, null);
-                } else {
-                    sqlHandler.insertClaimUploadStatus(claimUUID, date, SQLHandler.CLAIM_UPLOAD_STATUS_ERROR, result.getMessage());
-                }
+                } //else {
+                    //sqlHandler.insertClaimUploadStatus(claimUUID, date, SQLHandler.CLAIM_UPLOAD_STATUS_ERROR, result.getMessage());
+                //}
                 jsonResults.put(String.format(claimResponseLine, claimCode, result.getMessage()));
             }
         }

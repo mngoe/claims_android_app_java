@@ -51,6 +51,7 @@ import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.usecase.FetchClaimAdmins;
 import org.openimis.imisclaims.usecase.FetchControls;
 import org.openimis.imisclaims.usecase.FetchDiagnosesServicesItems;
+import org.openimis.imisclaims.usecase.FetchDiagnosis;
 import org.openimis.imisclaims.usecase.FetchHealthfacilities;
 import org.openimis.imisclaims.usecase.FetchMedications;
 import org.openimis.imisclaims.usecase.FetchPaymentList;
@@ -697,9 +698,12 @@ public class MainActivity extends ImisActivity {
                         sqlHandler.ClearAll("tblHealthFacilities");
                         sqlHandler.ClearMapping("S");
                         sqlHandler.ClearMapping("I");
+
                         //Insert Diagnoses
-                        for (Diagnosis diagnosis : diagnosesServicesMedications.getDiagnoses()) {
+                        List<Diagnosis> diagnoses = new FetchDiagnosis().execute();
+                        for (Diagnosis diagnosis : diagnoses) {
                             sqlHandler.InsertReferences(diagnosis.getCode(), diagnosis.getName(), "D", "");
+                            sqlHandler.InsertDiagnosis(diagnosis.getId(),diagnosis.getCode());
                         }
 
                         //Insert Services

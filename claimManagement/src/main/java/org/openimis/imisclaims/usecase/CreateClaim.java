@@ -15,6 +15,8 @@ import org.openimis.imisclaims.tools.Log;
 import java.net.HttpURLConnection;
 import java.util.List;
 
+import okhttp3.Response;
+
 public class CreateClaim {
 
     @NonNull
@@ -31,7 +33,7 @@ public class CreateClaim {
     }
 
     @WorkerThread
-    public void execute(Claim claim, int adminId, int hfId, int insureeId, int programId) throws Exception {
-        createClaimGraphQLRequest.create(claim,hfId ,adminId, insureeId, programId);
+    public Response execute(Claim claim, int adminId, int hfId, int insureeId, int programId, int diagnosisId) throws Exception {
+        return createClaimGraphQLRequest.create(claim,hfId ,adminId, insureeId, programId, diagnosisId);
     }
 }

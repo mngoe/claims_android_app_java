@@ -50,6 +50,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Id TEXT, Code TEXT, HFCode TEXT, HFId TEXT ,Name TEXT, Programs TEXT);";
     private static final String CreateTableHealthFacilities = "CREATE TABLE IF NOT EXISTS tblHealthFacilities(Id TEXT, Programs TEXT);";
     private static final String CreateTablePrograms = "CREATE TABLE IF NOT EXISTS tblPrograms(Id TEXT, Code TEXT, Name TEXT);";
+    private static final String CreateTableDiagnosis = "CREATE TABLE IF NOT EXISTS tblDiagnosis(Id TEXT, Code TEXT);";
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code TEXT, Name TEXT, Type TEXT, Price TEXT);";
     private static final String createTableClaimDetails = "CREATE TABLE IF NOT EXISTS tblClaimDetails(ClaimUUID TEXT, ClaimDate TEXT, HFCode TEXT, ClaimAdmin TEXT, ClaimCode TEXT, GuaranteeNumber TEXT, InsureeNumber TEXT, StartDate TEXT, EndDate TEXT, Program TEXT, ICDCode TEXT, Comment TEXT, Total TEXT, ICDCode1 TEXT, ICDCode2 TEXT, ICDCode3 TEXT, ICDCode4 TEXT, VisitType TEXT);";
     private static final String createTableClaimItems = "CREATE TABLE IF NOT EXISTS tblClaimItems(ClaimUUID TEXT, ItemCode TEXT, ItemPrice TEXT, ItemQuantity TEXT);";
@@ -353,6 +354,17 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
+    public void InsertDiagnosis(String id, String code){
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Id", id);
+            cv.put("Code", code);
+            db.insert("tblDiagnosis", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     //insert programs
     public void InsertHealthFacilities(String Id, String programs) {
         try {
@@ -454,6 +466,25 @@ public class SQLHandler extends SQLiteOpenHelper {
                 id = c.getString(c.getColumnIndexOrThrow("Id"));
             }
         } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return Integer.valueOf(id);
+    }
+
+    public int getDiagnosisId(String Code){
+        String id = "0";
+        try{
+            String table = "tblDiagnosis";
+            String[] columns = {"Id"};
+            String selection = "Code=?";
+            String[] selectionArgs = {Code};
+            String limit = "1";
+            Cursor c = db.query(table, columns, selection, selectionArgs, null, null, null, limit);
+            if (c.getCount() == 1) {
+                c.moveToFirst();
+                id = c.getString(c.getColumnIndexOrThrow("Id"));
+            }
+        }catch (Exception e){
             e.printStackTrace();
         }
         return Integer.valueOf(id);
@@ -841,7 +872,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     }
 
     public void createTables() {
-        String[] commands = {CreateTableControls, CreateTableReferences, CreateTableClaimAdmins,CreateTablePrograms,
+        String[] commands = {CreateTableControls, CreateTableReferences, CreateTableClaimAdmins,CreateTablePrograms,CreateTableDiagnosis,
                 createTablePolicyInquiry, createTableClaimDetails, createTableClaimItems, createTableClaimServices,CreateTableSubItems,
                 CreateTableSubServices,CreateTableItems,CreateTableServices, createTableClaimUploadStatus, CreateTableHealthFacilities};
         for (String command : commands) {
