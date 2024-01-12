@@ -20,6 +20,8 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -58,6 +60,7 @@ public class ClaimActivity extends ImisActivity {
     private static final String EXTRA_CLAIM_UUID = "claimUUID";
     public static final String EXTRA_READONLY = "readonly";
     public static String claimProgram;
+    public static String program="";
 
     public static Intent newIntent(@NonNull Context context, @NonNull Claim claim) {
         return new Intent(context, ClaimActivity.class).putExtra(EXTRA_CLAIM_DATA, claim);
@@ -84,6 +87,8 @@ public class ClaimActivity extends ImisActivity {
     RadioGroup rgVisitType;
     RadioButton rbEmergency, rbReferral, rbOther;
     ImageButton btnScan;
+    LinearLayout llAddItem;
+    ImageView ivAdditem;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,6 +127,8 @@ public class ClaimActivity extends ImisActivity {
         rbReferral = findViewById(R.id.rbReferral);
         rbOther = findViewById(R.id.rbOther);
         etClaimPrefix = findViewById(R.id.etClaimPrefix);
+        llAddItem = findViewById(R.id.llAddItem);
+        ivAdditem = findViewById(R.id.ivAddItem);
 
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
@@ -131,8 +138,6 @@ public class ClaimActivity extends ImisActivity {
             String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(), "HFId");
             String hfPrograms = sqlHandler.getHealthFacilityPrograms(hfId);
             String userPrograms = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"Programs");
-            Log.e("userProg",userPrograms);
-            Log.e("hfProg",hfPrograms);
             JSONArray arrayHfPrograms = new JSONArray(hfPrograms);
             JSONArray arrayAdminPrograms = new JSONArray(userPrograms);
             for (int i = 0 ; i< arrayHfPrograms.length(); i++){
@@ -152,6 +157,7 @@ public class ClaimActivity extends ImisActivity {
             if(position >= 0){
                 Cursor cursor = (Cursor)parent.getItemAtPosition(position);
                 claimProgram = cursor.getString(cursor.getColumnIndexOrThrow("Id"));
+                program = etProgram.getText().toString();
                 etClaimCode.setText("");
                 lvServiceList.clear();
                 lvItemList.clear();
@@ -162,11 +168,15 @@ public class ClaimActivity extends ImisActivity {
                     etClaimPrefix.setText(claimPrefix);
                     etClaimPrefix.setHint(getResources().getString(R.string.ChequeNumber));
                     etClaimPrefix.setEnabled(true);
+                    llAddItem.setVisibility(View.GONE);
+                    ivAdditem.setVisibility(View.GONE);
                 }else{
                     prefixProgramCode = cursor.getString(cursor.getColumnIndexOrThrow("Code"));
                     claimPrefix = prefixHfCode + "." + prefixYear + "." + prefixProgramCode + ".";
                     etClaimPrefix.setText(claimPrefix);
                     etClaimPrefix.setEnabled(false);
+                    llAddItem.setVisibility(View.VISIBLE);
+                    ivAdditem.setVisibility(View.VISIBLE);
                 }
             }
         });
@@ -331,6 +341,9 @@ public class ClaimActivity extends ImisActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater mif = getMenuInflater();
         mif.inflate(R.menu.menu, menu);
+        if(program.equals("Cheque Santé") || program.equals("Chèque Santé")){
+            menu.removeItem(R.id.mnuAddItems);
+        }
         if (menu instanceof MenuBuilder) {
             MenuBuilder m = (MenuBuilder) menu;
             //noinspection RestrictedApi
