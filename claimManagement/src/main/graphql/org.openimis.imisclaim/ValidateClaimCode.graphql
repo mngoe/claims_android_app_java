@@ -1,0 +1,3 @@
+query ValidateClaimCode($claimCode: String!){
+    validateClaimCode(claimCode: $claimCode)
+}

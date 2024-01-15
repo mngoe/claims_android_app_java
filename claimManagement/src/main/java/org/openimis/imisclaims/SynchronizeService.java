@@ -23,6 +23,7 @@ import org.openimis.imisclaims.tools.StorageManager;
 import org.openimis.imisclaims.usecase.CreateClaim;
 import org.openimis.imisclaims.usecase.FetchInsureeInquire;
 import org.openimis.imisclaims.usecase.PostNewClaims;
+import org.openimis.imisclaims.usecase.ValidateClaimCode;
 import org.openimis.imisclaims.util.DateUtils;
 import org.openimis.imisclaims.util.FileUtils;
 import org.openimis.imisclaims.util.JsonUtils;
@@ -133,20 +134,28 @@ public class SynchronizeService extends JobIntentService {
                 int programId = sqlHandler.getProgamId(claim.getClaimProgram());
                 int diagnosisId = sqlHandler.getDiagnosisId(claim.getMainDg());
                 try{
-                    Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
-                    insureeId = Integer.valueOf(insuree.getId());
-                    Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId);
-                    if(response.code() == 200){
-                        PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);
-                        results.add(result);
+                    boolean isValidClaimCode = new ValidateClaimCode().execute(claim.getClaimNumber());
+                    if(isValidClaimCode){
+                        Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
+                        insureeId = Integer.valueOf(insuree.getId());
+                        Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId);
+                        if(response.code() == 200){
+                            PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);
+                            results.add(result);
+                        }else{
+                            PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,response.message());
+                            results.add(result);
+                        }
                     }else{
-                        PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,response.message());
+                        PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.ClaimNumberExist));
                         results.add(result);
                     }
+
                 }catch(Exception e){
                     PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.NoInsureeFound));
                     results.add(result);
                 }
+
             }
             JSONArray claimStatus = processClaimResponse(results);
             broadcastSyncSuccess(claimStatus);
