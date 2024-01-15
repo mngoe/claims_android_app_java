@@ -198,4 +198,5 @@
   <string name="initializing_complete">Initializing Complete</string>
   <string name="application">Application</string>
   <string name="NoInsureeFound">Insuree Number does not exist</string>
+  <string name="ClaimNumberExist">Claim Number already exist</string>
 </resources>
