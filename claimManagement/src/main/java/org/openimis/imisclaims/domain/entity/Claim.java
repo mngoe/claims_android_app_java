@@ -76,6 +76,9 @@ public class Claim implements Parcelable {
     @Nullable
     private final String guaranteeNumber;
 
+    @Nullable
+    private final String claimPrefix;
+
     @NonNull
     private final List<Service> services;
 
@@ -106,6 +109,7 @@ public class Claim implements Parcelable {
             @Nullable String explanation,
             @Nullable String adjustment,
             @Nullable String guaranteeNumber,
+            @Nullable String claimPrefix,
             @NonNull List<Service> services,
             @NonNull List<Medication> medications
     ) {
@@ -131,6 +135,7 @@ public class Claim implements Parcelable {
         this.explanation = explanation;
         this.adjustment = adjustment;
         this.guaranteeNumber = guaranteeNumber;
+        this.claimPrefix = claimPrefix;
         this.services = services;
         this.medications = medications;
     }
@@ -162,6 +167,7 @@ public class Claim implements Parcelable {
         explanation = in.readString();
         adjustment = in.readString();
         guaranteeNumber = in.readString();
+        claimPrefix = in.readString();
         services = in.createTypedArrayList(Service.CREATOR);
         medications = in.createTypedArrayList(Medication.CREATOR);
         if (in.readByte() == 0) {
@@ -217,6 +223,7 @@ public class Claim implements Parcelable {
         dest.writeString(explanation);
         dest.writeString(adjustment);
         dest.writeString(guaranteeNumber);
+        dest.writeString(claimPrefix);
         dest.writeTypedList(services);
         dest.writeTypedList(medications);
         if (dateClaimed == null) {
@@ -393,6 +400,9 @@ public class Claim implements Parcelable {
     public String getGuaranteeNumber() {
         return guaranteeNumber;
     }
+
+    @Nullable
+    public String getClaimPrefix(){ return claimPrefix; }
 
     @NonNull
     public List<Service> getServices() {

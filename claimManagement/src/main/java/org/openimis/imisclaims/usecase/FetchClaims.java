@@ -121,6 +121,7 @@ public class FetchClaims {
                 /* explanation = */ node.explanation(),
                 /* adjustment = */ node.adjustment(),
                 /* guaranteeNumber = */ node.guaranteeId(),
+                null,
                 /* services = */ serviceMapper.map(node.services()),
                 /* medications = */ medicationMapper.map(node.items())
         );

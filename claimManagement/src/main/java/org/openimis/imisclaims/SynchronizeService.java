@@ -12,6 +12,7 @@ import androidx.core.content.FileProvider;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.openimis.imisclaims.domain.entity.ChequeImport;
 import org.openimis.imisclaims.domain.entity.Claim;
 import org.openimis.imisclaims.domain.entity.Insuree;
 import org.openimis.imisclaims.domain.entity.Medication;
@@ -21,6 +22,7 @@ import org.openimis.imisclaims.domain.entity.SubServiceItem;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.tools.StorageManager;
 import org.openimis.imisclaims.usecase.CreateClaim;
+import org.openimis.imisclaims.usecase.FetchChequeNumber;
 import org.openimis.imisclaims.usecase.FetchInsureeInquire;
 import org.openimis.imisclaims.usecase.PostNewClaims;
 import org.openimis.imisclaims.usecase.ValidateClaimCode;
@@ -136,15 +138,37 @@ public class SynchronizeService extends JobIntentService {
                 try{
                     boolean isValidClaimCode = new ValidateClaimCode().execute(claim.getClaimNumber());
                     if(isValidClaimCode){
-                        Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
-                        insureeId = Integer.valueOf(insuree.getId());
-                        Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId);
-                        if(response.code() == 200){
-                            PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);
-                            results.add(result);
-                        }else{
-                            PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,response.message());
-                            results.add(result);
+                        if(claim.getClaimProgram().equals("Cheque Santé") || claim.getClaimProgram().equals("Chèque Santé")){
+                            List<ChequeImport> cheques = new FetchChequeNumber().execute(claim.getClaimPrefix());
+                            if(cheques.size() == 0){
+                                PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.InvalidChequeNumber));
+                                results.add(result);
+                            }else if(cheques.get(0).getStatus().equals("New")){
+                                PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.NonUsedChequeNumber));
+                                results.add(result);
+                            }else{
+                                Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
+                                insureeId = Integer.valueOf(insuree.getId());
+                                Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId);
+                                if(response.code() == 200){
+                                    PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);
+                                    results.add(result);
+                                }else{
+                                    PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,response.message());
+                                    results.add(result);
+                                }
+                            }
+                        }else {
+                            Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
+                            insureeId = Integer.valueOf(insuree.getId());
+                            Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId);
+                            if(response.code() == 200){
+                                PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);
+                                results.add(result);
+                            }else{
+                                PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,response.message());
+                                results.add(result);
+                            }
                         }
                     }else{
                         PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.ClaimNumberExist));
@@ -195,6 +219,7 @@ public class SynchronizeService extends JobIntentService {
                     null,
                     null,
                     null,
+                    /* chequeNumber = */ array.getJSONObject(i).getJSONObject("details").getString("ClaimPrefix"),
                     /* services */ fromJSONObjectService(arrayServices),
                     /* items */ fromJSONObjectItem(arrayItems)
             ));

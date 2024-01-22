@@ -242,7 +242,7 @@ public class ClaimActivity extends ImisActivity {
         // hfCode and adminCode not editable
         disableView(etHealthFacility);
         disableView(etClaimAdmin);
-        etClaimPrefix.setEnabled(false);
+        //etClaimPrefix.setEnabled(false);
 
         //hide fields
         etGuaranteeNo.setVisibility(View.GONE);
@@ -266,10 +266,13 @@ public class ClaimActivity extends ImisActivity {
             } else {
                 btnNew.setText(R.string.DeleteClaim);
                 btnNew.setOnClickListener(v -> confirmDelete());
-                etClaimCode.setEnabled(false);
+                //etClaimCode.setEnabled(false);
+                if(etProgram.getText().toString().equals("Cheque Santé") || etProgram.getText().toString().equals("Chèque Santé")){
+                    etClaimPrefix.setEnabled(true);
+                }
                 etProgram.setEnabled(false);
             }
-            etClaimPrefix.setVisibility(View.GONE);
+            //etClaimPrefix.setVisibility(View.GONE);
         } else {
             if (global.getOfficerCode() != null) {
                 etClaimAdmin.setText(global.getOfficerCode());
@@ -567,7 +570,7 @@ public class ClaimActivity extends ImisActivity {
                     try {
                         JSONObject claimDetails = claimObject.getJSONObject("details");
 
-                        etClaimCode.setText(claimDetails.getString("ClaimCode"));
+                        //etClaimCode.setText(claimDetails.getString("ClaimCode"));
                         if (etClaimAdmin.getVisibility() != View.GONE) {
                             etClaimAdmin.setText(claimDetails.getString("ClaimAdmin"));
                         }
@@ -587,6 +590,14 @@ public class ClaimActivity extends ImisActivity {
                         etDiagnosis3.setText(claimDetails.getString("ICDCode3"));
                         etDiagnosis4.setText(claimDetails.getString("ICDCode4"));
                         etProgram.setText(claimDetails.getString("Program"));
+                        etClaimPrefix.setText(claimDetails.getString("ClaimPrefix"));
+
+                        if(claimDetails.getString("Program").equals("Cheque Santé") || claimDetails.getString("Program").equals("Chèque Santé")){
+                            etClaimCode.setText(claimDetails.getString("ClaimCode").split(claimDetails.getString("ClaimPrefix"))[1]);
+                        }else {
+                            etClaimCode.setText(claimDetails.getString("ClaimCode").split(claimDetails.getString("ClaimPrefix"))[1]);
+                            disableView(etClaimPrefix);
+                        }
 
                         switch (claimDetails.getString("VisitType")) {
                             case "E":
@@ -816,6 +827,7 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("ICDCode3", etDiagnosis3.getText().toString());
         claimCV.put("ICDCode4", etDiagnosis4.getText().toString());
         claimCV.put("VisitType", visitType);
+        claimCV.put("ClaimPrefix", etClaimPrefix.getText().toString());
 
         ArrayList<ContentValues> claimItemCVs = new ArrayList<>(lvItemList.size());
         for (int i = 0; i < lvItemList.size(); i++) {

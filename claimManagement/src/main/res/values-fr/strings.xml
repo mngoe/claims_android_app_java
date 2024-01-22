@@ -606,4 +606,6 @@
   <string name="InvalidClaimCode">Le code de la prestation doit contenir maximum 7 caractères</string>
   <string name="NoInsureeFound">Le numéro d\'assuré ne correspond a aucun bénéficiaire</string>
   <string name="ClaimNumberExist">Le numéro de prestation existe déjà</string>
+  <string name="InvalidChequeNumber">Numéro de cheque invalide</string>
+  <string name="NonUsedChequeNumber">Le numéro de cheque ne correspond a aucun patient</string>
 </resources>
