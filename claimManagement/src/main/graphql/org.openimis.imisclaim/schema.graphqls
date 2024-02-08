@@ -5913,6 +5913,8 @@ input CreateClaimMutationInput {
   batchRunId: Int
   category: String
   visitType: String
+  testNumber: String
+  tdr: Boolean
   adminId: Int
   guaranteeId: Int
   explanation: String

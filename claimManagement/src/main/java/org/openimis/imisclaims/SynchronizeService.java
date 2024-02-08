@@ -194,6 +194,8 @@ public class SynchronizeService extends JobIntentService {
                     null,
                     null,
                     null,
+                    /* testNumber = */ array.getJSONObject(i).getJSONObject("details").getString("TestNumber"),
+                    /* tdr = */ array.getJSONObject(i).getJSONObject("details").getString("Tdr"),
                     null,
                     /* services */ fromJSONObjectService(arrayServices),
                     /* items */ fromJSONObjectItem(arrayItems)

@@ -606,4 +606,10 @@
   <string name="InvalidClaimCode">Le code de la prestation doit contenir maximum 7 caractères</string>
   <string name="NoInsureeFound">Le numéro d\'assuré ne correspond a aucun bénéficiaire</string>
   <string name="ClaimNumberExist">Le numéro de prestation existe déjà</string>
+  <string name="TestNumber">Numéro de test</string>
+  <string name="Tdr">TDR</string>
+  <string name="Positive">Positif</string>
+  <string name="Negative">Négatif</string>
+  <string name="MissingTestNumber">Veuillez entrer le numéro de test</string>
+  <string name="MissingTdr">Veuillez cocher le résultat Tdr</string>
 </resources>
