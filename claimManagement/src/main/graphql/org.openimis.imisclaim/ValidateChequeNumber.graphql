@@ -1,0 +1,10 @@
+query ChequeImportLine ($chequeImportLineCode: String){
+    chequeimportline(chequeImportLineCode: $chequeImportLineCode){
+        edges {
+          node {
+            chequeImportLineCode
+            chequeImportLineStatus
+          }
+        }
+    }
+}
