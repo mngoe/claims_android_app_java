@@ -612,4 +612,6 @@
   <string name="Negative">Négatif</string>
   <string name="MissingTestNumber">Veuillez entrer le numéro de test</string>
   <string name="MissingTdr">Veuillez cocher le résultat Tdr</string>
+  <string name="InvalidChequeNumber">Numéro de cheque invalide</string>
+  <string name="NonUsedChequeNumber">Le numéro de cheque ne correspond a aucun patient</string>
 </resources>

@@ -205,4 +205,6 @@
   <string name="Negative">Négative</string>
   <string name="MissingTestNumber">Please enter the test number</string>
   <string name="MissingTdr">Please select Tdr result</string>
+  <string name="InvalidChequeNumber">Invalid Cheque Number</string>
+  <string name="NonUsedChequeNumber">This cheque number was not attribute to beneficiary</string>
 </resources>

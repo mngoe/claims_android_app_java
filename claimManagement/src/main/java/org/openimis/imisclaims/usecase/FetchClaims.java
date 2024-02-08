@@ -123,6 +123,7 @@ public class FetchClaims {
                 null,
                 null,
                 /* guaranteeNumber = */ node.guaranteeId(),
+                null,
                 /* services = */ serviceMapper.map(node.services()),
                 /* medications = */ medicationMapper.map(node.items())
         );
