@@ -199,6 +199,12 @@
   <string name="application">Application</string>
   <string name="NoInsureeFound">Insuree Number does not exist</string>
   <string name="ClaimNumberExist">Claim Number already exist</string>
+  <string name="TestNumber">Test Number</string>
+  <string name="Tdr">TDR</string>
+  <string name="Positive">Positive</string>
+  <string name="Negative">Négative</string>
+  <string name="MissingTestNumber">Please enter the test number</string>
+  <string name="MissingTdr">Please select Tdr result</string>
   <string name="InvalidChequeNumber">Invalid Cheque Number</string>
   <string name="NonUsedChequeNumber">This cheque number was not attribute to beneficiary</string>
 </resources>

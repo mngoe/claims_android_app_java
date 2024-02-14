@@ -120,6 +120,8 @@ public class FetchClaims {
                 /* approved = */ node.approved(),
                 /* explanation = */ node.explanation(),
                 /* adjustment = */ node.adjustment(),
+                null,
+                null,
                 /* guaranteeNumber = */ node.guaranteeId(),
                 null,
                 /* services = */ serviceMapper.map(node.services()),

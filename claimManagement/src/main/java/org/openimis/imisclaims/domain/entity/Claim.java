@@ -74,6 +74,12 @@ public class Claim implements Parcelable {
     private final String adjustment;
 
     @Nullable
+    private final String testNumber;
+
+    @Nullable
+    private final String tdr;
+
+    @Nullable
     private final String guaranteeNumber;
 
     @Nullable
@@ -108,6 +114,8 @@ public class Claim implements Parcelable {
             @Nullable Double approved,
             @Nullable String explanation,
             @Nullable String adjustment,
+            @Nullable String testNumber,
+            @Nullable String tdr,
             @Nullable String guaranteeNumber,
             @Nullable String claimPrefix,
             @NonNull List<Service> services,
@@ -134,6 +142,8 @@ public class Claim implements Parcelable {
         this.approved = approved;
         this.explanation = explanation;
         this.adjustment = adjustment;
+        this.testNumber = testNumber;
+        this.tdr = tdr;
         this.guaranteeNumber = guaranteeNumber;
         this.claimPrefix = claimPrefix;
         this.services = services;
@@ -166,6 +176,8 @@ public class Claim implements Parcelable {
         }
         explanation = in.readString();
         adjustment = in.readString();
+        testNumber = in.readString();
+        tdr = in.readString();
         guaranteeNumber = in.readString();
         claimPrefix = in.readString();
         services = in.createTypedArrayList(Service.CREATOR);
@@ -222,6 +234,8 @@ public class Claim implements Parcelable {
         }
         dest.writeString(explanation);
         dest.writeString(adjustment);
+        dest.writeString(testNumber);
+        dest.writeString(tdr);
         dest.writeString(guaranteeNumber);
         dest.writeString(claimPrefix);
         dest.writeTypedList(services);
@@ -395,6 +409,12 @@ public class Claim implements Parcelable {
     public String getAdjustment() {
         return adjustment;
     }
+
+    @Nullable
+    public String getTestNumber(){ return testNumber; }
+
+    @Nullable
+    public  String getTdr(){ return tdr; }
 
     @Nullable
     public String getGuaranteeNumber() {

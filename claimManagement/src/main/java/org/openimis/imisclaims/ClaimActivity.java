@@ -20,6 +20,7 @@ import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -77,13 +78,14 @@ public class ClaimActivity extends ImisActivity {
     String prefixHfCode = "";
     String claimPrefix = "";
 
-    EditText etStartDate, etEndDate, etClaimCode, etHealthFacility, etInsureeNumber, etClaimAdmin, etGuaranteeNo, etClaimPrefix;
+    EditText etStartDate, etEndDate, etClaimCode, etHealthFacility, etInsureeNumber, etClaimAdmin, etGuaranteeNo, etClaimPrefix, etTestNumber;
     AutoCompleteTextView etDiagnosis, etDiagnosis1, etDiagnosis2, etDiagnosis3, etDiagnosis4, etProgram;
     TextView tvItemTotal, tvServiceTotal;
     Button btnPost, btnNew;
-    RadioGroup rgVisitType;
-    RadioButton rbEmergency, rbReferral, rbOther;
+    RadioGroup rgVisitType, rgTdr;
+    RadioButton rbEmergency, rbReferral, rbOther, rbPositive, rbNegative;
     ImageButton btnScan;
+    LinearLayout llFagepFields;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -122,6 +124,11 @@ public class ClaimActivity extends ImisActivity {
         rbReferral = findViewById(R.id.rbReferral);
         rbOther = findViewById(R.id.rbOther);
         etClaimPrefix = findViewById(R.id.etClaimPrefix);
+        etTestNumber = findViewById(R.id.etTestNumber);
+        rgTdr = findViewById(R.id.rgTdr);
+        rbPositive = findViewById(R.id.rbPositive);
+        rbNegative = findViewById(R.id.rbNegative);
+        llFagepFields = findViewById(R.id.llFagepField);
 
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
@@ -157,6 +164,11 @@ public class ClaimActivity extends ImisActivity {
                 lvItemList.clear();
                 tvItemTotal.setText("0");
                 tvServiceTotal.setText("0");
+                if(cursor.getString(cursor.getColumnIndexOrThrow("Code")).equals("PAL")){
+                    llFagepFields.setVisibility(View.VISIBLE);
+                }else{
+                    llFagepFields.setVisibility(View.GONE);
+                }
                 if(etProgram.getText().toString().equals("Cheque Santé") || etProgram.getText().toString().equals("Chèque Santé")){
                     claimPrefix = "";
                     etClaimPrefix.setText(claimPrefix);
@@ -250,6 +262,7 @@ public class ClaimActivity extends ImisActivity {
         etDiagnosis2.setVisibility(View.GONE);
         etDiagnosis3.setVisibility(View.GONE);
         etDiagnosis4.setVisibility(View.GONE);
+        llFagepFields.setVisibility(View.GONE);
 
         Intent intent = getIntent();
 
@@ -462,6 +475,9 @@ public class ClaimActivity extends ImisActivity {
         rgVisitType.clearCheck();
         etClaimCode.requestFocus();
         etClaimPrefix.setText("");
+        etTestNumber.setText("");
+        rgTdr.clearCheck();
+        llFagepFields.setVisibility(View.GONE);
     }
 
     private void disableForm() {
@@ -597,6 +613,21 @@ public class ClaimActivity extends ImisActivity {
                         }else {
                             etClaimCode.setText(claimDetails.getString("ClaimCode").split(claimDetails.getString("ClaimPrefix"))[1]);
                             disableView(etClaimPrefix);
+                        }
+
+                        if (sqlHandler.getProgamCode(claimDetails.getString("Program")).equals("PAL")){
+                            llFagepFields.setVisibility(View.VISIBLE);
+                            etTestNumber.setText(claimDetails.getString("TestNumber"));
+                            switch (claimDetails.getString("Tdr")){
+                                case "true":
+                                    rgTdr.check(R.id.rbPositive);
+                                    break;
+                                case "false":
+                                    rgTdr.check(R.id.rbNegative);
+                                    break;
+                                default:
+                                    rgTdr.clearCheck();
+                            }
                         }
 
                         switch (claimDetails.getString("VisitType")) {
@@ -769,6 +800,17 @@ public class ClaimActivity extends ImisActivity {
             showValidationDialog(tvItemTotal, getResources().getString(R.string.MissingClaim));
             return false;
         }
+
+        if(prefixProgramCode.equals("PAL")){
+            if(etTestNumber.getText().length() == 0){
+                showValidationDialog(etClaimPrefix, getResources().getString(R.string.MissingTestNumber));
+                return false;
+            }
+            if(rgTdr.getCheckedRadioButtonId() == -1){
+                showValidationDialog(etClaimPrefix, getResources().getString(R.string.MissingTdr));
+                return false;
+            }
+        }
         return true;
     }
 
@@ -807,6 +849,12 @@ public class ClaimActivity extends ImisActivity {
         selectedTypeButton = findViewById(SelectedId);
         String visitType = selectedTypeButton.getTag().toString();
 
+        int SelectedTdrId;
+        SelectedTdrId = rgTdr.getCheckedRadioButtonId();
+        RadioButton selectedTgrButton;
+        selectedTgrButton = findViewById(SelectedTdrId);
+        String tdr = selectedTgrButton.getTag().toString();
+
         ContentValues claimCV = new ContentValues();
 
         claimCV.put("ClaimUUID", claimUUID);
@@ -827,6 +875,8 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("ICDCode3", etDiagnosis3.getText().toString());
         claimCV.put("ICDCode4", etDiagnosis4.getText().toString());
         claimCV.put("VisitType", visitType);
+        claimCV.put("TestNumber", etTestNumber.getText().toString());
+        claimCV.put("Tdr", tdr);
         claimCV.put("ClaimPrefix", etClaimPrefix.getText().toString());
 
         ArrayList<ContentValues> claimItemCVs = new ArrayList<>(lvItemList.size());

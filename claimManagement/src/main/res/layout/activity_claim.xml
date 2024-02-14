@@ -101,6 +101,49 @@
 
                 android:hint="@string/program"/>
 
+        <LinearLayout
+            android:id="@+id/llFagepField"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <EditText
+                android:id="@+id/etTestNumber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ems="10"
+                android:fontFamily="sans-serif-light"
+                android:hint="@string/TestNumber"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/Tdr"/>
+
+            <RadioGroup
+                android:id="@+id/rgTdr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content">
+
+                <RadioButton
+                    android:id="@+id/rbPositive"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="true"
+                    android:text="@string/Positive" />
+
+                <RadioButton
+                    android:id="@+id/rbNegative"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="false"
+                    android:text="@string/Negative" />
+
+            </RadioGroup>
+        </LinearLayout>
+
+
+
             <EditText
                 android:id="@+id/etClaimPrefix"
                 android:layout_width="match_parent"

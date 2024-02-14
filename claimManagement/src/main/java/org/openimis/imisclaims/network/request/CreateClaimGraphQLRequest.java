@@ -42,8 +42,15 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
             @NonNull int adminId,
             @NonNull int insureeId,
             @NonNull int programId,
-            @NonNull int diagnosisId
+            @NonNull int diagnosisId,
+            @NonNull String programCode
     ) throws Exception{
+
+        String fagepFields = "";
+        if(programCode.equals("PAL")){
+            fagepFields = " testNumber: \"" + claim.getTestNumber() + "\""
+                    + " tdr: " + claim.getTdr();
+        }
 
         String claimServices = "";
         if(claim.getServices().size() == 0){
@@ -129,6 +136,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
                         + " healthFacilityId: " + hfId
                         + " program: " + programId
                         + " visitType: \"" + claim.getVisitType() +"\""
+                        + fagepFields
                         + " services: " + claimServices
                         + " items: " + claimItems
                         + "}){"

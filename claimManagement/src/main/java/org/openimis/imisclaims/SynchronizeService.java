@@ -135,6 +135,7 @@ public class SynchronizeService extends JobIntentService {
                 int insureeId = 0;
                 int programId = sqlHandler.getProgamId(claim.getClaimProgram());
                 int diagnosisId = sqlHandler.getDiagnosisId(claim.getMainDg());
+                String programCode = sqlHandler.getProgamCode(claim.getClaimProgram());
                 try{
                     boolean isValidClaimCode = new ValidateClaimCode().execute(claim.getClaimNumber());
                     if(isValidClaimCode){
@@ -149,7 +150,7 @@ public class SynchronizeService extends JobIntentService {
                             }else{
                                 Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
                                 insureeId = Integer.valueOf(insuree.getId());
-                                Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId);
+                                Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId, programCode);
                                 if(response.code() == 200){
                                     PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);
                                     results.add(result);
@@ -161,7 +162,7 @@ public class SynchronizeService extends JobIntentService {
                         }else {
                             Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
                             insureeId = Integer.valueOf(insuree.getId());
-                            Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId);
+                            Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId, programCode);
                             if(response.code() == 200){
                                 PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);
                                 results.add(result);
@@ -218,6 +219,8 @@ public class SynchronizeService extends JobIntentService {
                     null,
                     null,
                     null,
+                    /* testNumber = */ array.getJSONObject(i).getJSONObject("details").getString("TestNumber"),
+                    /* tdr = */ array.getJSONObject(i).getJSONObject("details").getString("Tdr"),
                     null,
                     /* chequeNumber = */ array.getJSONObject(i).getJSONObject("details").getString("ClaimPrefix"),
                     /* services */ fromJSONObjectService(arrayServices),
