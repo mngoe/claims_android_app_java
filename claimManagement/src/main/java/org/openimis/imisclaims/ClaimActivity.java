@@ -849,11 +849,14 @@ public class ClaimActivity extends ImisActivity {
         selectedTypeButton = findViewById(SelectedId);
         String visitType = selectedTypeButton.getTag().toString();
 
-        int SelectedTdrId;
-        SelectedTdrId = rgTdr.getCheckedRadioButtonId();
-        RadioButton selectedTgrButton;
-        selectedTgrButton = findViewById(SelectedTdrId);
-        String tdr = selectedTgrButton.getTag().toString();
+        String tdr = "";
+        if (prefixProgramCode.equals("PAL")) {
+            int SelectedTdrId;
+            SelectedTdrId = rgTdr.getCheckedRadioButtonId();
+            RadioButton selectedTgrButton;
+            selectedTgrButton = findViewById(SelectedTdrId);
+            tdr = selectedTgrButton.getTag().toString();
+        }
 
         ContentValues claimCV = new ContentValues();
 
