@@ -735,6 +735,11 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
+        if (etInsureeNumber.getText().length() != 10) {
+            showValidationDialog(etInsureeNumber, getResources().getString(R.string.MissingLengthCHFID));
+            return false;
+        }
+
         if (!isValidInsureeNumber()) {
             showValidationDialog(etInsureeNumber, getResources().getString(R.string.InvalidCHFID));
             return false;

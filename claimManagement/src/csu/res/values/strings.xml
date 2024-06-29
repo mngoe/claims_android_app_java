@@ -104,6 +104,7 @@
   <string name="MissingGuaranteeNo">Please enter Guarantee ID</string>
   <string name="MissingClaimCode">Please enter Claim Code</string>
   <string name="MissingCHFID">Please enter the adherent number</string>
+  <string name="MissingLengthCHFID">The adherent number must have 10 characters</string>
   <string name="InvalidCHFID">Invalid adherent number</string>
   <string name="MissingStartDate">Please enter Start Date</string>
   <string name="MissingEndDate">Please enter End Date</string>
