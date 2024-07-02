@@ -119,7 +119,7 @@
   <string name="MissingGuaranteeNo">Veuillez entrer le numéro de garantie</string>
   <string name="MissingClaimCode">Veuillez entrer le code de prestation</string>
   <string name="MissingCHFID">Veuillez saisir le numéro d\'assuré</string>
-  <string name="MissingLengthCHFID">le numéro d\'assuré doit contenir 10 caractères</string>
+  <string name="MissingLengthCHFID">le numéro d\'assuré doit contenir 15 caractères</string>
   <string name="InvalidCHFID">Numéro d\'assuré invalide</string>
   <string name="MissingStartDate">Veuillez entrer la date de début</string>
   <string name="MissingEndDate">Veuillez entrer la date de fin</string>
