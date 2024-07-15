@@ -23,6 +23,7 @@ import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.tools.StorageManager;
 import org.openimis.imisclaims.usecase.CreateClaim;
 import org.openimis.imisclaims.usecase.FetchChequeNumber;
+import org.openimis.imisclaims.usecase.FetchInsuree;
 import org.openimis.imisclaims.usecase.FetchInsureeInquire;
 import org.openimis.imisclaims.usecase.PostNewClaims;
 import org.openimis.imisclaims.usecase.ValidateClaimCode;
@@ -148,8 +149,8 @@ public class SynchronizeService extends JobIntentService {
                                 PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.NonUsedChequeNumber));
                                 results.add(result);
                             }else{
-                                Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
-                                insureeId = Integer.valueOf(insuree.getId());
+                                String insuree = new FetchInsuree().execute(claim.getInsuranceNumber());
+                                insureeId = Integer.valueOf(insuree);
                                 Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId, programCode);
                                 if(response.code() == 200){
                                     PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);
@@ -160,8 +161,8 @@ public class SynchronizeService extends JobIntentService {
                                 }
                             }
                         }else {
-                            Insuree insuree = new FetchInsureeInquire().execute(claim.getInsuranceNumber());
-                            insureeId = Integer.valueOf(insuree.getId());
+                            String insuree = new FetchInsuree().execute(claim.getInsuranceNumber());
+                            insureeId = Integer.valueOf(insuree);
                             Response response = new CreateClaim().execute(claim, Integer.valueOf(adminId),Integer.valueOf(hfId),insureeId,programId, diagnosisId, programCode);
                             if(response.code() == 200){
                                 PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS,null);

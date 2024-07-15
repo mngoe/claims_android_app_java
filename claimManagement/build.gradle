@@ -107,7 +107,7 @@ android {
         csuDev {
             applicationIdSuffix ".csuDev"
             resValue "string", "app_name_claims", "Claims CSU"
-            buildConfigField "String", "API_BASE_URL", '"https://train-csuapps.minsante.cm/"'
+            buildConfigField "String", "API_BASE_URL", '"https://test-csuapps.minsante.cm/"'
             dimension 'std'
         }
         niger {
