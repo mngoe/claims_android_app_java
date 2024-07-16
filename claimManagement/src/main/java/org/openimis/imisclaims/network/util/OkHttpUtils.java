@@ -31,9 +31,9 @@ public class OkHttpUtils {
             synchronized (OkHttpUtils.class) {
                 if (client == null) {
                     OkHttpClient.Builder builder = new OkHttpClient.Builder();
-                    builder.connectTimeout(1000, TimeUnit.SECONDS)
-                            .writeTimeout(1000,TimeUnit.SECONDS)
-                            .readTimeout(1000,TimeUnit.SECONDS);
+                    builder.connectTimeout(2000, TimeUnit.SECONDS)
+                            .writeTimeout(2000,TimeUnit.SECONDS)
+                            .readTimeout(2000,TimeUnit.SECONDS);
                     HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
                     interceptor.setLevel(BuildConfig.DEBUG ? HttpLoggingInterceptor.Level.BODY : HttpLoggingInterceptor.Level.BASIC);
                     builder.addInterceptor(interceptor);
