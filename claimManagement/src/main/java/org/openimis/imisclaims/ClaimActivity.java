@@ -34,6 +34,7 @@ import org.json.JSONObject;
 import org.openimis.imisclaims.domain.entity.Claim;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.util.DateUtils;
+import org.openimis.imisclaims.util.StringUtils;
 import org.openimis.imisclaims.util.TextViewUtils;
 
 import java.text.ParseException;
@@ -735,10 +736,13 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
-        /*if (etInsureeNumber.getText().length() != 15) {
-            showValidationDialog(etInsureeNumber, getResources().getString(R.string.MissingLengthCHFID));
-            return false;
-        }*/
+        if (!etProgram.getText().toString().equals("VIH")) {
+            boolean isNumeric = StringUtils.isNumeric(etInsureeNumber.getText().toString());
+            if(!isNumeric){
+                showValidationDialog(etInsureeNumber, getResources().getString(R.string.MissingLengthCHFID));
+                return false;
+            }
+        }
 
         if (!isValidInsureeNumber()) {
             showValidationDialog(etInsureeNumber, getResources().getString(R.string.InvalidCHFID));

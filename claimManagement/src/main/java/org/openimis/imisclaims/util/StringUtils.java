@@ -40,4 +40,14 @@ public class StringUtils {
             return Character.toUpperCase(s.charAt(0)) + s.substring(1);
         }
     }
+
+    public static boolean isNumeric(String s) {
+        for (char c : s.toCharArray()) {
+            if (!Character.isDigit(c)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
