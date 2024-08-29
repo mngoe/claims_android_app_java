@@ -513,7 +513,7 @@ public class SQLHandler extends SQLiteOpenHelper {
         String wildcardNameFilter = "%" + nameFilter + "%";
         Cursor c = dbMapping.query("tblMapping",
                 new String[]{"Code AS _id", "Code", "Name"},
-                "type = ? AND (Code LIKE ? OR Name LIKE ?) AND Program = ?",
+                "type = ? AND (Code LIKE ? OR Name LIKE ?) AND (Program = ? OR Program = NULL)",
                 new String[]{typeFilter, wildcardNameFilter, wildcardNameFilter, programFilter},
                 null,
                 null,
