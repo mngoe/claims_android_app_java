@@ -538,8 +538,8 @@ public class MainActivity extends ImisActivity {
             progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
             Thread thread = new Thread(() ->{
                 try {
-
-                    List<Service> services = new FetchServices().execute();
+                    String hfId = sqlHandler.getClaimAdminInfo(claimAdminCode, "HFId");
+                    List<Service> services = new FetchServices().execute(hfId);
                     if (services.size() != 0) {
                         //get pricelist service for health facility and user
                         PaymentList paymentList = new FetchPaymentList().execute(claimAdminCode);

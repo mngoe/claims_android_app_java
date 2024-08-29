@@ -13,7 +13,7 @@ public class GetServicesGraphqlRequest extends BaseGraphQLRequest {
 
     @NonNull
     @WorkerThread
-    public GetServicesQuery.MedicalServices get(@NonNull int page) throws Exception {
-        return makeSynchronous(new GetServicesQuery(Input.fromNullable(page))).getData().medicalServices();
+    public GetServicesQuery.MedicalServices get(@NonNull int page, @NonNull String hfId) throws Exception {
+        return makeSynchronous(new GetServicesQuery(Input.fromNullable(page), Input.fromNullable(hfId))).getData().medicalServices();
     }
 }

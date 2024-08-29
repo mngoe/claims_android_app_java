@@ -31,14 +31,14 @@ public class FetchServices {
 
     @WorkerThread
     @NonNull
-    public List<Service> execute() throws Exception {
+    public List<Service> execute(String hfId) throws Exception {
         List<Service> services = new ArrayList<>();
         int page = 0;
         boolean hasNextPage;
         Mapper<GetServicesQuery.ServiceserviceSet, SubServiceItem> subServiceMapper = new Mapper<>(this::toSubService);
         Mapper<GetServicesQuery.ServicesLinked, SubServiceItem> subItemMapper = new Mapper<>(this::toSubItem);
         do{
-            GetServicesQuery.MedicalServices response = request.get(page);
+            GetServicesQuery.MedicalServices response = request.get(page,hfId);
             services.addAll(
                     Mapper.map(
                             response.edges(),

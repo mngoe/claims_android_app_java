@@ -261,7 +261,8 @@ public class SynchronizeActivity extends ImisActivity {
             progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
             Thread thread = new Thread(() ->{
                 try {
-                    List<Service> services = new FetchServices().execute();
+                    String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"HFId");
+                    List<Service> services = new FetchServices().execute(hfId);
                     if (services.size() != 0) {
                         //get list of all services in database
 
