@@ -57,10 +57,13 @@ import org.openimis.imisclaims.usecase.FetchMedications;
 import org.openimis.imisclaims.usecase.FetchPaymentList;
 import org.openimis.imisclaims.usecase.FetchPrograms;
 import org.openimis.imisclaims.usecase.FetchServices;
+import org.openimis.imisclaims.util.DateUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 public class MainActivity extends ImisActivity {
     private static final int REQUEST_PERMISSIONS_CODE = 1;
@@ -548,8 +551,10 @@ public class MainActivity extends ImisActivity {
                         sqlHandler.ClearAll("tblServices");
                         sqlHandler.ClearAll("tblSubServices");
                         sqlHandler.ClearAll("tblSubItems");
+                        sqlHandler.ClearMapping("S");
 
                         for (Service service: services) {
+
                             //get service price from user pricelist
                             String price ="";
                             for(Service serv : servicesPricelist){
@@ -558,6 +563,10 @@ public class MainActivity extends ImisActivity {
 
                                 }
                             }
+
+                            //Mapping services
+                            sqlHandler.InsertMapping(service.getCode(),service.getName(), "S", service.getProgram());
+                            sqlHandler.InsertReferences(service.getCode(), service.getName(), "S", String.valueOf(service.getPrice()));
 
                             //insert services
                             sqlHandler.InsertService(service.getId(),
@@ -617,7 +626,10 @@ public class MainActivity extends ImisActivity {
                     List<Medication> items = new FetchMedications().execute();
                     if (items.size() != 0) {
                         sqlHandler.ClearAll("tblItems");
+                        sqlHandler.ClearMapping("I");
                         for (Medication item : items) {
+                            sqlHandler.InsertReferences(item.getCode(), item.getName(), "I", String.valueOf(item.getPrice()));
+                            sqlHandler.InsertMapping(item.getCode(), item.getName(), "I", item.getProgram());
                             sqlHandler.InsertItem(
                                     item.getId(),
                                     item.getCode(),
@@ -691,13 +703,12 @@ public class MainActivity extends ImisActivity {
             Thread thread = new Thread() {
                 public void run() {
                     try {
-                        DiagnosesServicesMedications diagnosesServicesMedications = new FetchDiagnosesServicesItems().execute();
-                        saveLastUpdateDate(diagnosesServicesMedications.getLastUpdated());
+                        //DiagnosesServicesMedications diagnosesServicesMedications = new FetchDiagnosesServicesItems().execute();
+                        //saveLastUpdateDate(diagnosesServicesMedications.getLastUpdated());
+                        saveLastUpdateDate(DateUtils.toDateString(new Date()));
                         sqlHandler.ClearAll("tblReferences");
                         sqlHandler.ClearAll("tblPrograms");
                         sqlHandler.ClearAll("tblHealthFacilities");
-                        sqlHandler.ClearMapping("S");
-                        sqlHandler.ClearMapping("I");
 
                         //Insert Diagnoses
                         List<Diagnosis> diagnoses = new FetchDiagnosis().execute();
@@ -707,16 +718,17 @@ public class MainActivity extends ImisActivity {
                         }
 
                         //Insert Services
-                        for (Service service : diagnosesServicesMedications.getServices()) {
-                            sqlHandler.InsertReferences(service.getCode(), service.getName(), "S", String.valueOf(service.getPrice()));
-                            sqlHandler.InsertMapping(service.getCode(), service.getName(), "S", service.getProgram());
-                        }
+                        //for (Service service : diagnosesServicesMedications.getServices()) {
+                        //    sqlHandler.InsertReferences(service.getCode(), service.getName(), "S", String.valueOf(service.getPrice()));
+                        //    sqlHandler.InsertMapping(service.getCode(), service.getName(), "S", service.getProgram());
+                        //}
+
 
                         //Insert Items
-                        for (Medication medication : diagnosesServicesMedications.getMedications()) {
-                            sqlHandler.InsertReferences(medication.getCode(), medication.getName(), "I", String.valueOf(medication.getPrice()));
-                            sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I", medication.getProgram());
-                        }
+                        //for (Medication medication : diagnosesServicesMedications.getMedications()) {
+                        //    sqlHandler.InsertReferences(medication.getCode(), medication.getName(), "I", String.valueOf(medication.getPrice()));
+                        //    sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I", medication.getProgram());
+                        //}
 
                         //Insert Programs
                         List<Program> programs = new FetchPrograms().execute();
@@ -762,17 +774,28 @@ public class MainActivity extends ImisActivity {
             Thread thread = new Thread() {
                 public void run() {
                     try {
-                        PaymentList paymentList = new FetchPaymentList().execute(claimAdministratorCode);
+                        //PaymentList paymentList = new FetchPaymentList().execute(claimAdministratorCode);
+                        String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(), "HFId");
+                        List<Service> services = new FetchServices().execute(hfId);
+                        List<Medication> medications = new FetchMedications().execute();
+
                         sqlHandler.ClearMapping("S");
                         sqlHandler.ClearMapping("I");
 
                         //Insert Services
-                        for (Service service : paymentList.getServices()) {
+                        /*for (Service service : paymentList.getServices()) {
                             sqlHandler.InsertMapping(service.getCode(), service.getName(), "S", service.getProgram());
+                        }*/
+                        for (Service service : services) {
+                            sqlHandler.InsertMapping(service.getCode(),service.getName(), "S", service.getProgram());
                         }
 
+
                         //Insert Items
-                        for (Medication medication : paymentList.getMedications()) {
+                        /*for (Medication medication : paymentList.getMedications()) {
+                            sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I", medication.getProgram());
+                        }*/
+                        for (Medication medication : medications) {
                             sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I", medication.getProgram());
                         }
                         runOnUiThread(() -> {

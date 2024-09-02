@@ -35,6 +35,11 @@ query GetServices ($offset: Int, $hfId: ID) {
           qtyProvided
           priceAsked
         }
+        healthFacility {
+          id
+          name
+          code
+        }
       }
     }
   }
