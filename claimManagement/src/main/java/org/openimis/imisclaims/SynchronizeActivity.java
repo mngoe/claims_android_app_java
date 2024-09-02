@@ -10,6 +10,7 @@ import androidx.annotation.Nullable;
 
 import android.os.Environment;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -101,7 +102,7 @@ public class SynchronizeActivity extends ImisActivity {
 
         importMasterData.setOnClickListener(view -> requestPickDatabase());
         downloadMasterData.setOnClickListener(view -> DownloadMasterData()); //TODO Not yet implemented
-        //downloadMasterData.setVisibility(View.GONE);
+        downloadMasterData.setVisibility(View.GONE);
 
     }
 
