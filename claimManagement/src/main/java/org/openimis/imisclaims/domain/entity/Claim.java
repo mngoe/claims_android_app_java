@@ -424,6 +424,7 @@ public class Claim implements Parcelable {
                 @NonNull String name,
                 double price,
                 @NonNull String currency,
+                @NonNull String packageType,
                 @NonNull String quantityProvided,
                 @Nullable String quantityApproved,
                 @Nullable String priceAdjusted,
@@ -431,7 +432,7 @@ public class Claim implements Parcelable {
                 @Nullable String explanation,
                 @Nullable String justification
         ) {
-            super(code, name, price, currency);
+            super(null, code, name, price, currency, packageType, null, null);
             this.quantityProvided = quantityProvided;
             this.quantityApproved = quantityApproved;
             this.priceAdjusted = priceAdjusted;
@@ -451,7 +452,8 @@ public class Claim implements Parcelable {
                     /* priceAdjusted = */ in.readString(),
                     /* priceValuated = */ in.readString(),
                     /* explanation = */ in.readString(),
-                    /* justification = */ in.readString()
+                    /* justification = */ in.readString(),
+                    /* packageType = */ in.readString()
             );
         }
 
@@ -541,7 +543,7 @@ public class Claim implements Parcelable {
                 @Nullable String explanation,
                 @Nullable String justification
         ) {
-            super(code, name, price, currency);
+            super(null, code, name, price, currency);
             this.quantityProvided = quantityProvided;
             this.quantityApproved = quantityApproved;
             this.priceAdjusted = priceAdjusted;

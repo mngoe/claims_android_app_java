@@ -43,11 +43,14 @@ import org.openimis.imisclaims.domain.entity.Diagnosis;
 import org.openimis.imisclaims.domain.entity.Medication;
 import org.openimis.imisclaims.domain.entity.PaymentList;
 import org.openimis.imisclaims.domain.entity.Service;
+import org.openimis.imisclaims.domain.entity.SubServiceItem;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.usecase.FetchClaimAdmins;
 import org.openimis.imisclaims.usecase.FetchControls;
 import org.openimis.imisclaims.usecase.FetchDiagnosesServicesItems;
+import org.openimis.imisclaims.usecase.FetchMedications;
 import org.openimis.imisclaims.usecase.FetchPaymentList;
+import org.openimis.imisclaims.usecase.FetchServices;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -588,10 +591,7 @@ public class MainActivity extends ImisActivity {
 
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
-                            Toast.makeText(MainActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
-                            if (officerCode != null) {
-                                DownLoadServicesItemsPriceList(officerCode);
-                            }
+                            downloadServices(officerCode);
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -636,6 +636,7 @@ public class MainActivity extends ImisActivity {
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             Toast.makeText(MainActivity.this, getResources().getString(R.string.MapSuccessful), Toast.LENGTH_LONG).show();
+                            downloadServices(claimAdministratorCode);
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -726,5 +727,122 @@ public class MainActivity extends ImisActivity {
             ClaimAdminDialogBox();
         }
         refreshCount();
+    }
+
+    public void downloadServices(@NonNull final String claimAdminCode) {
+        if (global.isNetworkAvailable()) {
+            String progress_message = getResources().getString(R.string.Services);
+            progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
+            Thread thread = new Thread(() ->{
+                try {
+                    List<Service> services = new FetchServices().execute();
+                    if (services.size() != 0) {
+                        //get list of all services in database
+                        //get pricelist service for health facility and user
+                        PaymentList paymentList = new FetchPaymentList().execute(claimAdminCode);
+                        List<Service> servicesPricelist = paymentList.getServices();
+                        sqlHandler.ClearAll("tblServices");
+                        sqlHandler.ClearAll("tblSubServices");
+                        sqlHandler.ClearAll("tblSubItems");
+                        for (Service service: services) {
+                            String price ="";
+                            //insert user healthfacility services
+                            for(Service serv : servicesPricelist){
+                                if(serv.getCode().equals(service.getCode())){
+                                    price = String.valueOf(serv.getPrice());
+                                }
+                            }
+                            sqlHandler.InsertService(service.getId(),
+                                    service.getCode(),
+                                    service.getName(), "S",
+                                    price,
+                                    service.getPackageType());
+                            //insert subservices
+                            if (service.getSubServices().size() != 0) {
+                                List<SubServiceItem> subservices = service.getSubServices();
+                                for (SubServiceItem subService: subservices) {
+                                    sqlHandler.InsertSubServices(subService.getId(),
+                                            service.getId(),String.valueOf(subService.getQty()),subService.getPrice());
+                                }
+                            }
+                            //insert subItems
+                            if (service.getSubItems().size() != 0) {
+                                List<SubServiceItem> subItems = service.getSubItems();
+                                for (SubServiceItem subItem: subItems) {
+                                    sqlHandler.InsertSubItems(subItem.getId(),
+                                            service.getId(), String.valueOf(subItem.getQty()),subItem.getPrice());
+                                }
+                            }
+                        }
+                        runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            downloadItems(claimAdminCode);
+                        });
+                    } else {
+                        runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            Toast.makeText(MainActivity.this, getResources().getString(R.string.downloadFail), Toast.LENGTH_LONG).show();
+                        });
+                    }
+                } catch ( Exception e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> progressDialog.dismiss());
+                }
+            });
+            thread.start();
+        }else{
+            ErrorDialogBox(getResources().getString(R.string.CheckInternet));
+        }
+    }
+
+    public void downloadItems(@NonNull final String claimAdminCode) {
+        if (global.isNetworkAvailable()) {
+            String progress_message = getResources().getString(R.string.Items);
+            progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
+            Thread thread = new Thread(() -> {
+                try {
+                    List<Medication> items = new FetchMedications().execute();
+                    if (items.size() != 0) {
+                        //get pricelist service for health facility and user
+                        //PaymentList paymentList = new FetchPaymentList().execute(claimAdminCode);
+                        //List<Medication> itemsPricelist = paymentList.getMedications();
+                        sqlHandler.ClearAll("tblItems");
+                        for (Medication item : items) {
+                            //String priceService = "";
+                            //get service price from pricelist
+                            //for (Medication med : itemsPricelist) {
+                            //if (med.getCode().equals(item.getCode())) {
+                            //priceService = String.valueOf(med.getPrice());
+                            //}
+                            //}
+                            //insert item in database
+                            sqlHandler.InsertItem(
+                                    item.getId(),
+                                    item.getCode(),
+                                    item.getName(), "I",
+                                    String.valueOf(item.getPrice()));
+                        }
+                        runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            Toast.makeText(MainActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
+                            if (claimAdminCode != null) {
+                                DownLoadServicesItemsPriceList(claimAdminCode);
+                            }
+                        });
+                    }else {
+                        runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            Toast.makeText(MainActivity.this, getResources().getString(R.string.downloadFail), Toast.LENGTH_LONG).show();
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    runOnUiThread(() -> progressDialog.dismiss());
+                }
+            });
+            thread.start();
+        } else {
+            ErrorDialogBox(getResources().getString(R.string.CheckInternet));
+        }
     }
 }

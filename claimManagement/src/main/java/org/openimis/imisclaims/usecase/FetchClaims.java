@@ -153,7 +153,8 @@ public class FetchClaims {
                 /* priceAdjusted = */ service.priceAdjusted() != null ? service.priceAdjusted().toString() : null,
                 /* priceValuated = */ service.priceValuated() != null ? service.priceValuated().toString() : null,
                 /* explanation = */ service.explanation(),
-                /* justification = */ service.justification()
+                /* justification = */ service.justification(),
+                /* packageType = */ service.service().packagetype()
         );
     }
 

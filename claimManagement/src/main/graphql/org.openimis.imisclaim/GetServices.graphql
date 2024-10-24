@@ -1,0 +1,33 @@
+query GetServices {
+  medicalServices {
+    edges {
+      node {
+        id
+        code
+        name
+        packagetype
+        type
+        price
+        careType
+        serviceserviceSet {
+          service {
+            id
+            code
+            name
+          }
+          qtyProvided
+          priceAsked
+        }
+        servicesLinked {
+          item {
+            id
+            code
+            name
+          }
+          qtyProvided
+          priceAsked
+        }
+      }
+    }
+  }
+}
