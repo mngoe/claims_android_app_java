@@ -522,6 +522,9 @@ public class MainActivity extends ImisActivity {
                     runOnUiThread(() -> {
                         progressDialog.dismiss();
                         showToast(R.string.initializing_complete);
+                        if (checkRequirements()) {
+                            onAllRequirementsMet();
+                        }
                     });
 
                 } catch (Exception e) {
