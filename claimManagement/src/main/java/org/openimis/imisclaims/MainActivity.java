@@ -546,7 +546,7 @@ public class MainActivity extends ImisActivity {
                 try {
                     String hfId = sqlHandler.getClaimAdminInfo(claimAdminCode, "HFId");
                     List<Service> services = new FetchServices().execute(hfId);
-                    if (services.size() != 0) {
+                    if (!services.isEmpty()) {
                         //get pricelist service for health facility and user
                         PaymentList paymentList = new FetchPaymentList().execute(claimAdminCode);
                         List<Service> servicesPricelist = paymentList.getServices();
@@ -580,7 +580,7 @@ public class MainActivity extends ImisActivity {
                                     service.getProgram());
 
                             //insert subservices
-                            if (service.getSubServices().size() != 0) {
+                            if (service.getSubServices() != null && !service.getSubServices().isEmpty()) {
                                 List<SubServiceItem> subservices = service.getSubServices();
                                 for (SubServiceItem subService: subservices) {
                                     sqlHandler.InsertSubServices(subService.getId(),
@@ -589,7 +589,7 @@ public class MainActivity extends ImisActivity {
                             }
 
                             //insert subItems
-                            if (service.getSubItems().size() != 0) {
+                            if (service.getSubItems() != null && !service.getSubItems().isEmpty()) {
                                 List<SubServiceItem> subItems = service.getSubItems();
                                 for (SubServiceItem subItem: subItems) {
                                     sqlHandler.InsertSubItems(subItem.getId(),
@@ -627,7 +627,7 @@ public class MainActivity extends ImisActivity {
             Thread thread = new Thread(() -> {
                 try {
                     List<Medication> items = new FetchMedications().execute();
-                    if (items.size() != 0) {
+                    if (!items.isEmpty()) {
                         sqlHandler.ClearAll("tblItems");
                         sqlHandler.ClearMapping("I");
                         for (Medication item : items) {
@@ -643,9 +643,7 @@ public class MainActivity extends ImisActivity {
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             Toast.makeText(MainActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
-                            if (claimAdminCode != null) {
-                                DownLoadServicesItemsPriceList(claimAdminCode);
-                            }
+                            DownLoadServicesItemsPriceList(claimAdminCode);
                         });
                     }else {
                         runOnUiThread(() -> {
@@ -748,7 +746,9 @@ public class MainActivity extends ImisActivity {
 
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
-                            downloadServices(officerCode);
+                            if( officerCode != null){
+                                downloadServices(officerCode);
+                            }
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
