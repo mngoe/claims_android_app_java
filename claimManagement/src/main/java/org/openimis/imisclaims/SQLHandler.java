@@ -49,6 +49,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String CreateTableSubServices = "CREATE TABLE IF NOT EXISTS tblSubServices(ServiceId text, ServiceLinked text, Quantity text, Price text);";
     private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text, Quantity text, Price text);";
     private static final String CreateTableHealthFacilities = "CREATE TABLE IF NOT EXISTS tblHealthFacilities(Id TEXT, Code TEXT, Name TEXT);";
+    private static final String CreateTableConfigs = "CREATE TABLE IF NOT EXISTS tblConfigs(Id TEXT, Name TEXT, Value TEXT);";
 
     public final String REFERENCE_UNKNOWN;
 
@@ -330,8 +331,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     public void createTables() {
         String[] commands = {CreateTableControls, CreateTableReferences, CreateTableClaimAdmins,
                 createTablePolicyInquiry, createTableClaimDetails, createTableClaimItems, createTableClaimServices,
-                createTableClaimUploadStatus, CreateTableSubItems,
-                CreateTableSubServices,CreateTableItems,CreateTableServices, CreateTableHealthFacilities};
+                createTableClaimUploadStatus, CreateTableSubItems, CreateTableSubServices,CreateTableItems,CreateTableServices, CreateTableHealthFacilities, CreateTableConfigs};
         for (String command : commands) {
             try {
                 db.execSQL(command);
@@ -929,6 +929,18 @@ public class SQLHandler extends SQLiteOpenHelper {
         }
     }
 
+    public void InsertConfiguration(String Id, String Name, String Config) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Id", Id);
+            cv.put("Name", Name);
+            cv.put("Value", Config);
+            db.insert("tblConfigs", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
     public String getHfId(String code) {
         String id = "";
         try (Cursor c = db.query("tblHealthFacilities", new String[]{"Id"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
@@ -943,5 +955,22 @@ public class SQLHandler extends SQLiteOpenHelper {
             Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
         }
         return id;
-    }
+                }
+
+    public String getConfig(String module){
+        String config = "";
+        try (Cursor c = db.query("tblConfigs", new String[]{"Value"}, "LOWER(Name) = LOWER(?)", new String[]{module}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    config = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", module), e);
+        }
+        return config;
+                }
+
 }
