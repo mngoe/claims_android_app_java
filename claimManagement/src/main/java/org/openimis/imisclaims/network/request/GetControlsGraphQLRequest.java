@@ -9,9 +9,11 @@ import java.util.List;
 
 public class GetControlsGraphQLRequest extends BaseGraphQLRequest {
 
+    private static final String uri = "https://csureport.minsante.cm/api/graphql";
+
     @NonNull
     @WorkerThread
     public List<GetControlsQuery.Edge> get() throws Exception {
-        return makeSynchronous(new GetControlsQuery()).getData().control().edges();
+        return makeSynchronous(new GetControlsQuery(), uri).getData().control().edges();
     }
 }

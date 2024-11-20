@@ -7,13 +7,13 @@ import com.apollographql.apollo.api.Input;
 
 import org.openimis.imisclaims.GetServicesQuery;
 
-import java.util.List;
-
 public class GetServicesGraphqlRequest extends BaseGraphQLRequest {
+
+    private static final String URI = "https://csureport.minsante.cm/api/graphql";
 
     @NonNull
     @WorkerThread
     public GetServicesQuery.MedicalServices get(@NonNull int page, @NonNull String hfId) throws Exception {
-        return makeSynchronous(new GetServicesQuery(Input.fromNullable(page), Input.fromNullable(hfId))).getData().medicalServices();
+        return makeSynchronous(new GetServicesQuery(Input.fromNullable(page), Input.fromNullable(hfId)), URI).getData().medicalServices();
     }
 }

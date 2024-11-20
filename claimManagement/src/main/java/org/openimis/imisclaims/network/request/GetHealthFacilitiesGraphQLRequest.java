@@ -9,9 +9,11 @@ import org.openimis.imisclaims.GetHealthFacilityQuery;
 
 public class GetHealthFacilitiesGraphQLRequest extends BaseGraphQLRequest{
 
+    private static final String URI = "https://csureport.minsante.cm/api/graphql";
+
     @NonNull
     @WorkerThread
     public GetHealthFacilityQuery.HealthFacilities get(@NonNull int page) throws Exception {
-        return makeSynchronous(new GetHealthFacilityQuery(Input.fromNullable(page))).getData().healthFacilities();
+        return makeSynchronous(new GetHealthFacilityQuery(Input.fromNullable(page)), URI).getData().healthFacilities();
     }
 }
