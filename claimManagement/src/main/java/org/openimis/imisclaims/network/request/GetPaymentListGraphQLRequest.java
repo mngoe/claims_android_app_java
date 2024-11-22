@@ -9,6 +9,8 @@ import org.openimis.imisclaims.GetPaymentListQuery;
 
 public class GetPaymentListGraphQLRequest extends BaseGraphQLRequest {
 
+    private static final String URI = "https://csureport.minsante.cm/api/graphql";
+
     @NonNull
     @WorkerThread
     public GetPaymentListQuery.Node get(
@@ -16,6 +18,6 @@ public class GetPaymentListGraphQLRequest extends BaseGraphQLRequest {
     ) throws Exception {
         return makeSynchronous(new GetPaymentListQuery(
                 Input.optional(claimAdministratorCode)
-        )).getData().claimAdmins().edges().get(0).node();
+        ), URI).getData().claimAdmins().edges().get(0).node();
     }
 }

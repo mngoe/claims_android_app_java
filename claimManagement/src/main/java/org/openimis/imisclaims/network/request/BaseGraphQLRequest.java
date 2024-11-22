@@ -68,6 +68,45 @@ public abstract class BaseGraphQLRequest {
 
     @NonNull
     @WorkerThread
+    protected <T extends Operation.Data> Response<T> makeSynchronous(Query<T, ?, ?> query, String uri) throws Exception {
+        Semaphore semaphore = new Semaphore(0);
+        final Exception[] exceptions = new Exception[1];
+        final Response<T>[] responses = new Response[1];
+
+        ApolloClient client = ApolloClient.builder()
+                .okHttpClient(OkHttpUtils.getDefaultOkHttpClient())
+                .serverUrl(uri)
+                .addCustomTypeAdapter(CustomType.DATE, new DateCustomTypeAdapter())
+                .addCustomTypeAdapter(CustomType.DATETIME, new DateTimeCustomTypeAdapter())
+                .addCustomTypeAdapter(CustomType.DECIMAL, new DecimalCustomTypeAdapter())
+                .build();
+
+
+        client.query(query).enqueue(new ApolloCall.Callback() {
+            @Override
+            public void onResponse(@NonNull Response response) {
+                responses[0] = response;
+                semaphore.release();
+            }
+
+            @Override
+            public void onFailure(@NonNull ApolloException e) {
+                exceptions[0] = e;
+                semaphore.release();
+            }
+        });
+        if (!semaphore.tryAcquire(TIME_OUT_IN_MS, TimeUnit.MILLISECONDS)) {
+            throw new TimeoutException("Call couldn't finish within " + TIME_OUT_IN_MS + "ms");
+        }
+        Exception exception = exceptions[0];
+        if (exception != null) {
+            throw exception;
+        }
+        return responses[0];
+    }
+
+    @NonNull
+    @WorkerThread
     protected <T extends Operation.Data> Response<T> makeSynchronous(Operation<T, ?, ?> query) throws Exception {
         Semaphore semaphore = new Semaphore(0);
         final Exception[] exceptions = new Exception[1];
