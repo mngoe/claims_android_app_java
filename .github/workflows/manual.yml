@@ -40,7 +40,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: openimis-claims-apk-${{github.run_number}}.apk
+          name: claim-comores-${{github.run_number}}.apk
           path: ./claimManagement/build/outputs/**/*.apk
 
 #      - name: build
