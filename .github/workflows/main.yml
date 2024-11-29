@@ -46,7 +46,7 @@ jobs:
         run: |
           gradle --version
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@v4
         with:
           name: claim-comores-${{github.run_number}}.aab
           path: ./claimManagement/build/outputs/**/*.aab
