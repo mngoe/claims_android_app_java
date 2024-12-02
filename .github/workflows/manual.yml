@@ -1,0 +1,54 @@
+name: manualbuild
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_base_url:
+        description: URL of the REST API
+        required: true
+        default: https://test-csuapps.minsante.cm/rest/
+# Branch is chosen by default in github manual actions
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+
+      - name: Environment info
+        run: |
+          gradle --version
+          echo url ${{ github.event.inputs.api_base_url }}
+
+      - name: build
+        run: |
+          ./gradlew assemblecsuDevDebug --stacktrace
+        env:
+          API_BASE_URL: "${{ github.event.inputs.api_base_url }}"
+
+      - name: Environment info
+        run: |
+          gradle --version
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: claims-csu-${{github.run_number}}.apk
+          path: ./claimManagement/build/outputs/**/*.apk
+
+#      - name: build
+#        run: |
+#          ./gradlew bundleDebug --stacktrace
+#
+#      - uses: actions/upload-artifact@v2
+#        with:
+#          name: openimis-claims-aab-${{github.run_number}}-${{github.sha}}
+#          path: ./claimManagement/build/outputs/**/*.aab
+
