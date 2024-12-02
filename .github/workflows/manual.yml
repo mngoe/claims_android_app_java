@@ -28,6 +28,10 @@ jobs:
           gradle --version
           echo url ${{ github.event.inputs.api_base_url }}
 
+      - name: show gradlew permission
+        run: |
+          chmod +x gradlew
+
       - name: build
         run: |
           ./gradlew assemblecsuDevDebug --stacktrace
