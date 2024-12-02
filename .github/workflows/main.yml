@@ -27,7 +27,7 @@ jobs:
 
       - name: build
         run: |
-          ./gradlew assemblecsuDevDebug --stacktrace
+          ./gradlew assembledemoProdDebug --stacktrace
 
       - name: Environment info
         run: |
@@ -40,7 +40,7 @@ jobs:
 
       - name: build
         run: |
-          ./gradlew bundlecsuDevDebug --stacktrace
+          ./gradlew bundledemoProdDebug --stacktrace
 
       - name: Environment info
         run: |
