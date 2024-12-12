@@ -736,13 +736,13 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
-        if (!etProgram.getText().toString().equals("VIH")) {
+        /*if (!etProgram.getText().toString().equals("VIH")) {
             boolean isNumeric = StringUtils.isNumeric(etInsureeNumber.getText().toString());
             if(!isNumeric){
                 showValidationDialog(etInsureeNumber, getResources().getString(R.string.MissingLengthCHFID));
                 return false;
             }
-        }
+        }*/
 
         if (!isValidInsureeNumber()) {
             showValidationDialog(etInsureeNumber, getResources().getString(R.string.InvalidCHFID));
