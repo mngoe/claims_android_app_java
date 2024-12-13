@@ -23,6 +23,8 @@ public class ClaimAdmin implements Parcelable {
     @NonNull
     private final String hfId;
     @Nullable
+    private final String createdAt;
+    @Nullable
     private final List<String> programs;
 
     public ClaimAdmin(
@@ -32,6 +34,7 @@ public class ClaimAdmin implements Parcelable {
             @NonNull String claimAdminCode,
             @NonNull String healthFacilityCode,
             @NonNull String hfId,
+            @Nullable String createdAt,
             @Nullable List<String> programs
     ){
         this.id = id;
@@ -40,6 +43,7 @@ public class ClaimAdmin implements Parcelable {
         this.claimAdminCode = claimAdminCode;
         this.hfCode = healthFacilityCode;
         this.hfId = hfId;
+        this.createdAt = createdAt;
         this.programs = programs;
     }
 
@@ -50,6 +54,7 @@ public class ClaimAdmin implements Parcelable {
         claimAdminCode = in.readString();
         hfCode = in.readString();
         hfId = in.readString();
+        createdAt = in.readString();
         programs = in.createStringArrayList();
     }
 
@@ -61,6 +66,7 @@ public class ClaimAdmin implements Parcelable {
         dest.writeString(claimAdminCode);
         dest.writeString(hfCode);
         dest.writeString(hfId);
+        dest.writeString(createdAt);
         dest.writeStringList(programs);
     }
 
@@ -99,6 +105,9 @@ public class ClaimAdmin implements Parcelable {
 
     @NonNull
     public String getHfId(){return hfId;}
+
+    @Nullable
+    public String getCreatedAt(){return createdAt;}
 
     @Nullable
     public List<String> getPrograms(){

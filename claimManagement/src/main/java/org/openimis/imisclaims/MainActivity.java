@@ -515,6 +515,7 @@ public class MainActivity extends ImisActivity {
                                 claimAdmin.getHealthFacilityCode(),
                                 claimAdmin.getDisplayName(),
                                 claimAdmin.getHfId(),
+                                claimAdmin.getCreatedAt(),
                                 programs.toString()
                         );
                     }
@@ -529,7 +530,10 @@ public class MainActivity extends ImisActivity {
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    runOnUiThread(() -> progressDialog.dismiss());
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(MainActivity.this, getResources().getString(R.string.downloadFail), Toast.LENGTH_LONG).show();
+                    });
                 }
             });
             thread.start();

@@ -37,14 +37,15 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.math.BigInteger;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.UUID;
 
 import okhttp3.Response;
 
@@ -407,8 +408,10 @@ public class SynchronizeService extends JobIntentService {
         String d = AppInformation.DateTimeInfo.getDefaultFileDatetimeFormatter().format(cal.getTime());
         String zipFilename = "Claims" + "_" + global.getOfficerCode() + "_" + d + ".zip";
         File zipFile = storageManager.createTempFile("exports/claim/" + zipFilename, true);
+        String userCreated = sqlHandler.getClaimAdminInfo(global.getOfficerCode(), "CreatedAt");
+        Log.e("createdAt", userCreated);
 
-        String password = global.getRarPwd();
+        String password = encryptString(userCreated);
         ZipUtils.zipFiles(exportedClaims, zipFile, password);
         FileUtils.deleteFiles(exportedClaims.toArray(new File[0]));
 
@@ -455,5 +458,24 @@ public class SynchronizeService extends JobIntentService {
         resultIntent.putExtra(EXTRA_CLAIM_COUNT_REJECTED, rejected);
         sendBroadcast(resultIntent);
         Log.i(LOG_TAG, String.format(Locale.US, "%s finished with %s, result:  p: %d,a: %d,r: %d", ACTION_CLAIM_COUNT, ACTION_CLAIM_COUNT_RESULT, entered, accepted, rejected));
+    }
+
+    public static String encryptString(String input)
+    {
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-512");
+            byte[] messageDigest = md.digest(input.getBytes());
+            BigInteger no = new BigInteger(1, messageDigest);
+            String hashtext = no.toString(16);
+            while (hashtext.length() < 32) {
+                hashtext = "0" + hashtext;
+            }
+
+            return hashtext;
+        }
+
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

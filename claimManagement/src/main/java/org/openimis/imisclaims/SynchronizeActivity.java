@@ -554,6 +554,7 @@ public class SynchronizeActivity extends ImisActivity {
                                 claimAdmin.getHealthFacilityCode(),
                                 claimAdmin.getDisplayName(),
                                 claimAdmin.getHfId(),
+                                claimAdmin.getCreatedAt(),
                                 programs.toString()
                         );
                     }
