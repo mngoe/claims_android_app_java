@@ -409,7 +409,6 @@ public class SynchronizeService extends JobIntentService {
         String zipFilename = "Claims" + "_" + global.getOfficerCode() + "_" + d + ".zip";
         File zipFile = storageManager.createTempFile("exports/claim/" + zipFilename, true);
         String userCreated = sqlHandler.getClaimAdminInfo(global.getOfficerCode(), "CreatedAt");
-        Log.e("createdAt", userCreated);
 
         String password = encryptString(userCreated);
         ZipUtils.zipFiles(exportedClaims, zipFile, password);
