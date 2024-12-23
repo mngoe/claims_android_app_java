@@ -17,7 +17,6 @@ query GetClaimAdmins($offset: Int){
                   edges{
                     node{
                       iUser{
-                        validityFrom
                         programSet{
                           edges{
                             node{

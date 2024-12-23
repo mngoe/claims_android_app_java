@@ -515,7 +515,6 @@ public class MainActivity extends ImisActivity {
                                 claimAdmin.getHealthFacilityCode(),
                                 claimAdmin.getDisplayName(),
                                 claimAdmin.getHfId(),
-                                claimAdmin.getCreatedAt(),
                                 programs.toString()
                         );
                     }

@@ -63,7 +63,6 @@ public class FetchClaimAdmins {
                                         /* claimAdminCode = */ node.code(),
                                         /* healthFacilityCode = */ node.healthFacility() != null ? node.healthFacility().code() : null,
                                         /* healthFacilityId = */ fosaId,
-                                        /* createdAt = */ node.userSet().edges().get(0).node().iUser().validityFrom(),
                                         /* programs = */ programMapper.map(
                                                 node.userSet().edges().get(0).node().iUser().programSet().edges(),
                                         dt -> dt.node().idProgram()

@@ -457,7 +457,7 @@ and Claim Administrators can exist without having web access but when they do, t
 InteractiveUser, linked by their "code" aka "login_name"
 """
 type InteractiveUserGQLType implements Node {
-  validityFrom: String
+  validityFrom: DateTime!
   validityTo: DateTime
   legacyId: Int
   """
