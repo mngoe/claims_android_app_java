@@ -178,7 +178,7 @@ public class SynchronizeService extends JobIntentService {
                     }
 
                 }catch(Exception e){
-                    PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.NoInsureeFound));
+                    PostNewClaims.Result result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,e.getMessage());
                     results.add(result);
                 }
 
