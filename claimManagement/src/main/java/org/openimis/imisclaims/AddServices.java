@@ -41,6 +41,7 @@ public class AddServices extends ImisActivity {
     public static ArrayList<HashMap<String, String>> lvSServiceList;
     public static ArrayList<HashMap<String, String>> lvSItemList;
     public static String packageType;
+    public static String manualPrice;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -92,6 +93,7 @@ public class AddServices extends ImisActivity {
                     String Code = cursor.getString(itemColumnIndex);
                     String Name = cursor.getString(descColumnIndex);
                     packageType = sqlHandler.getPackageType(Code);
+                    manualPrice = sqlHandler.getManualPrice(Code);
                     String id = sqlHandler.getServiceId(Code);
 
                     oService = new HashMap<>();
@@ -103,8 +105,10 @@ public class AddServices extends ImisActivity {
                     etSAmount.setText(sqlHandler.getServicePrice(Code));
                     etSName.setText(sqlHandler.getServiceName(Code));
                     if (!packageType.equals("S")) {
-                        etSAmount.setText("");
-                        sServicePrice = 0;
+                        if(manualPrice.equals("0")){
+                            etSAmount.setText("");
+                            sServicePrice = 0;
+                        }
                         try {
                             JSONArray subServices = sqlHandler.getSubServicesIds(id);
                             JSONArray subServiceArr = new JSONArray();
@@ -132,7 +136,6 @@ public class AddServices extends ImisActivity {
                                 sService.put("QtyMax", obj.getString("QuantityMax"));
                                 lvSServiceList.add(sService);
                             }
-                            Log.e("subItems",subItemArr.toString());
                             for (int i = 0; i < subItemArr.length(); i++) {
                                 JSONObject obj = subItemArr.getJSONObject(i);
                                 HashMap<String, String> sItem = new HashMap<>();

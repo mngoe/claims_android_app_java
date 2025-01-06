@@ -44,7 +44,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String createTableClaimItems = "CREATE TABLE IF NOT EXISTS tblClaimItems(ClaimUUID TEXT, ItemId TEXT, ItemCode TEXT, ItemPrice TEXT, ItemQuantity TEXT);";
     private static final String createTableClaimServices = "CREATE TABLE IF NOT EXISTS tblClaimServices(ClaimUUID TEXT,ServiceId TEXT, ServiceCode TEXT, ServicePrice TEXT, ServiceQuantity TEXT, ServicePackageType TEXT, SubServicesItems TEXT);";
     private static final String createTableClaimUploadStatus = "CREATE TABLE IF NOT EXISTS tblClaimUploadStatus(ClaimUUID TEXT, UploadDate TEXT, UploadStatus TEXT, UploadMessage TEXT);";
-    private static final String CreateTableServices = "CREATE TABLE IF NOT EXISTS tblServices(Id text, Code text, Name text, Type text, Price text, PackageType text);";
+    private static final String CreateTableServices = "CREATE TABLE IF NOT EXISTS tblServices(Id text, Code text, Name text, Type text, Price text, PackageType text, ManualPrice Int);";
     private static final String CreateTableItems = "CREATE TABLE IF NOT EXISTS tblItems(Id text, Code text, Name text, Type text, Price text);";
     private static final String CreateTableSubServices = "CREATE TABLE IF NOT EXISTS tblSubServices(ServiceId text, ServiceLinked text, Quantity text, Price text);";
     private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text, Quantity text, Price text);";
@@ -702,6 +702,22 @@ public class SQLHandler extends SQLiteOpenHelper {
         return packageType;
     }
 
+    public String getManualPrice(String code) {
+        String manualPrice = "";
+        try (Cursor c = db.query("tblServices", new String[]{"ManualPrice"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    manualPrice = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return manualPrice;
+    }
+
     public String getServiceId(String code) {
         String id = "";
         try (Cursor c = db.query("tblServices", new String[]{"Id"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
@@ -734,7 +750,7 @@ public class SQLHandler extends SQLiteOpenHelper {
         return id;
     }
 
-    public void InsertService(String Id, String Code, String Name, String Type, String Price, String PackageType) {
+    public void InsertService(String Id, String Code, String Name, String Type, String Price, String PackageType, int ManualPrice) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("Id", Id);
@@ -743,6 +759,7 @@ public class SQLHandler extends SQLiteOpenHelper {
             cv.put("Type", Type);
             cv.put("Price", Price);
             cv.put("PackageType", PackageType);
+            cv.put("ManualPrice", ManualPrice);
             db.insert("tblServices", null, cv);
         } catch (Exception e) {
             e.printStackTrace();
