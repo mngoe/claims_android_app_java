@@ -76,7 +76,7 @@ public class CustomAdapter extends BaseAdapter {
             public void afterTextChanged(Editable editable) {
                 float amount = 0;
                 int qtyMax = Integer.valueOf(editModelArrayList.get(position).getQtyMax());
-                if(!holder.editQty.getText().toString().equals("")){
+                if(!holder.editQty.getText().toString().isEmpty()){
                     if (AddServices.packageType.equals("F")){
                         if(Float.valueOf(holder.editQty.getText().toString()) > qtyMax){
                             Toast.makeText(context, context.getResources().getString(R.string.qtyAlert) + " " + qtyMax, Toast.LENGTH_LONG).show();
@@ -89,10 +89,12 @@ public class CustomAdapter extends BaseAdapter {
                         }
                     }
                 }
-                for(int i = 0 ; i < editModelArrayList.size(); i++){
-                    amount = amount + (Float.valueOf(editModelArrayList.get(i).getQty()) * Float.valueOf(editModelArrayList.get(i).getPrice())) ;
+                if(AddServices.manualPrice.equals("0")){
+                    for(int i = 0 ; i < editModelArrayList.size(); i++){
+                        amount = amount + (Float.valueOf(editModelArrayList.get(i).getQty()) * Float.valueOf(editModelArrayList.get(i).getPrice()));
+                    }
+                    AddServices.etSAmount.setText(String.valueOf(amount));
                 }
-                AddServices.etSAmount.setText(String.valueOf(amount));
             }
         });
         return convertView;

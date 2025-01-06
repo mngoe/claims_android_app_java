@@ -754,7 +754,8 @@ public class MainActivity extends ImisActivity {
                                     service.getCode(),
                                     service.getName(), "S",
                                     String.valueOf(service.getPrice()),
-                                    service.getPackageType());
+                                    service.getPackageType(),
+                                    service.getManualPrice());
 
                             if (service.getSubServices() != null && !service.getSubServices().isEmpty()) {
                                 List<SubServiceItem> subServices = service.getSubServices();
