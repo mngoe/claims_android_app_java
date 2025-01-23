@@ -408,8 +408,7 @@ public class SynchronizeService extends JobIntentService {
         String zipFilename = "Claims" + "_" + global.getOfficerCode() + "_" + d + ".zip";
         File zipFile = storageManager.createTempFile("exports/claim/" + zipFilename, true);
 
-        //String password = global.getRarPwd();
-        String password = "sx@;rtfl:paSD5f";
+        String password = global.getRarPwd();
         ZipUtils.zipFiles(exportedClaims, zipFile, password);
         FileUtils.deleteFiles(exportedClaims.toArray(new File[0]));
 
