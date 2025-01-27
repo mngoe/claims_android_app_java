@@ -97,8 +97,8 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
                         + " serviceId: " + Integer.valueOf(service.getId())
                         + " priceAsked: \"" + service.getPrice() + "\""
                         + " qtyProvided: \"" + service.getQuantity() + "\""
-                        + " serviceserviceSet: " + subServices
-                        + " serviceLinked: " + subItems
+                        + " serviceServiceSet: " + subServices
+                        + " serviceItemSet: " + subItems
                         + " status: 1"
                         + "}";
                 claimServices = claimServices + obj;
