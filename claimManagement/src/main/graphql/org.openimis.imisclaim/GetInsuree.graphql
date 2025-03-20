@@ -1,6 +1,6 @@
 query GetInsuree($chfId: String) {
     insurees(
-        chfId: $chfId
+        chfId: $chfId, ignoreLocation: true
     ) {
         edges {
             node {
@@ -9,6 +9,9 @@ query GetInsuree($chfId: String) {
                 lastName 
                 otherNames
                 dob
+                family{
+                    uuid
+                }
                 currentVillage {
                   id
                 }
