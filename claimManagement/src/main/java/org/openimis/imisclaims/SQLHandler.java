@@ -198,7 +198,7 @@ public class SQLHandler extends SQLiteOpenHelper {
 
     public String getItemId(String code) {
         String id = "";
-        try (Cursor c = db.query("tblServices", new String[]{"Id"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+        try (Cursor c = db.query("tblItems", new String[]{"Id"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
             c.moveToFirst();
             if (!c.isAfterLast()) {
                 String result = c.getString(0);

@@ -113,7 +113,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
             claimItems = "[";
             for(Claim.Medication item: claim.getMedications()){
                 String obj = "{"
-                        + " serviceId: " + Integer.valueOf(item.getId())
+                        + " itemId: " + Integer.valueOf(item.getId())
                         + " priceAsked: \"" + item.getPrice() + "\""
                         + " qtyProvided: \"" + item.getQuantity() + "\""
                         + " status: 1"
