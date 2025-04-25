@@ -1,5 +1,7 @@
 package org.openimis.imisclaims;
+
 public class EditModel {
+
     private String code;
     private String name;
     private String price;

@@ -55,6 +55,7 @@ public class HealthFacility implements Parcelable {
         public HealthFacility createFromParcel(Parcel in) {
             return new HealthFacility(in);
         }
+
         @Override
         public HealthFacility[] newArray(int size) {
             return new HealthFacility[size];

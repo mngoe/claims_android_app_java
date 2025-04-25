@@ -12,9 +12,6 @@ public class About extends ImisActivity {
         appVersion = findViewById(R.id.tvAppVersion);
         appVersion.setText(BuildConfig.VERSION_NAME);
 
-        appVersion = findViewById(R.id.tvAppVersion);
-        appVersion.setText(BuildConfig.VERSION_NAME);
-
         if (actionBar != null) {
             actionBar.setTitle("");
         }

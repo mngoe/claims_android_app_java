@@ -353,6 +353,7 @@ public class SynchronizeService extends JobIntentService {
                         JSONArray subServicesItems = services.getJSONObject(j).getJSONArray("SubServicesItems");
                         JSONArray serviceServiceSet = new JSONArray();
                         JSONArray serviceItemSet = new JSONArray();
+
                         for (int s=0; s < subServicesItems.length(); s++){
                             JSONObject obj = subServicesItems.getJSONObject(s);
                             if(obj.getString("Type").equals("S")){

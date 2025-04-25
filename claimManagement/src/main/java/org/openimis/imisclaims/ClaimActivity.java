@@ -929,11 +929,10 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("ICDCode2", etDiagnosis2.getText().toString());
         claimCV.put("ICDCode3", etDiagnosis3.getText().toString());
         claimCV.put("ICDCode4", etDiagnosis4.getText().toString());
-//        claimCV.put("VisitType", visitType);
+        claimCV.put("VisitType", etVisitType.getTag().toString());
         claimCV.put("TestNumber", etTestNumber.getText().toString());
         claimCV.put("Tdr", tdr);
         claimCV.put("ClaimPrefix", etClaimPrefix.getText().toString());
-        claimCV.put("VisitType", etVisitType.getTag().toString());
 
         ArrayList<ContentValues> claimItemCVs = new ArrayList<>(lvItemList.size());
         for (int i = 0; i < lvItemList.size(); i++) {

@@ -24,11 +24,13 @@ public class FetchMedications {
     public FetchMedications() {
         this(new GetMedicationsGraphQLRequest());
     }
+
     public FetchMedications(
             @NonNull GetMedicationsGraphQLRequest request
     ) {
         this.request = request;
     }
+
     @WorkerThread
     @NonNull
     public List<Medication> execute() throws Exception {
