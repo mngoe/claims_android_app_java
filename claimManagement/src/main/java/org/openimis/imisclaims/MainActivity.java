@@ -713,7 +713,6 @@ public class MainActivity extends ImisActivity {
                         sqlHandler.ClearAll("tblReferences");
                         sqlHandler.ClearAll("tblPrograms");
                         sqlHandler.ClearAll("tblHealthFacilities");
-
                         //Insert Diagnoses
                         List<Diagnosis> diagnoses = new FetchDiagnosis().execute();
                         for (Diagnosis diagnosis : diagnoses) {

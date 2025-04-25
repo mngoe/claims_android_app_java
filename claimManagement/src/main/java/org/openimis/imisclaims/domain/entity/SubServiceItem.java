@@ -46,12 +46,10 @@ public class SubServiceItem implements Parcelable{
         dest.writeDouble(qty);
         dest.writeString(price);
     }
-
     @Override
     public int describeContents() {
         return 0;
     }
-
     @NonNull
     public String getId() {
         return id;
@@ -59,23 +57,19 @@ public class SubServiceItem implements Parcelable{
 
     @NonNull
     public String getCode(){ return code; }
-
     @NonNull
     public int getQty() {
         return qty;
     }
-
     @NonNull
     public String getPrice() {
         return price;
     }
-
     public static final Parcelable.Creator<SubServiceItem> CREATOR = new Parcelable.Creator<>() {
         @Override
         public SubServiceItem createFromParcel(Parcel in) {
             return new SubServiceItem(in);
         }
-
         @Override
         public SubServiceItem[] newArray(int size) {
             return new SubServiceItem[size];

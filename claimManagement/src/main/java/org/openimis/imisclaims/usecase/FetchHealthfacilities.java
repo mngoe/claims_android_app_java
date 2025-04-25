@@ -27,7 +27,6 @@ public class FetchHealthfacilities {
     ) {
         this.hfRequest = hfRequest;
     }
-
     @WorkerThread
     @NonNull
     public List<HealthFacility> execute() throws Exception{

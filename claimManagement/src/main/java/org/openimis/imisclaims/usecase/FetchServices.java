@@ -72,7 +72,6 @@ public class FetchServices {
                 /* subItems = */ subItemMapper.map(node.servicesLinked())
         );
     }
-
     private SubServiceItem toSubService(@NonNull GetServicesQuery.ServiceserviceSet service) {
         byte[] bytes = service.service().id().getBytes();
         String id = new String(Base64.decodeBase64(bytes)).split(":")[1];
@@ -83,7 +82,6 @@ public class FetchServices {
                 /* price = */ service.priceAsked()
         );
     }
-
     private SubServiceItem toSubItem(@NonNull GetServicesQuery.ServicesLinked item) {
         byte[] bytes = item.item().id().getBytes();
         String id = new String(Base64.decodeBase64(bytes)).split(":")[1];

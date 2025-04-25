@@ -32,6 +32,10 @@ jobs:
         run: |
           chmod +x gradlew
 
+      - name: show gradlew permission
+        run: |
+          chmod +x gradlew
+
       - name: build
         run: |
           ./gradlew assemblecsuDevDebug --stacktrace
