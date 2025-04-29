@@ -1,5 +1,4 @@
 package org.openimis.imisclaims;
-
 import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -40,12 +39,10 @@ public class CustomAdapter extends BaseAdapter {
     public int getCount() {
         return editModelArrayList.size();
     }
-
     @Override
     public Object getItem(int position) {
         return editModelArrayList.get(position);
     }
-
     @Override
     public long getItemId(int position) {
         return 0;
@@ -54,25 +51,21 @@ public class CustomAdapter extends BaseAdapter {
     @Override
     public View getView(final int position, View convertView, ViewGroup parent) {
         final ViewHolder holder;
-
         if (convertView == null) {
             holder = new ViewHolder();
             LayoutInflater inflater = (LayoutInflater) context
                     .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             convertView = inflater.inflate(R.layout.lv_sservice, null, true);
-
             holder.editCode = (TextView) convertView.findViewById(R.id.tvLvCode);
             holder.editName = (EditText) convertView.findViewById(R.id.tvLvName);
             holder.editQty = (EditText) convertView.findViewById(R.id.tvLvQuantity);
             holder.editPrice = (EditText) convertView.findViewById(R.id.tvLvPrice);
-
             convertView.setTag(holder);
 
         }else {
             // the getTag returns the viewHolder object set as a tag to the view
             holder = (ViewHolder)convertView.getTag();
         }
-
         holder.editCode.setText(editModelArrayList.get(position).getCode());
         holder.editName.setText(editModelArrayList.get(position).getName());
         holder.editQty.setText(editModelArrayList.get(position).getQty());
@@ -105,7 +98,6 @@ public class CustomAdapter extends BaseAdapter {
                 int qtyMax = Integer.valueOf(editModelArrayList.get(position).getQtyMax());
 
                 if(!holder.editQty.getText().toString().equals("")){
-
                     if (AddServices.packageType.equals("F")){
                         if(Float.valueOf(holder.editQty.getText().toString()) > qtyMax){
                             Toast.makeText(context, context.getResources().getString(R.string.qtyAlert) + " " + qtyMax, Toast.LENGTH_LONG).show();
@@ -137,7 +129,6 @@ public class CustomAdapter extends BaseAdapter {
     }
 
     private class ViewHolder {
-
         protected EditText editQty;
         protected EditText editName;
         protected EditText editPrice;

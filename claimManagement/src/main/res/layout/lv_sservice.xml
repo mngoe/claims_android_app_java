@@ -11,14 +11,12 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         >
-
         <TextView
             android:id="@+id/tvLvCode"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textColor="@color/Gray"
             android:textStyle="bold" />
-
         <EditText
             android:id="@+id/tvLvName"
             android:layout_width="match_parent"
@@ -26,7 +24,6 @@
             android:textSize="15dp"
             android:enabled="false"
             android:textColor="@color/Gray" />
-
     </LinearLayout>
 
     <LinearLayout
@@ -35,7 +32,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:layout_marginLeft="15dp">
-
         <TextView
             android:id="@+id/tvLvQuantityLable"
             android:layout_width="wrap_content"
@@ -66,7 +62,6 @@
             android:layout_height="match_parent"
             android:text="@string/Price"
             android:textColor="@color/Gray" />
-
         <EditText
             android:id="@+id/tvLvPrice"
             android:layout_width="match_parent"

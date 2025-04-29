@@ -1077,9 +1077,7 @@ public class SQLHandler extends SQLiteOpenHelper {
                 JSONObject resultClaim = new JSONObject();
                 resultClaim.put("details", claim);
                 resultClaim.put("items", getClaimItems(ClaimUUID));
-
                 JSONArray claimServices = getClaimServices(ClaimUUID);
-
                 for(int j = 0; j<claimServices.length(); j++){
                     JSONObject service = claimServices.getJSONObject(j);
                     if(service.has("SubServicesItems")){
@@ -1199,9 +1197,16 @@ public class SQLHandler extends SQLiteOpenHelper {
     @NonNull
     public JSONObject getClaimCounts() {
         JSONArray claimCounts = getQueryResultAsJsonArray(
-                "SELECT CASE WHEN cus.UploadStatus IS NULL OR cus.UploadStatus = ? THEN ? ELSE cus.UploadStatus END AS Status, count(*) AS Amount" +
-                        " FROM tblClaimDetails cd LEFT JOIN tblClaimUploadStatus cus on cd.ClaimUUID=cus.ClaimUUID" +
-                        " GROUP BY Status",
+                "WITH LatestStatus AS (\n" +
+                        "    SELECT ClaimUUID, UploadStatus, MAX(cus.UploadDate) from tblClaimUploadStatus cus GROUP BY cus.ClaimUUID\n" +
+                        ")\n" +
+                        "SELECT \n" +
+                        "    CASE WHEN ls.UploadStatus IS NULL OR ls.UploadStatus = ? THEN ? ELSE ls.UploadStatus END AS Status, \n" +
+                        "    count(*) AS Amount\n" +
+                        "FROM \n" +
+                        "    tblClaimDetails cd \n" +
+                        "    LEFT JOIN LatestStatus ls on cd.ClaimUUID=ls.ClaimUUID\n" +
+                        "GROUP BY Status;",
                 new String[]{CLAIM_UPLOAD_STATUS_ERROR, CLAIM_UPLOAD_STATUS_ENTERED}
         );
 
@@ -1269,5 +1274,4 @@ public class SQLHandler extends SQLiteOpenHelper {
             return REFERENCE_UNKNOWN;
         }
     }
-
 }

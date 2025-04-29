@@ -27,7 +27,7 @@ android {
         minSdkVersion 23
         targetSdkVersion 32
         versionCode 4
-        versionName "2.2.1"
+        versionName "2.2.3"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
@@ -215,7 +215,7 @@ dependencies {
     implementation 'com.google.zxing:core:3.3.0'
     implementation 'com.embarkmobile:zxing-android-minimal:1.2.1@aar'
     implementation 'commons-io:commons-io:2.11.0'
-    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'com.google.android.material:material:1.6.1'
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'org.apache.httpcomponents:httpclient:4.5.9'
     implementation 'org.apache.httpcomponents:httpcore:4.4.11'
