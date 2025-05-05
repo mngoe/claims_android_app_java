@@ -177,8 +177,6 @@ public class ClaimActivity extends ImisActivity {
             String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(), "HFId");
             String hfPrograms = sqlHandler.getHealthFacilityPrograms(hfId);
             String userPrograms = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"Programs");
-            Log.e("userProg",userPrograms);
-            Log.e("hfProg",hfPrograms);
             JSONArray arrayHfPrograms = new JSONArray(hfPrograms);
             JSONArray arrayAdminPrograms = new JSONArray(userPrograms);
             for (int i = 0 ; i< arrayHfPrograms.length(); i++){
@@ -674,15 +672,19 @@ public class ClaimActivity extends ImisActivity {
                         switch (claimDetails.getString("VisitType")) {
                             case "E":
                                 etVisitType.setText(getResources().getString(R.string.Emergency));
+                                etVisitType.setTag("E");
                                 break;
                             case "R":
                                 etVisitType.setText(getResources().getString(R.string.Referral));
+                                etVisitType.setTag("R");
                                 break;
                             case "O":
                                 etVisitType.setText(getResources().getString(R.string.Other));
+                                etVisitType.setTag("O");
                                 break;
                             default:
                                 etVisitType.setText("");
+                                etVisitType.setTag("");
                         }
 
                         lvItemList.clear();
@@ -902,12 +904,14 @@ public class ClaimActivity extends ImisActivity {
         //selectedTypeButton = findViewById(SelectedId);
 
         String tdr = "";
+        String testNumber = "";
         if (prefixProgramCode.equals("PAL")) {
             int SelectedTdrId;
             SelectedTdrId = rgTdr.getCheckedRadioButtonId();
             RadioButton selectedTgrButton;
             selectedTgrButton = findViewById(SelectedTdrId);
             tdr = selectedTgrButton.getTag().toString();
+            testNumber = etTestNumber.getText().toString();
         }
 
         ContentValues claimCV = new ContentValues();
@@ -930,7 +934,7 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("ICDCode3", etDiagnosis3.getText().toString());
         claimCV.put("ICDCode4", etDiagnosis4.getText().toString());
         claimCV.put("VisitType", etVisitType.getTag().toString());
-        claimCV.put("TestNumber", etTestNumber.getText().toString());
+        claimCV.put("TestNumber", testNumber);
         claimCV.put("Tdr", tdr);
         claimCV.put("ClaimPrefix", etClaimPrefix.getText().toString());
 

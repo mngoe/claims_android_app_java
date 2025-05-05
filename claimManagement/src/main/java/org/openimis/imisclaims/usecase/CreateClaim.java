@@ -3,37 +3,30 @@ package org.openimis.imisclaims.usecase;
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-import org.openimis.imisclaims.SQLHandler;
 import org.openimis.imisclaims.domain.entity.Claim;
-import org.openimis.imisclaims.domain.entity.Insuree;
-import org.openimis.imisclaims.network.exception.HttpException;
 import org.openimis.imisclaims.network.request.CreateClaimGraphQLRequest;
-import org.openimis.imisclaims.tools.Log;
-
-import java.net.HttpURLConnection;
-import java.util.List;
-
-import okhttp3.Response;
 
 public class CreateClaim {
 
     @NonNull
     private final CreateClaimGraphQLRequest createClaimGraphQLRequest;
+    @NonNull
+    private final CheckMutation checkMutation;
 
     public CreateClaim() {
-        this(new CreateClaimGraphQLRequest());
+        this(new CheckMutation(), new CreateClaimGraphQLRequest());
     }
 
     public CreateClaim(
-            @NonNull CreateClaimGraphQLRequest createPolicyGraphQLRequest
+            @NonNull CheckMutation checkMutation,
+            @NonNull CreateClaimGraphQLRequest createClaimGraphQLRequest
     ) {
-        this.createClaimGraphQLRequest = createPolicyGraphQLRequest;
+        this.createClaimGraphQLRequest = createClaimGraphQLRequest;
+        this.checkMutation = checkMutation;
     }
 
     @WorkerThread
-    public Response execute(
+    public Integer execute(
             Claim claim,
             int adminId,
             int hfId,
@@ -42,6 +35,8 @@ public class CreateClaim {
             int diagnosisId,
             String programCode
     ) throws Exception {
-        return createClaimGraphQLRequest.create(claim,hfId ,adminId, insureeId, programId, diagnosisId, programCode);
+        return checkMutation.execute(
+                createClaimGraphQLRequest.create(claim,hfId ,adminId, insureeId, programId, diagnosisId, programCode),
+                "Error while creating policy for beneficiary '" + claim.getClaimNumber() + "'");
     }
 }
