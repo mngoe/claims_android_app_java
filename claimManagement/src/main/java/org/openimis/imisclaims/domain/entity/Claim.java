@@ -20,7 +20,7 @@ public class Claim implements Parcelable {
     @NonNull
     private final String healthFacilityName;
 
-    @Nullable
+    @NonNull
     private final String insuranceNumber;
 
     @NonNull
@@ -287,7 +287,7 @@ public class Claim implements Parcelable {
         return healthFacilityName;
     }
 
-    @Nullable
+    @NonNull
     public String getInsuranceNumber() {
         return insuranceNumber;
     }
@@ -424,12 +424,12 @@ public class Claim implements Parcelable {
     @Nullable
     public String getClaimPrefix(){ return claimPrefix; }
 
-    @NonNull
+    @Nullable
     public List<Service> getServices() {
         return services;
     }
 
-    @NonNull
+    @Nullable
     public List<Medication> getMedications() {
         return medications;
     }

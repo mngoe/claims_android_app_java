@@ -12,6 +12,7 @@ import org.openimis.imisclaims.domain.entity.SubServiceItem;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.util.DateUtils;
 import java.security.cert.CertificateException;
+import java.util.UUID;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -20,7 +21,6 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
-import okhttp3.FormBody;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -36,7 +36,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
 
     @WorkerThread
     @NonNull
-    public Response create(
+    public String create(
             @NonNull Claim claim,
             @NonNull int hfId,
             @NonNull int adminId,
@@ -46,6 +46,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
             @NonNull String programCode
     ) throws Exception{
 
+        String clientMutationId = UUID.randomUUID().toString();
         String fagepFields = "";
         if(programCode.equals("PAL")){
             fagepFields = " testNumber: \"" + claim.getTestNumber() + "\""
@@ -126,6 +127,8 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
         String QUERY_DOCUMENT = QueryDocumentMinifier.minify(
                 "mutation {"
                         + "  createClaim(input: {"
+                        + " clientMutationId: \"" + clientMutationId + "\""
+                        + " clientMutationLabel: \" create claim " + claim.getClaimNumber() + "\""
                         + " code: \"" + claim.getClaimNumber() + "\""
                         + " insureeId: " + insureeId
                         + " adminId: " + adminId
@@ -202,6 +205,6 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
             String responsePhrase = response.body().string();
             Log.i("RESPONSE", String.format("response: %d %s", responseCode, responsePhrase));
 
-            return response;
+            return clientMutationId;
     }
 }
