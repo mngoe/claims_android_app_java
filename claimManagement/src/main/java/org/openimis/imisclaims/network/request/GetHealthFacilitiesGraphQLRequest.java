@@ -6,7 +6,7 @@ import org.openimis.imisclaims.GetHealthFacilityQuery;
 
 public class GetHealthFacilitiesGraphQLRequest extends BaseGraphQLRequest{
 
-    private static final String URI = "https://test-csuapps.minsante.cm/api/graphql";
+    private static final String URI = "https://csureport.minsante.cm/api/graphql";
 
     @NonNull
     @WorkerThread
