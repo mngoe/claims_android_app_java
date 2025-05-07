@@ -145,6 +145,7 @@ public class ClaimActivity extends ImisActivity {
         ArrayAdapter<String> visitTypeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, visitTypes);
         visitTypeAdapter.setDropDownViewResource(android.R.layout.select_dialog_singlechoice);
         etVisitType.setAdapter(visitTypeAdapter);
+        etVisitType.setThreshold(100);
         etVisitType.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
