@@ -512,7 +512,7 @@ public class ClaimActivity extends ImisActivity {
         etDiagnosis4.setText("");
         rgVisitType.clearCheck();
         etVisitType.setText("");
-        etClaimCode.requestFocus();
+        etInsureeNumber.requestFocus();
         etClaimPrefix.setText("");
         etTestNumber.setText("");
         rgTdr.clearCheck();

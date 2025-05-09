@@ -141,27 +141,27 @@ public class SynchronizeService extends JobIntentService {
                     isValidClaimCode = new ValidateClaimCode().execute(claim.getClaimNumber());
 
                     if(isValidClaimCode){
-                        if(claim.getClaimProgram().equals("Cheque Santé") || claim.getClaimProgram().equals("Chèque Santé")){
-                            if(claim.getClaimPrefix() != null){
-                                List<ChequeImport> cheques = new ArrayList<>();
-                                // search cheque number in server
-                                try{
-                                    cheques = new FetchChequeNumber().execute(claim.getClaimPrefix());
-
-                                    if(cheques.isEmpty()){
-                                        result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.InvalidChequeNumber));
-                                        results.add(result);
-                                    } else if (cheques.get(0).getStatus().equals("New")){
-                                        result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.NonUsedChequeNumber));
-                                        results.add(result);
-                                    } else {
-                                        // Search insuree
-                                        String insuree = "";
+                        // Search insuree
+                        try{
+                            String insuree = new FetchInsuree().execute(claim.getInsuranceNumber());
+                            if(!insuree.isEmpty()){
+                                insureeId = Integer.parseInt(insuree);
+                                if(claim.getClaimProgram().equals("Cheque Santé") || claim.getClaimProgram().equals("Chèque Santé")){
+                                    if(claim.getClaimPrefix() != null){
+                                        List<ChequeImport> cheques = new ArrayList<>();
+                                        // search cheque number in server
                                         try{
-                                            insuree = new FetchInsuree().execute(claim.getInsuranceNumber());
-
-                                            if(!insuree.isEmpty()){
-                                                insureeId = Integer.parseInt(insuree);
+                                            cheques = new FetchChequeNumber().execute(claim.getClaimPrefix());
+                                            if(cheques.isEmpty()){
+                                                //invalid cheque
+                                                result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.InvalidChequeNumber));
+                                                results.add(result);
+                                            } else if (cheques.get(0).getStatus().equals("New")){
+                                                // not attribute cheque
+                                                result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.NonUsedChequeNumber));
+                                                results.add(result);
+                                            } else {
+                                                //upload claim
                                                 try {
                                                     Integer status = new CreateClaim().execute(claim, Integer.parseInt(adminId),Integer.parseInt(hfId),insureeId,programId, diagnosisId, programCode);
                                                     if(status == STATUS_ERROR){
@@ -169,68 +169,59 @@ public class SynchronizeService extends JobIntentService {
                                                     }else{
                                                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS, null);
                                                     }
+                                                } catch (HttpException e){
+                                                    result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
                                                 } catch ( Exception e ){
                                                     result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
                                                 }
                                                 results.add(result);
                                             }
                                         } catch (HttpException e){
-                                            if(e.getCode() != HttpURLConnection.HTTP_NOT_FOUND){
-                                                result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
-                                            }else{
-                                                result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.NoInsureeFound));
-                                            }
+                                            result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
                                             results.add(result);
                                         } catch (Exception e){
                                             result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
                                             results.add(result);
                                         }
                                     }
-                                } catch (Exception e){
-                                    result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
-                                    results.add(result);
-                                }
-                            }
-                        } else {
-                            String insuree = "";
-                            try{
-                                insuree = new FetchInsuree().execute(claim.getInsuranceNumber());
-
-                                if (!insuree.isEmpty()){
-                                    insureeId = Integer.parseInt(insuree);
+                                } else {
+                                    //upload claim
                                     try {
                                         Integer status = new CreateClaim().execute(claim, Integer.parseInt(adminId),Integer.parseInt(hfId),insureeId,programId, diagnosisId, programCode);
                                         if(status == STATUS_ERROR){
                                             result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
-                                        }else {
+                                        }else{
                                             result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS, null);
                                         }
-                                    } catch (Exception e){
+                                    } catch (HttpException e){
+                                        result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
+                                    } catch ( Exception e ){
                                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
                                     }
                                     results.add(result);
                                 }
-                            } catch (HttpException e){
-                                if( e.getCode() != HttpURLConnection.HTTP_NOT_FOUND){
-                                    result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
-                                }else {
-                                    result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.NoInsureeFound));
-                                }
-                                results.add(result);
-                            } catch (Exception e){
-                                result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
-                                results.add(result);
-                                e.printStackTrace();
                             }
+                        } catch (HttpException e){
+                            if(e.getCode() != HttpURLConnection.HTTP_NOT_FOUND){
+                                result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
+                            }else{
+                                result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.NoInsureeFound));
+                            }
+                            results.add(result);
+                        } catch (Exception e){
+                            result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
+                            results.add(result);
                         }
                     } else{
                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.ClaimNumberExist));
                         results.add(result);
                     }
-                }  catch (Exception e){
+                }  catch (HttpException e){
+                    result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,e.getMessage());
+                    results.add(result);
+                } catch (Exception e){
                     result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
                     results.add(result);
-                    throw e;
                 }
             }
             JSONArray claimStatus = processClaimResponse(results);
