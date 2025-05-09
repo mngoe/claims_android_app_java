@@ -1,4 +1,4 @@
-name: develop-comores
+name: Android CI/CD - Policies Comores
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build APK
+    name: Build and Publish APK
     runs-on: ubuntu-latest
 
     steps:
@@ -24,28 +24,34 @@ jobs:
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > policies_comores.jks
+          echo "Keystore file created:"
+          ls -lh policies_comores.jks
 
-      - name: Set up Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          cache-disabled: true
+      - name: Grant execute permission to gradlew
+        run: chmod +x gradlew
 
-
-      - name: Build release APK
-        run: ./gradlew assemblecomoresDevDebug
+      - name: Build with Gradle
+        run: |
+          ./gradlew clean
+          ./gradlew assembleComoresDevRelease --stacktrace --info
         env:
+          KEYSTORE_FILE: policies_comores.jks
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Rename APK
-        run: mv app/build/outputs/apk/comoresDev/debug/app-comoresDev-debug.apk claims-comores-test.apk
-
-      - name: List APK files
-        run: ls -l claims-comores-test.apk
+      - name: Debug APK location
+        run: |
+          echo "=== Listing all APK files ==="
+          find app/build/outputs -name "*.apk" -exec ls -lh {} \; || echo "No APK files found"
+          
+          echo "=== Expected path content ==="
+          ls -lh app/build/outputs/apk/comoresDev/release/ || echo "Path not found"
 
       - name: Upload APK
+        if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: claims-comores-test.apk
-          path: claims-comores-test.apk
+          name: policies-comores-apk
+          path: app/build/outputs/apk/**/*comoresDev*.apk
+          if-no-files-found: error
