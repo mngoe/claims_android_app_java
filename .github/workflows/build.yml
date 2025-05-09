@@ -38,10 +38,10 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Rename APK
-        run: mv app/build/outputs/apk/comoresDev/debug/app-comoresDev-debug.apk claims-comores-test.apk
+        run: mv app/build/outputs/apk/comoresDev/debug/app-comoresDev-debug.apk policies-comores-test.apk
 
       - name: List APK files
-        run: ls -l claims-comores-test.apk
+        run: ls -l policies-comores-test.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
