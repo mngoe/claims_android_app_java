@@ -41,10 +41,12 @@ jobs:
         run: ls -R app/build/outputs/apk/
 
       - name: Rename APK
-        run: mv app/build/outputs/apk/**/*.apk claims-comores-test.apk
+        run: mv app/build/outputs/apk/debug/*.apk claims-comores-test.apk
 
       - name: List APK files
         run: ls -l claims-comores-test.apk
+
+
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
