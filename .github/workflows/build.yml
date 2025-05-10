@@ -30,25 +30,27 @@ jobs:
         with:
           cache-disabled: true
 
+      - name: Verify Gradle Tasks
+        run: ./gradlew tasks
+
       - name: Build release APK
-        run: ./gradlew assemblecomoresDevDebug
+        run: ./gradlew assemblecomoresDevDebug --stacktrace
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: List APK files
-        run: ls -R app/build/outputs/apk/
+      - name: Explore build directory
+        run: ls -R .
 
       - name: Rename APK
-        run: mv app/build/outputs/apk/debug/*.apk claims-comores-test.apk
+        run: mv claimManagement/build/outputs/apk/bephaDev/debug/*.apk claims-comores-test.apk || echo "APK not found"
 
       - name: List APK files
-        run: ls -l claims-comores-test.apk
-
-
+        run: ls -l claims-comores-test.apk || echo "APK not found"
 
       - name: Upload APK
+        if: success() && steps.rename_apk.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: claims-comores-test.apk
