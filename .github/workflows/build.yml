@@ -38,7 +38,7 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
       - name: Rename APK
-        run: mv app/build/outputs/apk/comoresDev/debug/app-comoresDev-debug.apk claims-comores-test.apk || echo "APK not found"
+        run: mv app/build/outputs/apk/comoresDev/debug/app-comoresDev-debug.apk policies-comores-test.apk || echo "APK not found"
 
       - name: List APK files
         run: ls -l policies-comores-test.apk || echo "APK not found"
@@ -46,5 +46,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: claims-comores-test.apk
+          name: policies-comores-test.apk
           path: policies-comores-test.apk
