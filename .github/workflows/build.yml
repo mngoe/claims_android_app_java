@@ -30,9 +30,6 @@ jobs:
         with:
           cache-disabled: true
 
-      - name: Verify Gradle Tasks
-        run: ./gradlew tasks
-
       - name: Build release APK
         run: ./gradlew assemblecomoresDevDebug --stacktrace
         env:
@@ -40,25 +37,14 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Explore build directory
-        run: ls -R .
-
       - name: Rename APK
-        id: rename_apk
-        run: |
-          if [ -f claimManagement/build/outputs/apk/bephaDev/debug/*.apk ]; then
-            mv claimManagement/build/outputs/apk/bephaDev/debug/*.apk claims-comores-test.apk
-            echo "renamed=true" >> $GITHUB_OUTPUT
-          else
-            echo "APK not found in expected location"
-            echo "renamed=false" >> $GITHUB_OUTPUT
-            # Try to find the APK elsewhere
-            find . -name "*.apk" -type f
-          fi
+        run: mv app/build/outputs/apk/comoresDev/debug/app-comoresDev-debug.apk claims-comores-test.apk || echo "APK not found"
+
+      - name: List APK files
+        run: ls -l policies-comores-test.apk || echo "APK not found"
 
       - name: Upload APK
-        if: steps.rename_apk.outputs.renamed == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: claims-comores-test
+          name: claims-comores-test.apk
           path: claims-comores-test.apk
