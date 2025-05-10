@@ -47,4 +47,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: claims-comores-test.apk
-          path: claims-comores-test.apk
+          path: policies-comores-test.apk
