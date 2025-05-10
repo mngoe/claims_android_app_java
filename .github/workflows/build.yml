@@ -14,30 +14,24 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-        run: echo "Repository checked out."
 
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
           distribution: 'temurin'
           java-version: 17
-        run: echo "JDK 17 setup complete."
 
       - name: Decode keystore
         run: |
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > policies_comores.jks
-          echo "Keystore decoded."
 
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v2
         with:
           cache-disabled: true
-        run: echo "Gradle setup complete."
 
       - name: Verify Gradle Tasks
-        run: |
-          ./gradlew tasks
-          echo "Gradle tasks verified."
+        run: ./gradlew tasks
 
       - name: Build release APK
         run: ./gradlew assemblecomoresDevDebug --stacktrace
@@ -45,27 +39,26 @@ jobs:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-          run: echo "Release APK built."
 
       - name: Explore build directory
-        run: |
-          ls -R .
-          echo "Build directory explored."
+        run: ls -R .
 
       - name: Rename APK
+        id: rename_apk
         run: |
-          mv claimManagement/build/outputs/apk/bephaDev/debug/*.apk claims-comores-test.apk || echo "APK not found"
-          echo "APK renamed."
-
-      - name: List APK files
-        run: |
-          ls -l claims-comores-test.apk || echo "APK not found"
-          echo "APK files listed."
+          if [ -f claimManagement/build/outputs/apk/bephaDev/debug/*.apk ]; then
+            mv claimManagement/build/outputs/apk/bephaDev/debug/*.apk claims-comores-test.apk
+            echo "renamed=true" >> $GITHUB_OUTPUT
+          else
+            echo "APK not found in expected location"
+            echo "renamed=false" >> $GITHUB_OUTPUT
+            # Try to find the APK elsewhere
+            find . -name "*.apk" -type f
+          fi
 
       - name: Upload APK
-        if: success() && steps.rename_apk.outcome == 'success'
+        if: steps.rename_apk.outputs.renamed == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: claims-comores-test.apk
+          name: claims-comores-test
           path: claims-comores-test.apk
-        run: echo "APK uploaded."
