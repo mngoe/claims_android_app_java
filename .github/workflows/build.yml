@@ -1,4 +1,4 @@
-name: develop-comores
+name: Develop Comores
 
 on:
   push:
@@ -30,7 +30,6 @@ jobs:
         with:
           cache-disabled: true
 
-
       - name: Build release APK
         run: ./gradlew assemblecomoresDevDebug
         env:
@@ -38,8 +37,11 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
+      - name: List APK files
+        run: ls -R app/build/outputs/apk/
+
       - name: Rename APK
-        run: mv app/build/outputs/apk/comoresDev/debug/app-comoresDev-debug.apk claims-comores-test.apk
+        run: mv app/build/outputs/apk/**/*.apk claims-comores-test.apk
 
       - name: List APK files
         run: ls -l claims-comores-test.apk
