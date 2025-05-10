@@ -43,15 +43,6 @@ jobs:
       - name: Explore build directory
         run: ls -R .
 
-      - name: Explore output directories
-        run: |
-          echo "Exploring build output directories..."
-          ls -R app/build/outputs/apk/ || echo "No APKs found in app/"
-          ls -R claimManagement/build/outputs/apk/ || echo "No APKs found in claimManagement/"
-
-      - name: Verify APK Path
-        run: ls -l claimManagement/build/outputs/apk/bephaDev/debug/
-
       - name: Rename APK
         run: mv claimManagement/build/outputs/apk/bephaDev/debug/*.apk claims-comores-test.apk || echo "APK not found"
 
@@ -59,7 +50,7 @@ jobs:
         run: ls -l claims-comores-test.apk || echo "APK not found"
 
       - name: Upload APK
-        if: success()
+        if: success() && steps.rename_apk.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: claims-comores-test.apk
