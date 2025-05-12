@@ -11,7 +11,6 @@ jobs:
     name: Build APK
     runs-on: ubuntu-latest
 
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -38,14 +37,16 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Rename APK
-        run: mv app/build/outputs/apk/comoresDev/debug/app-comoresDev-debug.apk policies-comores-test.apk || echo "APK not found"
+      - name: Verify APK exists
+        run: ls -la claimManagement/build/outputs/apk/comoresDev/debug/
 
-      - name: List APK files
-        run: ls -l policies-comores-test.apk || echo "APK not found"
+      - name: Rename APK
+        run: |
+          mkdir -p artifacts
+          cp claimManagement/build/outputs/apk/comoresDev/debug/claimManagement-comoresDev-debug.apk artifacts/claims-comores-test.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: claims-comores-test.apk
-          path: policies-comores-test.apk
+          name: claims-comores-test
+          path: artifacts/claims-comores-test.apk
