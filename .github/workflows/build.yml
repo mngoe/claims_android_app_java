@@ -42,41 +42,10 @@ jobs:
 
       - name: Rename APK
         run: |
-          mkdir -p artifacts
-          cp claimManagement/build/outputs/apk/comoresDev/debug/claimManagement-comoresDev-debug.apk artifacts/claims-comores-test.apk
+          cp claimManagement/build/outputs/apk/comoresDev/debug/claimManagement-comoresDev-debug.apk claims-comores-test.apk
 
-      - name: Generate release timestamp
-        id: timestamp
-        run: echo "timestamp=$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: build-${{ steps.timestamp.outputs.timestamp }}
-          release_name: Comores Build ${{ steps.timestamp.outputs.timestamp }}
-          draft: false
-          prerelease: true
-          body: |
-            Automated build from branch ${{ github.ref_name }}
-            Commit: ${{ github.sha }}
-            Build date: $(date +'%Y-%m-%d %H:%M:%S')
-
-      - name: Upload APK as Release Asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./artifacts/claims-comores-test.apk
-          asset_name: claims-comores-test.apk
-          asset_content_type: application/vnd.android.package-archive
-
-
-      - name: Upload APK as Artifact (backup)
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: claims-comores-test
-          path: artifacts/claims-comores-test.apk
+          path: claims-comores-test.apk
