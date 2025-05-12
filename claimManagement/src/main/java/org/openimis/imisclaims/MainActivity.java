@@ -468,6 +468,7 @@ public class MainActivity extends ImisActivity {
     }
 
     public boolean getControls() {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (global.isNetworkAvailable()) {
             String progress_message = getResources().getString(R.string.getControls);
             progressDialog = ProgressDialog.show(this, getResources().getString(R.string.initializing), progress_message);
@@ -702,7 +703,6 @@ public class MainActivity extends ImisActivity {
     }
 
     public void DownLoadDiagnosesServicesItems(@Nullable final String officerCode) {
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (global.isNetworkAvailable()) {
             String progress_message = getResources().getString(R.string.Diagnoses) + ", " + getResources().getString(R.string.Services) + ", " + getResources().getString(R.string.Items) + "...";
             progressDialog = ProgressDialog.show(this, getResources().getString(R.string.Checking_For_Updates), progress_message);
