@@ -48,6 +48,7 @@ import org.openimis.imisclaims.domain.entity.PaymentList;
 import org.openimis.imisclaims.domain.entity.Program;
 import org.openimis.imisclaims.domain.entity.Service;
 import org.openimis.imisclaims.domain.entity.SubServiceItem;
+import org.openimis.imisclaims.network.exception.HttpException;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.usecase.FetchClaimAdmins;
 import org.openimis.imisclaims.usecase.FetchControls;
@@ -62,10 +63,13 @@ import org.openimis.imisclaims.util.DateUtils;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.UnknownHostException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
+
 public class MainActivity extends ImisActivity {
     private static final int REQUEST_PERMISSIONS_CODE = 1;
     private static final int REQUEST_ALL_FILES_ACCESS_CODE = 2;
@@ -488,7 +492,11 @@ public class MainActivity extends ImisActivity {
                         e.printStackTrace();
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
-                            ErrorDialogBox(e.getMessage());
+                            if(Objects.requireNonNull(e.getMessage()).contains("Failed to execute http call")){
+                                ErrorDialogBox(getResources().getString(R.string.ConnectionFailed));
+                            }else{
+                                ErrorDialogBox(e.getMessage());
+                            }
                         });
                     }
                 }

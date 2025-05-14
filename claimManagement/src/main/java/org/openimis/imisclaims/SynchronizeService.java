@@ -165,21 +165,16 @@ public class SynchronizeService extends JobIntentService {
                                                 try {
                                                     Integer status = new CreateClaim().execute(claim, Integer.parseInt(adminId),Integer.parseInt(hfId),insureeId,programId, diagnosisId, programCode);
                                                     if(status == STATUS_ERROR){
-                                                        result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
+                                                        result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.FailedToCreateClaim));
                                                     }else{
                                                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS, null);
                                                     }
                                                 } catch (HttpException e){
                                                     result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
-                                                } catch ( Exception e ){
-                                                    result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
                                                 }
                                                 results.add(result);
                                             }
                                         } catch (HttpException e){
-                                            result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
-                                            results.add(result);
-                                        } catch (Exception e){
                                             result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
                                             results.add(result);
                                         }
@@ -189,13 +184,11 @@ public class SynchronizeService extends JobIntentService {
                                     try {
                                         Integer status = new CreateClaim().execute(claim, Integer.parseInt(adminId),Integer.parseInt(hfId),insureeId,programId, diagnosisId, programCode);
                                         if(status == STATUS_ERROR){
-                                            result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
+                                            result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.FailedToCreateClaim));
                                         }else{
                                             result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS, null);
                                         }
                                     } catch (HttpException e){
-                                        result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
-                                    } catch ( Exception e ){
                                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
                                     }
                                     results.add(result);
@@ -208,19 +201,20 @@ public class SynchronizeService extends JobIntentService {
                                 result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.NoInsureeFound));
                             }
                             results.add(result);
-                        } catch (Exception e){
-                            result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
-                            results.add(result);
                         }
                     } else{
                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.ClaimNumberExist));
                         results.add(result);
                     }
-                }  catch (HttpException e){
+                } catch (HttpException e){
                     result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,e.getMessage());
                     results.add(result);
                 } catch (Exception e){
-                    result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
+                    if(Objects.requireNonNull(e.getMessage()).contains("Failed to execute http")){
+                        result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.ConnectionFailed));
+                    } else{
+                        result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
+                    }
                     results.add(result);
                 }
             }
