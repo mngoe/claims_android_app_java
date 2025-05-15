@@ -555,4 +555,14 @@
   <string name="qtyAlertAsk">La quantité autorisée pour ce produit est</string>
   <string name="ConnectionFailed">Échec de connexion</string>
   <string name="FailedToCreateClaim">Échec lors de la création de la prestation</string>
+  <string name="Update">Mise à jour</string>
+  <string name="checkUpdate">Vérifier la mise à jour</string>
+  <string name="Error">Une erreur s\'est produite</string>
+  <string name="downloading">Téléchargement en cours</string>
+  <string name="downloadUpdateFail">Echec de la mise à jour</string>
+  <string name="download">Télécharger</string>
+  <string name="cancel">Annuler</string>
+  <string name="updateAvailable">Mise à jour disponible</string>
+  <string name="haveLastVersion">Vous avez la dernière version </string>
+  <string name="newVersion">Nouvelle version </string>
 </resources>

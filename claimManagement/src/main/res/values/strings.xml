@@ -238,4 +238,15 @@
     <string name="Prefix">Prefix</string>
     <string name="ChequeNumber">Cheque Number</string>
     <string name="MissingChequeNumber">Please enter the cheque number</string>
+    <string name="Update">Update</string>
+    <string name="checkUpdate">Check update</string>
+    <string name="check">Vérification</string>
+    <string name="Error">Error occurred</string>
+    <string name="downloading">Downloading</string>
+    <string name="downloadUpdateFail">Download update failed</string>
+    <string name="download">Download</string>
+    <string name="cancel">Cancel</string>
+    <string name="updateAvailable">Update available</string>
+    <string name="haveLastVersion">You have the last version </string>
+    <string name="newVersion">New version </string>
 </resources>

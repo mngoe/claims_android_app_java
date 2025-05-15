@@ -210,4 +210,5 @@
   <string name="NonUsedChequeNumber">This cheque number was not attribute to beneficiary</string>
   <string name="ConnectionFailed">Connection failed</string>
   <string name="FailedToCreateClaim">Failed to create claim</string>
+  <string name="Error">Error occured</string>
 </resources>
