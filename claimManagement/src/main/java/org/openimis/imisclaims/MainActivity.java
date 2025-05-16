@@ -492,8 +492,8 @@ public class MainActivity extends ImisActivity {
                         e.printStackTrace();
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
-                            if(Objects.requireNonNull(e.getMessage()).contains("Failed to execute http call")){
-                                ErrorDialogBox(getResources().getString(R.string.ConnectionFailed));
+                            if(!global.isNetworkAvailable()){
+                                ErrorDialogBox(getResources().getString(R.string.CheckConnection));
                             }else{
                                 ErrorDialogBox(e.getMessage());
                             }
@@ -624,6 +624,11 @@ public class MainActivity extends ImisActivity {
                     }
                 } catch ( Exception e) {
                     e.printStackTrace();
+                    if(!global.isNetworkAvailable()){
+                        Toast.makeText(MainActivity.this, getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, getResources().getString(R.string.downloadFail), Toast.LENGTH_LONG).show();
+                    }
                     runOnUiThread(() -> progressDialog.dismiss());
                 }
             });
@@ -666,6 +671,11 @@ public class MainActivity extends ImisActivity {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    if(!global.isNetworkAvailable()){
+                        Toast.makeText(MainActivity.this, getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
+                    } else {
+                        Toast.makeText(MainActivity.this, getResources().getString(R.string.downloadFail), Toast.LENGTH_LONG).show();
+                    }
                     runOnUiThread(() -> progressDialog.dismiss());
                 }
             });
@@ -766,7 +776,11 @@ public class MainActivity extends ImisActivity {
                         e.printStackTrace();
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
-                            Toast.makeText(MainActivity.this, e.getMessage() + "-" + getResources().getString(R.string.SomethingWentWrongServer), Toast.LENGTH_LONG).show();
+                            if(!global.isNetworkAvailable()){
+                                Toast.makeText(MainActivity.this, e.getMessage() + "-" + getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(MainActivity.this, e.getMessage() + "-" + getResources().getString(R.string.SomethingWentWrongServer), Toast.LENGTH_LONG).show();
+                            }
                             ClaimAdminDialogBox();
                         });
                     }

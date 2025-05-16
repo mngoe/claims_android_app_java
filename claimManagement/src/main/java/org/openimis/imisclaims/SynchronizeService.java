@@ -210,9 +210,9 @@ public class SynchronizeService extends JobIntentService {
                     result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,e.getMessage());
                     results.add(result);
                 } catch (Exception e){
-                    if(Objects.requireNonNull(e.getMessage()).contains("Failed to execute http")){
-                        result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.ConnectionFailed));
-                    } else{
+                    if(!global.isNetworkAvailable()){
+                        result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.CheckConnection));
+                    } else {
                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
                     }
                     results.add(result);
@@ -224,6 +224,10 @@ public class SynchronizeService extends JobIntentService {
             e.printStackTrace();
             broadcastError(getResources().getString(R.string.ErrorOccurred) + ": " + e.getMessage(), ACTION_UPLOAD_CLAIMS);
         }
+    }
+
+    public void isConnected(){
+
     }
 
     private List<Claim> claimFromJSONObject(

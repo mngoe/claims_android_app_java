@@ -670,9 +670,15 @@ public class SynchronizeActivity extends ImisActivity {
                 } catch (Exception e) {
                     runOnUiThread(() -> {
                         pd.dismiss();
-                        Toast.makeText(this,
-                                e.getMessage(),
-                                Toast.LENGTH_SHORT).show();
+                        if(!global.isNetworkAvailable()){
+                            Toast.makeText(this,
+                                    getResources().getString(R.string.CheckConnection),
+                                    Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(this,
+                                    e.getMessage(),
+                                    Toast.LENGTH_SHORT).show();
+                        }
                     });
                 }
             });

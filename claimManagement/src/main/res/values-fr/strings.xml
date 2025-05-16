@@ -553,7 +553,7 @@
   <string name="NotFound">L\'entrée n\'existe pas.</string>
   <string name="qtyAlert">La quantité maximale pour ce produit est</string>
   <string name="qtyAlertAsk">La quantité autorisée pour ce produit est</string>
-  <string name="ConnectionFailed">Échec de connexion</string>
+  <string name="CheckConnection">Vérifier votre connexion</string>
   <string name="FailedToCreateClaim">Échec lors de la création de la prestation</string>
   <string name="Update">Mise à jour</string>
   <string name="checkUpdate">Vérifier la mise à jour</string>

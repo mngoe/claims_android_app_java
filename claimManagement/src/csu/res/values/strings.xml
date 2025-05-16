@@ -208,7 +208,7 @@
   <string name="MissingTdr">Please select Tdr result</string>
   <string name="InvalidChequeNumber">Invalid Cheque Number</string>
   <string name="NonUsedChequeNumber">This cheque number was not attribute to beneficiary</string>
-  <string name="ConnectionFailed">Connection failed</string>
+  <string name="CheckConnection">Check your internet connection</string>
   <string name="FailedToCreateClaim">Failed to create claim</string>
   <string name="Error">Error occured</string>
 </resources>
