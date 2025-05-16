@@ -541,7 +541,11 @@ public class MainActivity extends ImisActivity {
                     e.printStackTrace();
                     runOnUiThread(() -> {
                         progressDialog.dismiss();
-                        Toast.makeText(MainActivity.this, getResources().getString(R.string.downloadFail), Toast.LENGTH_LONG).show();
+                        if(!global.isNetworkAvailable()){
+                            Toast.makeText(MainActivity.this, getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
+                        }else {
+                            Toast.makeText(MainActivity.this, getResources().getString(R.string.downloadFail), Toast.LENGTH_LONG).show();
+                        }
                     });
                 }
             });
@@ -777,7 +781,7 @@ public class MainActivity extends ImisActivity {
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             if(!global.isNetworkAvailable()){
-                                Toast.makeText(MainActivity.this, e.getMessage() + "-" + getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
+                                Toast.makeText(MainActivity.this, getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
                             } else {
                                 Toast.makeText(MainActivity.this, e.getMessage() + "-" + getResources().getString(R.string.SomethingWentWrongServer), Toast.LENGTH_LONG).show();
                             }
@@ -835,7 +839,11 @@ public class MainActivity extends ImisActivity {
                         e.printStackTrace();
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
-                            Toast.makeText(MainActivity.this, e.getMessage() + "-" + getResources().getString(R.string.AccessDenied), Toast.LENGTH_LONG).show();
+                            if(!global.isNetworkAvailable()){
+                                Toast.makeText(MainActivity.this,  getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
+                            }else {
+                                Toast.makeText(MainActivity.this, e.getMessage() + "-" + getResources().getString(R.string.AccessDenied), Toast.LENGTH_LONG).show();
+                            }
                         });
                     }
                 }
