@@ -40,7 +40,7 @@ jobs:
         run: |
           cp claimManagement/build/outputs/apk/csuDev/debug/claimManagement-csuDev-debug.apk claims-csu-test.apk
 
-      - name: Upload APK
+      - name: Upload APK (raw, no ZIP)
         uses: actions/upload-artifact@v4
         with:
           name: claims-csu-test.apk
