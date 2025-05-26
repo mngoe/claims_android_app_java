@@ -2,9 +2,9 @@ name: main csu
 
 on:
   push:
-    branches: [ "main-csu" ]
+    branches: [ "feature-31848" ]
   pull_request:
-    branches: [ "main-csu" ]
+    branches: [ "feature-31848" ]
 
 jobs:
   build:
