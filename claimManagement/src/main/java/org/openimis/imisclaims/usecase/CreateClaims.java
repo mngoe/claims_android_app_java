@@ -47,22 +47,22 @@ public class CreateClaims {
         for(PendingClaimGQL pendingClaim: claims){
             int insureeId = Integer.parseInt(new FetchInsuree().execute(pendingClaim.getChfId()));
             int adminId = Integer.parseInt(new FetchClaimAdmin().execute(pendingClaim.getClaimAdmin()));
-            int icdId = Integer.parseInt(new FetchDiagnose().execute(pendingClaim.getIcdCode()));
+            int icdId = new FetchDiagnose().execute(pendingClaim.getIcdCode());
             int icd1Id = 0;
             int icd2Id = 0;
             int icd3Id = 0;
             int icd4Id = 0;
-            if(pendingClaim.getIcdCode1() != null){
-                icd1Id = Integer.parseInt(new FetchDiagnose().execute(pendingClaim.getIcdCode1()));
+            if(pendingClaim.getIcdCode1() != null && !pendingClaim.getIcdCode1().isEmpty()){
+                icd1Id = new FetchDiagnose().execute(pendingClaim.getIcdCode1());
             }
-            if(pendingClaim.getIcdCode2() != null){
-                icd2Id = Integer.parseInt(new FetchDiagnose().execute(pendingClaim.getIcdCode2()));
+            if(pendingClaim.getIcdCode2() != null && !pendingClaim.getIcdCode2().isEmpty()){
+                icd2Id = new FetchDiagnose().execute(pendingClaim.getIcdCode2());
             }
-            if(pendingClaim.getIcdCode3() != null){
-                icd3Id = Integer.parseInt(new FetchDiagnose().execute(pendingClaim.getIcdCode3()));
+            if(pendingClaim.getIcdCode3() != null && !pendingClaim.getIcdCode3().isEmpty()){
+                icd3Id = new FetchDiagnose().execute(pendingClaim.getIcdCode3());
             }
-            if(pendingClaim.getIcdCode4() != null){
-                icd4Id = Integer.parseInt(new FetchDiagnose().execute(pendingClaim.getIcdCode4()));
+            if(pendingClaim.getIcdCode4() != null && !pendingClaim.getIcdCode4().isEmpty()){
+                icd4Id = new FetchDiagnose().execute(pendingClaim.getIcdCode4());
             }
             String hfId = sqlHandler.getHfId(pendingClaim.getHealthFacilityCode());
             int referFromId = 0;

@@ -30,7 +30,7 @@
                 android:ems="10"
                 android:fontFamily="sans-serif-light"
                 android:hint="@string/HealthFacility"
-                android:maxLength="8"></EditText>
+                android:maxLength="15"></EditText>
 
             <EditText
                 android:id="@+id/etClaimAdmin"
