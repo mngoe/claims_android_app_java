@@ -14,6 +14,7 @@ import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.usecase.PostNewClaims;
 import org.openimis.imisclaims.util.DateUtils;
 import java.security.cert.CertificateException;
+import java.util.UUID;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -38,7 +39,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
 
     @WorkerThread
     @NonNull
-    public PostNewClaims.Result create(
+    public String create(
             @NonNull PendingClaimGQL claim,
             @NonNull int hfId,
             @NonNull int adminId,
@@ -50,6 +51,8 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
             @NonNull int icd3Id,
             @NonNull int icd4Id
     ) throws Exception{
+        String clientMutationId = UUID.randomUUID().toString();
+        String clientMutationLabel = "Création de la prestation " + claim.getClaimCode();
 
         String claimServices = "";
         if(claim.getServices().isEmpty()){
@@ -155,6 +158,8 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
         String QUERY_DOCUMENT = QueryDocumentMinifier.minify(
                 "mutation {"
                         + "  createClaim(input: {"
+                        + " clientMutationId: \"" + clientMutationId + "\""
+                        + " clientMutationLabel: \"" + clientMutationLabel + "\""
                         + " code: \"" + claim.getClaimCode() + "\""
                         + " insureeId: " + insureeId
                         + " adminId: " + adminId
@@ -240,10 +245,6 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
 
 
 
-        return (new PostNewClaims.Result(
-                claim.getClaimCode(),
-                response.code() == 200 ? PostNewClaims.Result.Status.SUCCESS: PostNewClaims.Result.Status.REJECTED,
-                response.message()
-        ));
+        return clientMutationId;
     }
 }

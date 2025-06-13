@@ -7,6 +7,7 @@ import androidx.annotation.WorkerThread;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.openimis.imisclaims.CheckMutationQuery;
 import org.openimis.imisclaims.SQLHandler;
 import org.openimis.imisclaims.SynchronizeService;
 import org.openimis.imisclaims.domain.entity.Claim;
@@ -26,15 +27,19 @@ public class CreateClaims {
 
     @NonNull
     private final CreateClaimGraphQLRequest createClaimGraphQLRequest;
+    @NonNull
+    private final CheckMutation checkMutation;
 
     public CreateClaims() {
-        this(new CreateClaimGraphQLRequest());
+        this(new CreateClaimGraphQLRequest(), new CheckMutation());
     }
 
     public CreateClaims(
-            @NonNull CreateClaimGraphQLRequest createPolicyGraphQLRequest
+            @NonNull CreateClaimGraphQLRequest createPolicyGraphQLRequest,
+            @NonNull CheckMutation checkMutation
     ) {
         this.createClaimGraphQLRequest = createPolicyGraphQLRequest;
+        this.checkMutation = checkMutation;
     }
 
     @WorkerThread
@@ -45,7 +50,7 @@ public class CreateClaims {
         List<PostNewClaims.Result> results = new ArrayList<>();
         SQLHandler sqlHandler = new SQLHandler(context);
         for(PendingClaimGQL pendingClaim: claims){
-            int insureeId = Integer.parseInt(new FetchInsuree().execute(pendingClaim.getChfId()));
+            int insureeId = new FetchInsuree().execute(pendingClaim.getChfId());
             int adminId = Integer.parseInt(new FetchClaimAdmin().execute(pendingClaim.getClaimAdmin()));
             int icdId = new FetchDiagnose().execute(pendingClaim.getIcdCode());
             int icd1Id = 0;
@@ -69,7 +74,18 @@ public class CreateClaims {
             if(pendingClaim.getReferalHF() != null && !pendingClaim.getReferalHF().isEmpty()){
                 referFromId = Integer.parseInt(sqlHandler.getHfId(pendingClaim.getReferalHF()));
             }
-            results.add(createClaimGraphQLRequest.create(pendingClaim,Integer.parseInt(hfId),adminId,insureeId,icdId, referFromId, icd1Id, icd2Id, icd3Id, icd4Id));
+            CheckMutationQuery.Node response = checkMutation.execute(
+                    createClaimGraphQLRequest.create(pendingClaim,Integer.parseInt(hfId),adminId,insureeId,icdId, referFromId, icd1Id, icd2Id, icd3Id, icd4Id),
+                    "Érreur lors de la création de la prestation " + pendingClaim.getClaimCode()
+            );
+
+            results.add(
+                    new PostNewClaims.Result(
+                            pendingClaim.getClaimCode(),
+                            response.status() != 0 && response.status() == 2 ? PostNewClaims.Result.Status.SUCCESS: PostNewClaims.Result.Status.REJECTED,
+                            response.status() == 1 ? response.error() : "")
+            );
+
         }
         return results;
     }

@@ -5,6 +5,7 @@ import androidx.annotation.WorkerThread;
 
 import org.openimis.imisclaims.GetInsureeIdQuery;
 import org.openimis.imisclaims.network.request.GetInsureeIdGraphQLRequest;
+import org.openimis.imisclaims.util.IdUtils;
 
 public class FetchInsuree {
 
@@ -21,10 +22,8 @@ public class FetchInsuree {
 
     @NonNull
     @WorkerThread
-    public String execute(@NonNull String chfId) throws Exception {
+    public int execute(@NonNull String chfId) throws Exception {
         GetInsureeIdQuery.Node node = request.get(chfId);
-        byte[] bytes = node.id().getBytes();
-        String id = new String(org.apache.commons.codec.binary.Base64.decodeBase64(bytes)).split(":")[1];
-        return id;
+        return IdUtils.getIdFromGraphQLString(node.id());
     }
 }
