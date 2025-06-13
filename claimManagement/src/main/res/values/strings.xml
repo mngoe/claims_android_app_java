@@ -240,4 +240,6 @@
     <string name="Escaped">Escaped</string>
     <string name="ReferralCode">Referral Code</string>
     <string name="MissingReferralCode">Please enter a referral Code</string>
+    <string name="Reference">Reference</string>
+    <string name="MissingPatientCondition">Please select patient condition at discharge</string>
 </resources>

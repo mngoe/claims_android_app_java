@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="PatientCondition">État du patient à la sortie</string>
+    <string name="Healed">Guéri</string>
+    <string name="Deceased">Décédé</string>
+    <string name="Escaped">Évadé</string>
+    <string name="preAuthorization">Pré-Autorisation</string>
+    <string name="ReferralCode">Code de référence</string>
+    <string name="MissingReferralCode">Veuillez entrer le code de référence</string>
+    <string name="MissingPatientCondition">Sélectionnez l\'état du patient à la sortie</string>
+    <string name="Reference">Référence</string>
+    <string name="ReferalHF">Référence des structures de santé</string>
+    <string name="ConfirmDeleteClaim">Voulez-vous supprimer cette prestation?</string>
+    <string name="Item">Médicament ou dispositif</string>
+    <string name="Service">Services de santé</string>
+    <string name="ClaimCode">Numéro de facture</string>
+    <string name="Diagnosis">Diagnostic Principal</string>
+    <string name="DeleteClaim">Supprimer la prestation</string>
+</resources>

@@ -145,6 +145,10 @@ public class ClaimActivity extends ImisActivity {
         etDiagnosis4.setThreshold(1);
         etDiagnosis4.setOnItemClickListener(adapter);
 
+        etDiagnosis2.setVisibility(View.GONE);
+        etDiagnosis3.setVisibility(View.GONE);
+        etDiagnosis4.setVisibility(View.GONE);
+
         HFAdapter hfAdapter = new HFAdapter(ClaimActivity.this, sqlHandler);
         etReferalHF.setAdapter(hfAdapter);
         etReferalHF.setThreshold(1);
@@ -262,7 +266,7 @@ public class ClaimActivity extends ImisActivity {
             } else {
                 Log.e(LOG_TAG, "Delete claim invoked, but no claim UUID");
             }
-        });
+        }).setCancelable(true);
     }
 
     private void confirmArchive() {
@@ -738,6 +742,11 @@ public class ClaimActivity extends ImisActivity {
                 showValidationDialog(etReferralCode, getResources().getString(R.string.MissingReferralCode));
                 return false;
             }
+        }
+
+        if(rgPatientCondition.getCheckedRadioButtonId() == -1){
+            showValidationDialog(rgVisitType, getResources().getString(R.string.MissingPatientCondition));
+            return false;
         }
 
         return true;
