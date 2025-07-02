@@ -25,7 +25,7 @@ public class GetDiagnosesGraphQLRequest extends BaseGraphQLRequest {
         if (edges.isEmpty()) {
             throw new HttpException(
                     /* code = */ HttpURLConnection.HTTP_NOT_FOUND,
-                    /* message = */ "Insuree with id '" + code + "' was not found",
+                    /* message = */ "diagnose with code '" + code + "' was not found",
                     /* body = */ null,
                     /* cause = */ null
             );

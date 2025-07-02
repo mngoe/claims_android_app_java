@@ -25,7 +25,7 @@ public class GetInsureeIdGraphQLRequest extends BaseGraphQLRequest {
         if (edges.isEmpty()) {
             throw new HttpException(
                     /* code = */ HttpURLConnection.HTTP_NOT_FOUND,
-                    /* message = */ "Insuree with id '" + chfId + "' was not found",
+                    /* message = */ "Insuree with ChfId '" + chfId + "' was not found",
                     /* body = */ null,
                     /* cause = */ null
             );

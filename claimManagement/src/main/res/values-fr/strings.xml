@@ -197,4 +197,5 @@
   <string name="initializing">Initialisation.....</string>
   <string name="initializing_complete">Initialisation Terminée</string>
   <string name="application">Application</string>
+  <string name="InvalidReferalHf">Code de formation sanitaire de référence invalide</string>
 </resources>

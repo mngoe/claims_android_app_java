@@ -749,6 +749,11 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
+        if(!etReferalHF.getText().toString().isEmpty() && sqlHandler.getHfId(etReferalHF.getText().toString()).isEmpty()){
+            showValidationDialog(rgVisitType, getResources().getString(R.string.InvalidReferalHf));
+            return false;
+        }
+
         return true;
     }
 

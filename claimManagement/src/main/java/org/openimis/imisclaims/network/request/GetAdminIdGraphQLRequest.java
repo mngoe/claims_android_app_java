@@ -25,7 +25,7 @@ public class GetAdminIdGraphQLRequest extends BaseGraphQLRequest {
         if (edges.isEmpty()) {
             throw new HttpException(
                     /* code = */ HttpURLConnection.HTTP_NOT_FOUND,
-                    /* message = */ "Insuree with id '" + code + "' was not found",
+                    /* message = */ "Admin '" + code + "' was not found",
                     /* body = */ null,
                     /* cause = */ null
             );
