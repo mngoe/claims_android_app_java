@@ -54,7 +54,7 @@ public class FetchServices {
                 /* code = */ node.code(),
                 /* name = */ node.name(),
                 /* price = */ node.price(),
-                "XAF",
+                "KMF",
                 /* packageType = */ node.packagetype(),
                 /* manualPrice = */ node.manualPrice() ? 1 : 0,
                 /* subServices = */ subServiceMapper.map(node.serviceserviceSet()),

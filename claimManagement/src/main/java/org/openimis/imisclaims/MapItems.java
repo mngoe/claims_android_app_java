@@ -361,11 +361,12 @@ public class MapItems extends ImisActivity {
 
                 //FilteredList = new ArrayList<HashMap<String, Object>>();
                 //FilteredList.clear();
-                for (int i = 0; i < ItemList.size(); i++) {
-                    MapItems.this.ItemsList.add(ItemList.get(i));
-                    notifyDataSetInvalidated();
+                if(ItemList != null){
+                    for (int i = 0; i < ItemList.size(); i++) {
+                        MapItems.this.ItemsList.add(ItemList.get(i));
+                        notifyDataSetInvalidated();
+                    }
                 }
-
             }
         }
     }
