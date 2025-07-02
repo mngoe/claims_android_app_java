@@ -551,7 +551,7 @@ public class MainActivity extends ImisActivity {
                     if (c.getCount() == 0) {
                         try {
                             progressDialog.dismiss();
-                            doLoggedIn(() -> DownLoadDiagnosesServicesItems(null));
+                            doLoggedIn(() -> DownLoadDiagnosesServicesItems(claimAdminCode));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -573,6 +573,10 @@ public class MainActivity extends ImisActivity {
                         saveLastUpdateDate(diagnosesServicesMedications.getLastUpdated());
                         sqlHandler.ClearAll("tblReferences");
                         sqlHandler.ClearAll("tblHealthFacilities");
+                        sqlHandler.ClearAll("tblServices");
+                        sqlHandler.ClearAll("tblSubServices");
+                        sqlHandler.ClearAll("tblSubItems");
+                        sqlHandler.ClearAll("tblItems");
                         sqlHandler.ClearMapping("S");
                         sqlHandler.ClearMapping("I");
                         //Insert Diagnoses
@@ -580,18 +584,43 @@ public class MainActivity extends ImisActivity {
                             sqlHandler.InsertReferences(diagnosis.getCode(), diagnosis.getName(), "D", "");
                         }
 
-                        //Insert Services
-                        for (Service service : diagnosesServicesMedications.getServices()) {
-                            sqlHandler.InsertReferences(service.getCode(), service.getName(), "S", String.valueOf(service.getPrice()));
-                            sqlHandler.InsertMapping(service.getCode(), service.getName(), "S");
-                        }
+                        if (officerCode != null) {
+                            PaymentList paymentList = new FetchPaymentList().execute(officerCode);
+                            // insert services
+                            for (Service service: paymentList.getServices()) {
+                                sqlHandler.InsertService(service.getId(),
+                                        service.getCode(),
+                                        service.getName(), "S",
+                                        String.valueOf(service.getPrice()),
+                                        service.getPackageType(),
+                                        service.getManualPrice()
+                                );
+                                sqlHandler.InsertReferences(service.getCode(), service.getName(), "S", String.valueOf(service.getPrice()));
+                                sqlHandler.InsertMapping(service.getCode(), service.getName(), "S");
 
-                        //Insert Items
-                        List<Medication> medications = new FetchMedications().execute();
-                        for (Medication medication : medications) {
-                            sqlHandler.InsertReferences(medication.getCode(), medication.getName(), "I", String.valueOf(medication.getPrice()));
-                            sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I");
-                            sqlHandler.InsertItem(medication.getId(),medication.getCode(),medication.getName(), "I", String.valueOf(medication.getPrice()));
+                                if (service.getSubServices() != null && !service.getSubServices().isEmpty()) {
+                                    List<SubServiceItem> subServices = service.getSubServices();
+                                    for (SubServiceItem subService: subServices) {
+                                        sqlHandler.InsertSubServices(subService.getId(),
+                                                service.getId(),String.valueOf(subService.getQty()),subService.getPrice());
+                                    }
+                                }
+                                //insert subItems
+                                if (service.getSubItems() != null && !service.getSubItems().isEmpty()) {
+                                    List<SubServiceItem> subItems = service.getSubItems();
+                                    for (SubServiceItem subItem: subItems) {
+                                        sqlHandler.InsertSubItems(subItem.getId(),
+                                                service.getId(), String.valueOf(subItem.getQty()),subItem.getPrice());
+                                    }
+                                }
+                            }
+
+                            //insert medications or items
+                            for (Medication medication : paymentList.getMedications()) {
+                                sqlHandler.InsertReferences(medication.getCode(), medication.getName(), "I", String.valueOf(medication.getPrice()));
+                                sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I");
+                                sqlHandler.InsertItem(medication.getId(),medication.getCode(),medication.getName(), "I", String.valueOf(medication.getPrice()));
+                            }
                         }
 
                         List<HealthFacility> healthFacilities = new FetchHealthFacilities().execute();
@@ -601,7 +630,9 @@ public class MainActivity extends ImisActivity {
 
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
-                            downloadServices(officerCode);
+                            if (officerCode != null) {
+                                DownLoadServicesItemsPriceList(officerCode);
+                            }
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -776,9 +807,6 @@ public class MainActivity extends ImisActivity {
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             Toast.makeText(MainActivity.this, getResources().getString(R.string.installed_updates), Toast.LENGTH_LONG).show();
-                            if (officerCode != null) {
-                                DownLoadServicesItemsPriceList(officerCode);
-                            }
                         });
                     } else {
                         runOnUiThread(() -> {
