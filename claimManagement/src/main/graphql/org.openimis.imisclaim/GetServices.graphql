@@ -1,5 +1,9 @@
-query GetServices ($offset: Int) {
-  medicalServices(offset: $offset) {
+query GetServices ($offset: Int, $pricelistUuid: UUID, $date: Date) {
+  medicalServicesStr(
+    offset: $offset,
+    pricelistUuid: $pricelistUuid,
+    date: $date
+  ) {
     pageInfo {
       hasNextPage
     }

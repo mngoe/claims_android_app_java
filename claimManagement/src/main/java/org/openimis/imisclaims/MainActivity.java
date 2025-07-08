@@ -57,6 +57,8 @@ import org.openimis.imisclaims.usecase.FetchServices;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 
@@ -586,8 +588,11 @@ public class MainActivity extends ImisActivity {
 
                         if (officerCode != null) {
                             PaymentList paymentList = new FetchPaymentList().execute(officerCode);
+                            String servicesPricelistUuid = paymentList.getServicesPricelistUuid();
+                            Date date = Calendar.getInstance().getTime();
+                            List<Service> services = new FetchServices().execute(servicesPricelistUuid, date);
                             // insert services
-                            for (Service service: paymentList.getServices()) {
+                            for (Service service: services) {
                                 sqlHandler.InsertService(service.getId(),
                                         service.getCode(),
                                         service.getName(), "S",
@@ -615,8 +620,10 @@ public class MainActivity extends ImisActivity {
                                 }
                             }
 
+                            String itemsPriceListUuid = paymentList.getItemsPricelistUuid();
+                            List<Medication> medications = new FetchMedications().execute(itemsPriceListUuid, date);
                             //insert medications or items
-                            for (Medication medication : paymentList.getMedications()) {
+                            for (Medication medication : medications) {
                                 sqlHandler.InsertReferences(medication.getCode(), medication.getName(), "I", String.valueOf(medication.getPrice()));
                                 sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I");
                                 sqlHandler.InsertItem(medication.getId(),medication.getCode(),medication.getName(), "I", String.valueOf(medication.getPrice()));
@@ -662,16 +669,21 @@ public class MainActivity extends ImisActivity {
                 public void run() {
                     try {
                         PaymentList paymentList = new FetchPaymentList().execute(claimAdministratorCode);
+                        String servicesPricelistUuid = paymentList.getServicesPricelistUuid();
+                        Date date = Calendar.getInstance().getTime();
+                        List<Service> services = new FetchServices().execute(servicesPricelistUuid, date);
+                        String itemsPriceListUuid = paymentList.getItemsPricelistUuid();
+                        List<Medication> medications = new FetchMedications().execute(itemsPriceListUuid, date);
                         sqlHandler.ClearMapping("S");
                         sqlHandler.ClearMapping("I");
 
                         //Insert Services
-                        for (Service service : paymentList.getServices()) {
+                        for (Service service : services) {
                             sqlHandler.InsertMapping(service.getCode(), service.getName(), "S");
                         }
 
                         //Insert Items
-                        for (Medication medication : paymentList.getMedications()) {
+                        for (Medication medication : medications) {
                             sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I");
                         }
                         runOnUiThread(() -> {

@@ -7,11 +7,13 @@ import com.apollographql.apollo.api.Input;
 
 import org.openimis.imisclaims.GetServicesQuery;
 
+import java.util.Date;
+
 public class GetServicesGraphqlRequest extends BaseGraphQLRequest{
 
     @NonNull
     @WorkerThread
-    public GetServicesQuery.MedicalServices get(int page) throws Exception {
-        return makeSynchronous(new GetServicesQuery(Input.fromNullable(page))).getData().medicalServices();
+    public GetServicesQuery.MedicalServicesStr get(int page, String pricelistUUID, Date date) throws Exception {
+        return makeSynchronous(new GetServicesQuery(Input.fromNullable(page), Input.fromNullable(pricelistUUID), Input.fromNullable(date))).getData().medicalServicesStr();
     }
 }

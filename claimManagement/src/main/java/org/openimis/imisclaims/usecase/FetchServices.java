@@ -9,6 +9,7 @@ import org.openimis.imisclaims.network.request.GetServicesGraphqlRequest;
 import org.openimis.imisclaims.network.util.Mapper;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 public class FetchServices {
@@ -24,14 +25,14 @@ public class FetchServices {
     }
     @WorkerThread
     @NonNull
-    public List<Service> execute() throws Exception {
+    public List<Service> execute(String priceListUUId, Date date) throws Exception {
         List<Service> services = new ArrayList<>();
         int page = 0;
         boolean hasNextPage;
         Mapper<GetServicesQuery.ServiceserviceSet, SubServiceItem> subServiceMapper = new Mapper<>(this::toSubService);
         Mapper<GetServicesQuery.ServicesLinked, SubServiceItem> subItemMapper = new Mapper<>(this::toSubItem);
         do{
-            GetServicesQuery.MedicalServices response = request.get(page);
+            GetServicesQuery.MedicalServicesStr response = request.get(page, priceListUUId, date);
             services.addAll(Mapper.map(
                     response.edges(),
                     dto -> toService(dto,subServiceMapper,subItemMapper)
