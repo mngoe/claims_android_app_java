@@ -51,7 +51,7 @@ public class CreateClaims {
         SQLHandler sqlHandler = new SQLHandler(context);
         for(PendingClaimGQL pendingClaim: claims){
             int insureeId = new FetchInsuree().execute(pendingClaim.getChfId());
-            int adminId = Integer.parseInt(new FetchClaimAdmin().execute(pendingClaim.getClaimAdmin()));
+            int adminId = new FetchClaimAdmin().execute(pendingClaim.getClaimAdmin());
             int icdId = new FetchDiagnose().execute(pendingClaim.getIcdCode());
             int icd1Id = 0;
             int icd2Id = 0;

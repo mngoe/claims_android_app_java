@@ -45,7 +45,9 @@ import org.openimis.imisclaims.domain.entity.Medication;
 import org.openimis.imisclaims.domain.entity.PaymentList;
 import org.openimis.imisclaims.domain.entity.Service;
 import org.openimis.imisclaims.domain.entity.SubServiceItem;
+import org.openimis.imisclaims.network.exception.HttpException;
 import org.openimis.imisclaims.tools.Log;
+import org.openimis.imisclaims.usecase.FetchClaimAdmin;
 import org.openimis.imisclaims.usecase.FetchClaimAdmins;
 import org.openimis.imisclaims.usecase.FetchControls;
 import org.openimis.imisclaims.usecase.FetchDiagnosesServicesItems;
@@ -56,6 +58,7 @@ import org.openimis.imisclaims.usecase.FetchServices;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -553,7 +556,7 @@ public class MainActivity extends ImisActivity {
                     if (c.getCount() == 0) {
                         try {
                             progressDialog.dismiss();
-                            doLoggedIn(() -> DownLoadDiagnosesServicesItems(claimAdminCode));
+                            doLoggedIn(() -> CheckFosaValidity(claimAdminCode));
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -562,6 +565,33 @@ public class MainActivity extends ImisActivity {
                 }
             }
         }
+    }
+
+    public void CheckFosaValidity (String claimAdminCode){
+        String progress_message = getResources().getString(R.string.checkHfValidity);
+        progressDialog = ProgressDialog.show(this, getResources().getString(R.string.application), progress_message);
+        Thread thread = new Thread() {
+            public void run() {
+                try {
+                    new FetchClaimAdmin().execute(claimAdminCode);
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        DownLoadDiagnosesServicesItems(claimAdminCode);
+                    });
+                } catch (HttpException e){
+                    if(e.getCode() == HttpURLConnection.HTTP_NOT_FOUND){
+                        runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            Toast.makeText(MainActivity.this, getResources().getString(R.string.InvalidHealthFacility), Toast.LENGTH_LONG).show();
+                            ClaimAdminDialogBox();
+                        });
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        thread.start();
     }
 
     public void DownLoadDiagnosesServicesItems(@Nullable final String officerCode) {
