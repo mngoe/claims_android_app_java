@@ -590,6 +590,11 @@ public class MainActivity extends ImisActivity {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(MainActivity.this, e.getMessage() + "-" + getResources().getString(R.string.SomethingWentWrongServer), Toast.LENGTH_LONG).show();
+                        ClaimAdminDialogBox();
+                    });
                 }
             }
         };
