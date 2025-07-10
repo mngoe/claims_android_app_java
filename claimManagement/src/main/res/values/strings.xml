@@ -243,4 +243,6 @@
     <string name="Reference">Reference</string>
     <string name="MissingPatientCondition">Please select patient condition at discharge</string>
     <string name="InvalidReferalHf">Please enter a valid referral healthFacility code</string>
+    <string name="InvalidHealthFacility">Invalid healthfacility for this claim admin</string>
+    <string name="checkHfValidity">Check healthFacility validity</string>
 </resources>

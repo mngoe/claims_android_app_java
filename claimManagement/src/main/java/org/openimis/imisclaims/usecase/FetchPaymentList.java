@@ -39,8 +39,8 @@ public class FetchPaymentList {
                 /* healthFacilityCode = */ healthFacility.code(),
                 /* services = */ services != null ? Mapper.map(services.details().edges(), dto -> toService(dto)) : Collections.emptyList(),
                 /* medications = */ medications != null ? Mapper.map(medications.details().edges(), this::toMedication) : Collections.emptyList(),
-                /* servicePriceListUuid = */ healthFacility.servicesPricelist().uuid(),
-                /* servicePriceListUuid = */ healthFacility.itemsPricelist().uuid()
+                /* servicePriceListUuid = */ healthFacility.servicesPricelist() != null ? healthFacility.servicesPricelist().uuid() : "",
+                /* servicePriceListUuid = */ healthFacility.itemsPricelist() != null ? healthFacility.itemsPricelist().uuid() : ""
         );
     }
 

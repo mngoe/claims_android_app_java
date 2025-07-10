@@ -198,4 +198,6 @@
   <string name="initializing_complete">Initialisation Terminée</string>
   <string name="application">Application</string>
   <string name="InvalidReferalHf">Code de formation sanitaire de référence invalide</string>
+  <string name="InvalidHealthFacility">Formation sanitaire de l\'administrateur invalide</string>
+  <string name="checkHfValidity">Vérification de la formation sanitaire</string>
 </resources>

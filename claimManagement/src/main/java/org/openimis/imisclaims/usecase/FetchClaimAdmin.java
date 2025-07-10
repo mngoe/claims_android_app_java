@@ -5,6 +5,7 @@ import androidx.annotation.WorkerThread;
 
 import org.openimis.imisclaims.GetAdminIdQuery;
 import org.openimis.imisclaims.network.request.GetAdminIdGraphQLRequest;
+import org.openimis.imisclaims.util.IdUtils;
 
 public class FetchClaimAdmin {
 
@@ -21,10 +22,8 @@ public class FetchClaimAdmin {
 
     @NonNull
     @WorkerThread
-    public String execute(@NonNull String chfId) throws Exception {
-        GetAdminIdQuery.Node node = request.get(chfId);
-        byte[] bytes = node.id().getBytes();
-        String id = new String(org.apache.commons.codec.binary.Base64.decodeBase64(bytes)).split(":")[1];
-        return id;
+    public int execute(@NonNull String claimAdminCode) throws Exception {
+        GetAdminIdQuery.Node node = request.get(claimAdminCode);
+        return IdUtils.getIdFromGraphQLString(node.id());
     }
 }
