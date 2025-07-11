@@ -245,4 +245,15 @@
     <string name="InvalidReferalHf">Please enter a valid referral healthFacility code</string>
     <string name="InvalidHealthFacility">Invalid healthfacility for this claim admin</string>
     <string name="checkHfValidity">Check healthFacility validity</string>
+    <string name="Update">Update</string>
+    <string name="checkUpdate">Check update</string>
+    <string name="check">Vérification</string>
+    <string name="Error">Error occurred</string>
+    <string name="downloading">Downloading</string>
+    <string name="downloadUpdateFail">Download update failed</string>
+    <string name="download">Download</string>
+    <string name="cancel">Cancel</string>
+    <string name="updateAvailable">Update available</string>
+    <string name="haveLastVersion">You have the last version </string>
+    <string name="newVersion">New version </string>
 </resources>
