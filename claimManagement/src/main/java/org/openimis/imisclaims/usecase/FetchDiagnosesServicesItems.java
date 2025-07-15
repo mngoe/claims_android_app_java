@@ -18,7 +18,9 @@ import org.openimis.imisclaims.network.util.Mapper;
 import org.openimis.imisclaims.network.util.PaginatedResponseUtils;
 import org.openimis.imisclaims.util.DateUtils;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 public class FetchDiagnosesServicesItems {
 
@@ -53,17 +55,13 @@ public class FetchDiagnosesServicesItems {
         // previous code was passing sometimes a `last_updated_date` but it was either empty or
         // `new Date(0)`. I'm still returning the last updated date in case it's one day used
         // again.¯\_(ツ)_/¯
+        List<Service> services = new ArrayList<>();
+        List<Medication> medications = new ArrayList<>();
         return new DiagnosesServicesMedications(
                 /* lastUpdated = */  DateUtils.toDateString(new Date()),
                 /* diagnoses = */ Mapper.map(getDiagnosesRequest.get(), this::toDiagnosis),
-                /* services = */ PaginatedResponseUtils.downloadAll(
-                getActivityDefinitionsRequest::get,
-                this::toService
-        ),
-                /* medications = */ PaginatedResponseUtils.downloadAll(
-                getMedicationsRequest::get,
-                this::toMedication
-        )
+                /* services = */ services,
+                /* medications = */ medications
         );
     }
 
