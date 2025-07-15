@@ -7,6 +7,7 @@ import android.app.ProgressDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -318,8 +319,8 @@ public class ClaimActivity extends ImisActivity {
     private void addItem() {
         Intent addItemsIntent = new Intent(ClaimActivity.this, AddItems.class);
         addItemsIntent.putExtra(EXTRA_READONLY, isIntentReadonly());
-        JSONArray itemsArray = sqlHandler.getItems();
-        if(itemsArray.length() == 0){
+        Cursor c = sqlHandler.getMapping("I");
+        if(c != null && c.getCount() == 0){
             showDialog(getResources().getString(R.string.NoItemsPricelist));
         }else {
             ClaimActivity.this.startActivity(addItemsIntent);
@@ -329,8 +330,8 @@ public class ClaimActivity extends ImisActivity {
     private  void addService() {
         Intent addServicesIntent = new Intent(this, AddServices.class);
         addServicesIntent.putExtra(EXTRA_READONLY, isIntentReadonly());
-        JSONArray servicesArray = sqlHandler.getServices();
-        if(servicesArray.length() == 0){
+        Cursor c = sqlHandler.getMapping("S");
+        if(c != null && c.getCount() == 0){
             showDialog(getResources().getString(R.string.NoServicesPricelist));
         }else {
             ClaimActivity.this.startActivity(addServicesIntent);
