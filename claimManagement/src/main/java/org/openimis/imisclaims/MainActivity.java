@@ -553,8 +553,9 @@ public class MainActivity extends ImisActivity {
                     AdminName.setText(global.getOfficeName());
                 }
                 Cursor c = sqlHandler.getMapping("I");
-                if (c != null) {
-                    if (c.getCount() == 0) {
+                Cursor c1 = sqlHandler.getMapping("S");
+                if (c != null && c1 != null) {
+                    if (c.getCount() == 0 && c1.getCount() == 0) {
                         try {
                             progressDialog.dismiss();
                             doLoggedIn(() -> CheckHealthFacility(claimAdminCode, HealthFacilityName));
@@ -710,23 +711,24 @@ public class MainActivity extends ImisActivity {
                 public void run() {
                     try {
                         PaymentList paymentList = new FetchPaymentList().execute(claimAdministratorCode);
-                        String servicesPricelistUuid = paymentList.getServicesPricelistUuid();
                         Date date = Calendar.getInstance().getTime();
-                        List<Service> services = new FetchServices().execute(servicesPricelistUuid, date);
-                        String itemsPriceListUuid = paymentList.getItemsPricelistUuid();
-                        List<Medication> medications = new FetchMedications().execute(itemsPriceListUuid, date);
                         sqlHandler.ClearMapping("S");
                         sqlHandler.ClearMapping("I");
 
-                        //Insert Services
-                        for (Service service : services) {
-                            sqlHandler.InsertMapping(service.getCode(), service.getName(), "S");
+                        if(paymentList.getServicesPricelistUuid() != null && !paymentList.getServicesPricelistUuid().isEmpty()){
+                            List<Service> services = new FetchServices().execute(paymentList.getServicesPricelistUuid(), date);
+                            for (Service service : services) {
+                                sqlHandler.InsertMapping(service.getCode(), service.getName(), "S");
+                            }
                         }
 
-                        //Insert Items
-                        for (Medication medication : medications) {
-                            sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I");
+                        if(paymentList.getItemsPricelistUuid() != null && !paymentList.getItemsPricelistUuid().isEmpty()){
+                            List<Medication> medications = new FetchMedications().execute(paymentList.getItemsPricelistUuid(), date);
+                            for (Medication medication : medications) {
+                                sqlHandler.InsertMapping(medication.getCode(), medication.getName(), "I");
+                            }
                         }
+
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             Toast.makeText(MainActivity.this, getResources().getString(R.string.MapSuccessful), Toast.LENGTH_LONG).show();

@@ -256,4 +256,6 @@
     <string name="updateAvailable">Update available</string>
     <string name="haveLastVersion">You have the last version </string>
     <string name="newVersion">New version </string>
+    <string name="NoServicesPricelist">This healthfacility don\'t have services pricelist</string>
+    <string name="NoItemsPricelist">This healthfacility don\'t have items pricelist</string>
 </resources>

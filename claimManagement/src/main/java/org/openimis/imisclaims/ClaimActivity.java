@@ -318,13 +318,23 @@ public class ClaimActivity extends ImisActivity {
     private void addItem() {
         Intent addItemsIntent = new Intent(ClaimActivity.this, AddItems.class);
         addItemsIntent.putExtra(EXTRA_READONLY, isIntentReadonly());
-        ClaimActivity.this.startActivity(addItemsIntent);
+        JSONArray itemsArray = sqlHandler.getItems();
+        if(itemsArray.length() == 0){
+            showDialog(getResources().getString(R.string.NoItemsPricelist));
+        }else {
+            ClaimActivity.this.startActivity(addItemsIntent);
+        }
     }
 
     private  void addService() {
         Intent addServicesIntent = new Intent(this, AddServices.class);
         addServicesIntent.putExtra(EXTRA_READONLY, isIntentReadonly());
-        ClaimActivity.this.startActivity(addServicesIntent);
+        JSONArray servicesArray = sqlHandler.getServices();
+        if(servicesArray.length() == 0){
+            showDialog(getResources().getString(R.string.NoServicesPricelist));
+        }else {
+            ClaimActivity.this.startActivity(addServicesIntent);
+        }
     }
 
     @Override
