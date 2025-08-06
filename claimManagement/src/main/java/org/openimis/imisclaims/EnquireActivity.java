@@ -130,8 +130,7 @@ public class EnquireActivity extends ImisActivity {
         });
 
         btnScan.setOnClickListener(v -> {
-            Intent intent = new Intent(this, com.google.zxing.client.android.CaptureActivity.class);
-            intent.setAction("com.google.zxing.client.android.SCAN");
+            Intent intent = new Intent("com.google.zxing.client.android.SCAN");
             intent.putExtra("SCAN_MODE", "QR_CODE_MODE");
             startActivityForResult(intent, REQUEST_QR_SCAN_CODE);
             ClearForm();
@@ -158,7 +157,8 @@ public class EnquireActivity extends ImisActivity {
         switch (requestCode) {
             case REQUEST_QR_SCAN_CODE:
                 if (resultCode == RESULT_OK) {
-                    String CHFID = data.getStringExtra("SCAN_RESULT");
+                    String result = data.getStringExtra("SCAN_RESULT");
+                    String CHFID = result.substring(result.indexOf(":")+2,result.indexOf("}")-1);
                     etCHFID.setText(CHFID);
 
                     Escape escape = new Escape();
