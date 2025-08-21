@@ -126,6 +126,7 @@
     <string name="Saving">Saving…</string>
     <string name="Emergency">Emergency</string>
     <string name="Referral">Referral</string>
+    <string name="Treatment">Treatment</string>
     <string name="Other">Other</string>
     <string name="MissingVisitType">Please select visit type.</string>
     <string name="New">New Claim</string>

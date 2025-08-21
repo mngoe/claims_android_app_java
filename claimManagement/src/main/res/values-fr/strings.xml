@@ -126,6 +126,7 @@
   <string name="Saving">Enregistrer</string>
   <string name="Emergency">Urgence</string>
   <string name="Referral">Référer</string>
+  <string name="Treatment">Traitement</string>
   <string name="Other">Autre</string>
   <string name="MissingVisitType">Veuillez sélectionner le type de visite.</string>
   <string name="New">Nouvelle prestation</string>
