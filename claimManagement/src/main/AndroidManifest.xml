@@ -115,6 +115,10 @@
         <activity
             android:name=".claimlisting.ClaimListingActivity"
             android:exported="false" />
+        <activity
+            android:name=".SubHouseholdActivity"
+            android:label="Membres du sous-ménage"
+            android:theme="@style/AppTheme.NoActionBar" />
     </application>
 
 </manifest>

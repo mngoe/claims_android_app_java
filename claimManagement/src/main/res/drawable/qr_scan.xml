@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- QR Code corners -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M3,3h6v6h-6z M4,4v4h4v-4z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M15,3h6v6h-6z M16,4v4h4v-4z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M3,15h6v6h-6z M4,16v4h4v-4z"/>
+    
+    <!-- QR Code center squares -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M5,5h2v2h-2z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M17,5h2v2h-2z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M5,17h2v2h-2z"/>
+    
+    <!-- QR Code data pattern -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,3h1v1h-1z M13,3h1v1h-1z M11,5h1v1h-1z M13,5h1v1h-1z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M3,11h1v1h-1z M5,11h1v1h-1z M7,11h1v1h-1z M9,11h1v1h-1z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,7h1v1h-1z M13,7h1v1h-1z M15,11h1v1h-1z M17,11h1v1h-1z M19,11h1v1h-1z M21,11h1v1h-1z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,9h1v1h-1z M13,9h1v1h-1z M15,9h1v1h-1z M17,9h1v1h-1z M19,9h1v1h-1z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,13h1v1h-1z M13,13h1v1h-1z M15,13h1v1h-1z M17,13h1v1h-1z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,15h1v1h-1z M13,15h1v1h-1z M15,15h1v1h-1z M17,15h1v1h-1z M19,15h1v1h-1z M21,15h1v1h-1z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,17h1v1h-1z M13,17h1v1h-1z M15,17h1v1h-1z M17,17h1v1h-1z M19,17h1v1h-1z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,19h1v1h-1z M13,19h1v1h-1z M15,19h1v1h-1z M17,19h1v1h-1z M19,19h1v1h-1z M21,19h1v1h-1z"/>
+    
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M11,21h1v1h-1z M13,21h1v1h-1z M15,21h1v1h-1z M17,21h1v1h-1z M19,21h1v1h-1z M21,21h1v1h-1z"/>
+    
+    <!-- Bottom right corner detection pattern -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M15,15h2v2h-2z M17,17h2v2h-2z M19,19h2v2h-2z"/>
+        
+</vector>

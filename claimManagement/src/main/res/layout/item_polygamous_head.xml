@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp"
+    app:cardBackgroundColor="@android:color/white"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:gravity="center_vertical">
+
+        <!-- Photo du chef de sous-famille -->
+        <androidx.cardview.widget.CardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            app:cardCornerRadius="8dp"
+            app:cardElevation="2dp">
+
+            <ImageView
+                android:id="@+id/ivPolygamousHeadPhoto"
+                android:layout_width="60dp"
+                android:layout_height="60dp"
+                android:src="@drawable/noimage"
+                android:scaleType="centerCrop" />
+
+        </androidx.cardview.widget.CardView>
+
+        <!-- Informations du chef de sous-famille -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Nom et Prénom -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nom: "
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textColor="#7F8C8D" />
+
+                <TextView
+                    android:id="@+id/tvPolygamousHeadName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Nom Prénom"
+                    android:fontFamily="sans-serif-medium"
+                    android:textSize="14sp"
+                    android:textColor="#2C3E50" />
+
+            </LinearLayout>
+
+            <!-- Genre -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Genre: "
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textColor="#7F8C8D" />
+
+                <TextView
+                    android:id="@+id/tvPolygamousHeadGender"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="M/F"
+                    android:fontFamily="sans-serif-medium"
+                    android:textSize="12sp"
+                    android:textColor="#2C3E50" />
+
+            </LinearLayout>
+
+            <!-- Code d'immatriculation -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Code: "
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textColor="#7F8C8D" />
+
+                <TextView
+                    android:id="@+id/tvPolygamousHeadCode"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="123456789"
+                    android:fontFamily="sans-serif-medium"
+                    android:textSize="12sp"
+                    android:textColor="#2C3E50" />
+
+            </LinearLayout>
+
+            <!-- Date de naissance -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="4dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Naissance: "
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textColor="#7F8C8D" />
+
+                <TextView
+                    android:id="@+id/tvPolygamousHeadDOB"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="01/01/1980"
+                    android:fontFamily="sans-serif-medium"
+                    android:textSize="12sp"
+                    android:textColor="#2C3E50" />
+
+            </LinearLayout>
+
+            <!-- Polices actives -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Polices: "
+                    android:textStyle="bold"
+                    android:textSize="12sp"
+                    android:textColor="#7F8C8D" />
+
+                <TextView
+                    android:id="@+id/tvPolygamousHeadPolicies"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Police 1, Police 2"
+                    android:fontFamily="sans-serif-medium"
+                    android:textSize="12sp"
+                    android:textColor="#27AE60" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Icône de flèche pour indiquer que c'est cliquable -->
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_arrow_forward"
+            android:layout_marginStart="8dp"
+            android:tint="#BDC3C7" />
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <resources>
+    <string name="app_name">openIMIS Claims</string>
+    <string name="title_activity_login">Sign in</string>
     <string name="settings">Settings</string>
     <string name="RarPassword">RAR Password</string>
     <string name="DefaultRarPassword">Set the default RAR password</string>

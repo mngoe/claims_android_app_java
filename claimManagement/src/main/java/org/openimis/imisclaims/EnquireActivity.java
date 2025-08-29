@@ -7,6 +7,7 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -18,22 +19,30 @@ import android.view.View;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
+import com.google.android.material.textfield.TextInputEditText;
 import android.widget.ImageButton;
+import com.google.android.material.button.MaterialButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import androidx.cardview.widget.CardView;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
 import androidx.annotation.WorkerThread;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.squareup.picasso.Picasso;
 
+import org.openimis.imisclaims.adapter.FamilyMemberAdapter;
+import org.openimis.imisclaims.adapter.PolygamousHeadAdapter;
+import org.openimis.imisclaims.domain.entity.FamilyMember;
 import org.openimis.imisclaims.domain.entity.Insuree;
 import org.openimis.imisclaims.domain.entity.Policy;
 import org.openimis.imisclaims.network.exception.HttpException;
@@ -46,6 +55,7 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -53,12 +63,19 @@ import java.util.Objects;
 public class EnquireActivity extends ImisActivity {
     private static final String LOG_TAG = "ENQUIRE";
     private static final int REQUEST_QR_SCAN_CODE = 1;
-    EditText etCHFID;
+    TextInputEditText etCHFID;
     TextView tvCHFID, tvName, tvGender, tvDOB;
-    ImageButton btnGo, btnScan;
+    MaterialButton btnGo, btnScan;
     ListView lv;
     ImageView iv;
-    LinearLayout ll;
+    LinearLayout llHeadInfo;
+    CardView llListView;
+    RecyclerView rvFamilyMembers;
+    FamilyMemberAdapter familyMemberAdapter;
+    CardView cvPolygamousSection;
+    RecyclerView rvPolygamousHeads;
+    PolygamousHeadAdapter polygamousHeadAdapter;
+    private List<FamilyMember> currentFamilyMembers = new ArrayList<>();
     ProgressDialog pd;
 
     private boolean ZoomOut = false;
@@ -95,7 +112,22 @@ public class EnquireActivity extends ImisActivity {
         btnGo = findViewById(R.id.btnGo);
         btnScan = findViewById(R.id.btnScan);
         lv = findViewById(R.id.listView1);
-        ll = findViewById(R.id.llListView);
+        llHeadInfo = findViewById(R.id.llHeadInfo);
+        rvFamilyMembers = findViewById(R.id.rvFamilyMembers);
+        llListView = findViewById(R.id.llListView);
+        
+        // Configuration du RecyclerView
+        rvFamilyMembers.setLayoutManager(new LinearLayoutManager(this));
+        familyMemberAdapter = new FamilyMemberAdapter(this, new ArrayList<>());
+        familyMemberAdapter.setOnFamilyMemberClickListener(this::onFamilyMemberClick);
+        rvFamilyMembers.setAdapter(familyMemberAdapter);
+        
+        // Initialiser les éléments pour la section polygame
+        cvPolygamousSection = findViewById(R.id.cvPolygamousSection);
+        rvPolygamousHeads = findViewById(R.id.rvPolygamousHeads);
+        rvPolygamousHeads.setLayoutManager(new LinearLayoutManager(this));
+        polygamousHeadAdapter = new PolygamousHeadAdapter(this, new ArrayList<>(), this::onPolygamousHeadClick);
+        rvPolygamousHeads.setAdapter(polygamousHeadAdapter);
 
         iv.setOnClickListener(v -> {
             if (ZoomOut) {
@@ -115,12 +147,19 @@ public class EnquireActivity extends ImisActivity {
             InputMethodManager inputManager = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
             inputManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 
-            ClearForm();
+            // Ne pas appeler ClearForm() pour les CHFIDs de test
+                String chfid = etCHFID.getText().toString().trim();
+                {
+                    ClearForm();
+                }
+            
             Escape escape = new Escape();
             if (!escape.CheckCHFID(etCHFID.getText().toString())) {
                 ShowDialog(tvCHFID, getResources().getString(R.string.MissingCHFID));
                 return;
             }
+
+
 
             pd = ProgressDialog.show(EnquireActivity.this, "", getResources().getString(R.string.GetingInsuuree));
             new Thread(() -> {
@@ -139,6 +178,7 @@ public class EnquireActivity extends ImisActivity {
         etCHFID.setOnEditorActionListener((v, actionId, event) -> {
             if (actionId == EditorInfo.IME_ACTION_GO) {
                 ClearForm();
+                
                 Escape escape = new Escape();
                 if (!escape.CheckCHFID(etCHFID.getText().toString())) return false;
 
@@ -200,27 +240,59 @@ public class EnquireActivity extends ImisActivity {
 
     @SuppressLint({"WrongConstant", "Range"})
     @Nullable
-    private Insuree getDataFromDb(String chfid) {
+    private List<FamilyMember> getFamilyMembersFromDb(String headChfid) {
         try {
             SQLiteDatabase db = openOrCreateDatabase(SQLHandler.DB_NAME_DATA, SQLiteDatabase.OPEN_READONLY, null);
-            String[] columns = {"CHFID", "Photo", "InsureeName", "DOB", "Gender", "ProductCode", "ProductName", "ExpiryDate", "Status", "DedType", "Ded1", "Ded2", "Ceiling1", "Ceiling2"};
-            String[] selectionArgs = {chfid};
-            Cursor c = db.query("tblPolicyInquiry", columns, "Trim(CHFID)=?", selectionArgs, null, null, null);
-            String name = null;
-            Date dateOfBirth = null;
-            String gender = null;
-            byte[] photo = null;
-            List<Policy> policies = new ArrayList<>();
+            
+            // Rechercher d'abord le chef de famille pour obtenir le FamilyId
+            String[] headColumns = {"FamilyId"};
+            String[] headSelectionArgs = {headChfid};
+            Cursor headCursor = db.query("tblPolicyInquiry", headColumns, "Trim(CHFID)=?", headSelectionArgs, null, null, null);
+            
+            String familyId = null;
+            if (headCursor.moveToFirst()) {
+                familyId = headCursor.getString(headCursor.getColumnIndex("FamilyId"));
+            }
+            headCursor.close();
+            
+            if (familyId == null) {
+                // Si pas de FamilyId trouvé, retourner juste le membre recherché
+                return getSingleMemberFromDb(headChfid);
+            }
+            
+            // Rechercher tous les membres de la famille
+            String[] columns = {"CHFID", "Photo", "InsureeName", "DOB", "Gender", "ProductCode", "ProductName", "ExpiryDate", "Status", "DedType", "Ded1", "Ded2", "Ceiling1", "Ceiling2", "Relationship"};
+            String[] selectionArgs = {familyId};
+            Cursor c = db.query("tblPolicyInquiry", columns, "FamilyId=?", selectionArgs, null, null, "CHFID");
+            
+            Map<String, FamilyMember> membersMap = new HashMap<>();
+            
             for (c.moveToFirst(); !c.isAfterLast(); c.moveToNext()) {
-                if (c.isFirst()) {
-                    name = c.getString(c.getColumnIndex("InsureeName"));
+                String chfid = c.getString(c.getColumnIndex("CHFID"));
+                
+                FamilyMember member = membersMap.get(chfid);
+                if (member == null) {
+                    String name = c.getString(c.getColumnIndex("InsureeName"));
+                    String[] nameParts = name != null ? name.split(" ", 2) : new String[]{"", ""};
+                    String firstName = nameParts.length > 0 ? nameParts[0] : "";
+                    String lastName = nameParts.length > 1 ? nameParts[1] : "";
+                    
                     String dateOfBirthString = c.getString(c.getColumnIndex("DOB"));
+                    Date dateOfBirth = null;
                     if (dateOfBirthString != null) {
                         dateOfBirth = DateUtils.dateFromString(dateOfBirthString);
                     }
-                    gender = c.getString(c.getColumnIndex("Gender"));
-                    photo = c.getBlob(c.getColumnIndex("Photo"));
+                    
+                    String gender = c.getString(c.getColumnIndex("Gender"));
+                    byte[] photo = c.getBlob(c.getColumnIndex("Photo"));
+                    String relationship = c.getString(c.getColumnIndex("Relationship"));
+                    boolean isHead = chfid.equals(headChfid);
+                    
+                    member = new FamilyMember(chfid, lastName, firstName, gender, dateOfBirth, photo, null, new ArrayList<>(), relationship, isHead);
+                    membersMap.put(chfid, member);
                 }
+                
+                // Ajouter la police à ce membre
                 String expiryDate = c.getString(c.getColumnIndex("ExpiryDate"));
                 String status = c.getString(c.getColumnIndex("Status"));
                 String deductibleType = c.getString(c.getColumnIndex("DedType"));
@@ -228,6 +300,88 @@ public class EnquireActivity extends ImisActivity {
                 String deductibleOp = c.getString(c.getColumnIndex("Ded2"));
                 String ceilingIp = c.getString(c.getColumnIndex("Ceiling1"));
                 String ceilingOp = c.getString(c.getColumnIndex("Ceiling2"));
+                
+                Policy policy = new Policy(
+                        /* code = */ c.getString(c.getColumnIndex("ProductCode")),
+                        /* name = */ c.getString(c.getColumnIndex("ProductName")),
+                        /* value = */ null,
+                        /* expiryDate = */ expiryDate != null ? DateUtils.dateFromString(expiryDate) : null,
+                        /* status = */ status != null ? Policy.Status.valueOf(status) : null,
+                        /* deductibleType = */ deductibleType != null ? Double.parseDouble(deductibleType) : null,
+                        /* deductibleIp = */ deductibleIp != null ? Double.parseDouble(deductibleIp) : null,
+                        /* deductibleOp = */ deductibleOp != null ? Double.parseDouble(deductibleOp) : null,
+                        /* ceilingIp = */ ceilingIp != null ? Double.parseDouble(ceilingIp) : null,
+                        /* ceilingOp = */ ceilingOp != null ? Double.parseDouble(ceilingOp) : null,
+                        /* antenatalAmountLeft = */ null,
+                        /* consultationAmountLeft = */ null,
+                        /* deliveryAmountLeft = */ null,
+                        /* hospitalizationAmountLeft = */ null,
+                        /* surgeryAmountLeft = */ null,
+                        /* totalAdmissionsLeft = */ null,
+                        /* totalAntenatalLeft = */ null,
+                        /* totalConsultationsLeft = */ null,
+                        /* totalDeliveriesLeft = */ null,
+                        /* totalSurgeriesLeft = */ null,
+                        /* totalVisitsLeft = */ null
+                );
+                
+                member.getActivePolicies().add(policy);
+            }
+            
+            c.close();
+            db.close();
+            
+            List<FamilyMember> familyMembers = new ArrayList<>(membersMap.values());
+            // Trier pour mettre le chef de famille en premier
+            familyMembers.sort((m1, m2) -> Boolean.compare(m2.isHead(), m1.isHead()));
+            
+
+            
+            return familyMembers;
+        } catch (Exception e) {
+            return null;
+        }
+    }
+    
+    @SuppressLint({"WrongConstant", "Range"})
+    @Nullable
+    private List<FamilyMember> getSingleMemberFromDb(String chfid) {
+        try {
+            SQLiteDatabase db = openOrCreateDatabase(SQLHandler.DB_NAME_DATA, SQLiteDatabase.OPEN_READONLY, null);
+            String[] columns = {"CHFID", "Photo", "InsureeName", "DOB", "Gender", "ProductCode", "ProductName", "ExpiryDate", "Status", "DedType", "Ded1", "Ded2", "Ceiling1", "Ceiling2"};
+            String[] selectionArgs = {chfid};
+            Cursor c = db.query("tblPolicyInquiry", columns, "Trim(CHFID)=?", selectionArgs, null, null, null);
+            
+            if (!c.moveToFirst()) {
+                c.close();
+                db.close();
+                return null;
+            }
+            
+            String name = c.getString(c.getColumnIndex("InsureeName"));
+            String[] nameParts = name != null ? name.split(" ", 2) : new String[]{"", ""};
+            String firstName = nameParts.length > 0 ? nameParts[0] : "";
+            String lastName = nameParts.length > 1 ? nameParts[1] : "";
+            
+            String dateOfBirthString = c.getString(c.getColumnIndex("DOB"));
+            Date dateOfBirth = null;
+            if (dateOfBirthString != null) {
+                dateOfBirth = DateUtils.dateFromString(dateOfBirthString);
+            }
+            
+            String gender = c.getString(c.getColumnIndex("Gender"));
+            byte[] photo = c.getBlob(c.getColumnIndex("Photo"));
+            
+            List<Policy> policies = new ArrayList<>();
+            do {
+                String expiryDate = c.getString(c.getColumnIndex("ExpiryDate"));
+                String status = c.getString(c.getColumnIndex("Status"));
+                String deductibleType = c.getString(c.getColumnIndex("DedType"));
+                String deductibleIp = c.getString(c.getColumnIndex("Ded1"));
+                String deductibleOp = c.getString(c.getColumnIndex("Ded2"));
+                String ceilingIp = c.getString(c.getColumnIndex("Ceiling1"));
+                String ceilingOp = c.getString(c.getColumnIndex("Ceiling2"));
+                
                 policies.add(new Policy(
                         /* code = */ c.getString(c.getColumnIndex("ProductCode")),
                         /* name = */ c.getString(c.getColumnIndex("ProductName")),
@@ -251,33 +405,37 @@ public class EnquireActivity extends ImisActivity {
                         /* totalSurgeriesLeft = */ null,
                         /* totalVisitsLeft = */ null
                 ));
-            }
+            } while (c.moveToNext());
+            
             c.close();
             db.close();
-            return new Insuree(
-                    /* chfId = */ chfid,
-                    /* name = */ Objects.requireNonNull(name),
-                    /* dateOfBirth = */ Objects.requireNonNull(dateOfBirth),
-                    /* gender = */ gender,
-                    /* photoPath = */ null,
-                    /* photo = */ photo,
-                    /* policies = */ policies
-            );
+            
+            FamilyMember member = new FamilyMember(chfid, lastName, firstName, gender, dateOfBirth, photo, null, policies, "Chef de famille", true);
+            List<FamilyMember> members = new ArrayList<>();
+            members.add(member);
+            return members;
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Parsing offline enquire failed", e);
             return null;
         }
-
     }
 
     @WorkerThread
     private void getInsureeInfo() {
-        runOnUiThread(this::ClearForm);
         String chfid = etCHFID.getText().toString();
+
+        
+        // Ne pas appeler ClearForm() pour les tests car ils gèrent leur propre affichage
+        {
+            runOnUiThread(this::ClearForm);
+        }
+        
         if (global.isNetworkAvailable()) {
+
             try {
-                Insuree insuree = new FetchInsureeInquire().execute(chfid);
-                runOnUiThread(() -> renderResult(insuree));
+                // Utiliser la nouvelle méthode pour récupérer tous les membres de famille
+                List<FamilyMember> familyMembers = new FetchInsureeInquire().executeFamilyMembers(chfid);
+
+                runOnUiThread(() -> renderFamilyResult(familyMembers));
             } catch (HttpException e) {
                 if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
                     runOnUiThread(() -> showDialog(getResources().getString(R.string.RecordNotFound)));
@@ -285,22 +443,285 @@ public class EnquireActivity extends ImisActivity {
                     runOnUiThread(() -> showDialog(e.getMessage()));
                 }
             } catch (Exception e) {
-                Log.e(LOG_TAG, "Fetching online enquire failed", e);
                 runOnUiThread(() -> showDialog(getResources().getString(R.string.UnknownError)));
             }
         } else {
-            //TODO: yet to be done
-            runOnUiThread(() -> renderResult(getDataFromDb(chfid)));
+
+            List<FamilyMember> familyMembers = getFamilyMembersFromDb(chfid);
+            if (familyMembers == null) {
+                Log.w(LOG_TAG, "Aucune donnée trouvée dans la base de données locale pour CHFID: " + chfid);
+            } else {
+
+            }
+            runOnUiThread(() -> renderFamilyResult(familyMembers));
         }
     }
 
+    public void renderFamilyResult(@Nullable List<FamilyMember> familyMembers) {
+        if (familyMembers == null || familyMembers.isEmpty()) {
+            showDialog(getResources().getString(R.string.RecordNotFound));
+            return;
+        }
+        
+        // CORRECTION: Déduplicquer les membres dès le début pour éviter les doublons dans l'affichage
+        Map<String, FamilyMember> uniqueMembers = new LinkedHashMap<>();
+        for (FamilyMember member : familyMembers) {
+            String chfid = member.getChfId();
+            if (chfid != null && !uniqueMembers.containsKey(chfid)) {
+                uniqueMembers.put(chfid, member);
+                
+            } else {
+                
+            }
+        }
+        
+        List<FamilyMember> deduplicatedFamilyMembers = new ArrayList<>(uniqueMembers.values());
+        
+        
+        // Stocker les membres de famille dédupliqués pour utilisation ultérieure
+        currentFamilyMembers = new ArrayList<>(deduplicatedFamilyMembers);
+
+        // Afficher les informations du chef de famille
+        FamilyMember headOfFamily = deduplicatedFamilyMembers.stream()
+                .filter(FamilyMember::isHead)
+                .findFirst()
+                .orElse(deduplicatedFamilyMembers.get(0));
+
+        if (!etCHFID.getText().toString().trim().equals(headOfFamily.getChfId()))
+            return;
+
+        llHeadInfo.setVisibility(View.VISIBLE);
+        tvCHFID.setText(headOfFamily.getChfId());
+        tvName.setText(headOfFamily.getFullName());
+        TextViewUtils.setDate(tvDOB, headOfFamily.getDateOfBirth());
+        tvGender.setText(headOfFamily.getGender());
+
+        byte[] imageBytes = headOfFamily.getPhoto();
+        if (imageBytes != null) {
+            try {
+                Bitmap image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                iv.setImageBitmap(image);
+            } catch (Exception e) {
+                iv.setImageDrawable(getResources().getDrawable(R.drawable.person));
+            }
+        } else if (headOfFamily.getPhotoPath() != null && global.isNetworkAvailable()) {
+            iv.setImageResource(R.drawable.person);
+            new Picasso.Builder(this).build()
+                    .load(API_BASE_URL + REST_API_PREFIX + headOfFamily.getPhotoPath())
+                    .placeholder(R.drawable.person)
+                    .error(R.drawable.person)
+                    .into(iv);
+        } else {
+            iv.setImageDrawable(getResources().getDrawable(R.drawable.person));
+        }
+
+        // Détecter la polygamie
+        List<FamilyMember> polygamousHeads = detectPolygamousHeads(deduplicatedFamilyMembers);
+        
+
+        
+        if (!polygamousHeads.isEmpty()) {
+            // Si polygame : afficher UNIQUEMENT les chefs de sous-familles (épouses), PAS le chef principal
+            cvPolygamousSection.setVisibility(View.VISIBLE);
+            polygamousHeadAdapter.updatePolygamousHeads(polygamousHeads);
+            rvFamilyMembers.setVisibility(View.GONE);
+            familyMemberAdapter.updateFamilyMembers(new ArrayList<>()); // Vider l'adapter
+        } else {
+            // Si non polygame : afficher TOUS les membres de la famille
+
+            cvPolygamousSection.setVisibility(View.GONE);
+            rvFamilyMembers.setVisibility(View.VISIBLE);
+            familyMemberAdapter.updateFamilyMembers(deduplicatedFamilyMembers);
+        }
+        
+
+        
+        llListView.setVisibility(View.VISIBLE);
+        
+        etCHFID.setText("");
+    }
+    
+    private List<FamilyMember> detectPolygamousHeads(List<FamilyMember> familyMembers) {
+        // Déduplicquer les membres basés sur leur CHFID
+        Map<String, FamilyMember> uniqueMembers = new LinkedHashMap<>();
+        for (FamilyMember member : familyMembers) {
+            String chfid = member.getChfId();
+            if (chfid != null && !uniqueMembers.containsKey(chfid)) {
+                uniqueMembers.put(chfid, member);
+            }
+        }
+        
+        List<FamilyMember> deduplicatedMembers = new ArrayList<>(uniqueMembers.values());
+        
+        // Rechercher les épouses/époux avec différentes variantes possibles
+        List<FamilyMember> spouses = deduplicatedMembers.stream()
+                .filter(member -> {
+                    String relationship = member.getRelationship();
+                    String gender = member.getGender();
+                    boolean isHead = member.isHead();
+                    
+                    // Si c'est le chef de famille, ce n'est pas une épouse
+                    if (isHead) {
+                        return false;
+                    }
+                    
+                    if (relationship == null) {
+                        relationship = "";
+                    }
+                    
+                    // Normaliser la relation (enlever espaces, mettre en minuscules)
+                    String normalizedRelation = relationship.trim().toLowerCase();
+                    
+                    // Vérifier différentes variantes possibles d'épouses
+                    boolean isSpouse = normalizedRelation.equals("épouse") || 
+                                     normalizedRelation.equals("epouse") ||
+                                     normalizedRelation.equals("époux") ||
+                                     normalizedRelation.equals("epoux") ||
+                                     normalizedRelation.equals("wife") ||
+                                     normalizedRelation.equals("husband") ||
+                                     normalizedRelation.equals("spouse") ||
+                                     normalizedRelation.contains("épouse") ||
+                                     normalizedRelation.contains("époux") ||
+                                     normalizedRelation.contains("wife") ||
+                                     normalizedRelation.contains("husband");
+                    
+                    // Détecter les femmes adultes avec relation "Membre" ou vide
+                    // comme épouses potentielles dans les familles polygames
+                    if (!isSpouse && !isHead) {
+                        // Vérifier différents formats de genre féminin
+                        boolean isFemale = "F".equals(gender) || "Feminine".equals(gender) || "Female".equals(gender) || "f".equals(gender);
+                        if (isFemale && (normalizedRelation.equals("membre") || normalizedRelation.isEmpty())) {
+                            isSpouse = true;
+                        }
+                    }
+                    
+                    return isSpouse;
+                })
+                .collect(java.util.stream.Collectors.toList());
+        
+        // Une famille est polygame s'il y a AU MOINS DEUX épouses/époux détectées
+        // Une famille avec une seule épouse est considérée comme monogame
+        if (spouses.size() >= 2) {
+            // Grouper les épouses par ParentId pour créer des sous-familles distinctes
+            List<FamilyMember> subFamilyHeads = groupSpousesByParentId(spouses);
+            
+            return subFamilyHeads;
+        } else {
+            return new ArrayList<>(); // Retourner liste vide pour famille monogame
+        }
+    }
+    
+    /**
+     * Groupe les épouses par ParentId pour créer des sous-familles distinctes.
+     * Si des épouses ont le même ParentId, elles forment une sous-famille.
+     * Chaque groupe de ParentId unique devient une sous-famille avec un chef représentatif.
+     */
+    private List<FamilyMember> groupSpousesByParentId(List<FamilyMember> spouses) {
+        // Grouper les épouses par ParentId
+        Map<String, List<FamilyMember>> spousesByParentId = new HashMap<>();
+        
+        for (FamilyMember spouse : spouses) {
+            // Pour l'instant, utiliser le CHFID comme ParentId temporaire
+            // Dans une vraie implémentation, il faudrait récupérer le ParentId de la base de données
+            String parentId = getParentIdForSpouse(spouse);
+            
+            if (!spousesByParentId.containsKey(parentId)) {
+                spousesByParentId.put(parentId, new ArrayList<>());
+            }
+            spousesByParentId.get(parentId).add(spouse);
+        }
+        
+        // Créer une liste de chefs de sous-famille (un représentant par ParentId)
+        List<FamilyMember> subFamilyHeads = new ArrayList<>();
+        
+        for (Map.Entry<String, List<FamilyMember>> entry : spousesByParentId.entrySet()) {
+            String parentId = entry.getKey();
+            List<FamilyMember> spousesInGroup = entry.getValue();
+            
+            // Prendre la première épouse du groupe comme chef de sous-famille représentatif
+            FamilyMember representativeSpouse = spousesInGroup.get(0);
+            subFamilyHeads.add(representativeSpouse);
+        }
+        
+        return subFamilyHeads;
+    }
+    
+    /**
+     * Récupère le ParentId pour une épouse donnée.
+     * Pour l'instant, retourne un ParentId simulé basé sur le nom de famille.
+     * Dans une vraie implémentation, ceci devrait interroger la base de données.
+     */
+    private String getParentIdForSpouse(FamilyMember spouse) {
+        // Simulation: utiliser le nom de famille comme ParentId
+        // Les épouses avec le même nom de famille auront le même ParentId
+        String lastName = spouse.getLastName();
+        if (lastName != null && !lastName.isEmpty()) {
+            return "PARENT_" + lastName.toUpperCase();
+        }
+        // Fallback: utiliser le CHFID comme ParentId unique
+        return "PARENT_" + spouse.getChfId();
+    }
+    
+    private void onPolygamousHeadClick(FamilyMember polygamousHead) {
+        if (polygamousHead == null || currentFamilyMembers == null) {
+            return;
+        }
+        
+        // Lancer l'activité pour afficher les membres du sous-ménage
+        Intent intent = new Intent(this, SubHouseholdActivity.class);
+        intent.putExtra(SubHouseholdActivity.EXTRA_SUB_HEAD, polygamousHead);
+        intent.putExtra(SubHouseholdActivity.EXTRA_ALL_MEMBERS, new ArrayList<>(currentFamilyMembers));
+        startActivity(intent);
+    }
+    
+
+
+    
+    private void onFamilyMemberClick(FamilyMember familyMember) {
+        // Vérifier si la famille est polygame
+        List<FamilyMember> polygamousHeads = detectPolygamousHeads(currentFamilyMembers);
+        boolean isPolygamousFamily = !polygamousHeads.isEmpty();
+        
+        if (isPolygamousFamily) {
+            // Dans une famille polygame, permettre de cliquer sur le chef principal ou les épouses
+            boolean isSubHouseholdHead = false;
+            
+            // Vérifier si c'est le chef principal
+            if (familyMember.isHead()) {
+                isSubHouseholdHead = true;
+            } else {
+                // Vérifier si c'est une épouse/époux
+                String relationship = familyMember.getRelationship();
+                if (relationship != null) {
+                    String normalizedRelation = relationship.trim().toLowerCase();
+                    isSubHouseholdHead = normalizedRelation.equals("épouse") || 
+                                        normalizedRelation.equals("epouse") ||
+                                        normalizedRelation.equals("époux") ||
+                                        normalizedRelation.equals("epoux") ||
+                                        normalizedRelation.equals("wife") ||
+                                        normalizedRelation.equals("husband") ||
+                                        normalizedRelation.equals("spouse") ||
+                                        normalizedRelation.contains("épouse") ||
+                                        normalizedRelation.contains("époux");
+                }
+            }
+            
+            if (isSubHouseholdHead) {
+                Intent intent = new Intent(this, SubHouseholdActivity.class);
+                intent.putExtra(SubHouseholdActivity.EXTRA_SUB_HEAD, familyMember);
+                intent.putExtra(SubHouseholdActivity.EXTRA_ALL_MEMBERS, new ArrayList<>(currentFamilyMembers));
+                startActivity(intent);
+            }
+        }
+    }
+    
     public void renderResult(@Nullable Insuree insuree) {
         if (insuree == null) {
             showDialog(getResources().getString(R.string.RecordNotFound));
             return;
         }
 
-        ll.setVisibility(View.VISIBLE);
+        llListView.setVisibility(View.VISIBLE);
 
         if (!etCHFID.getText().toString().trim().equals(insuree.getChfId()))
             return;
@@ -315,8 +736,7 @@ public class EnquireActivity extends ImisActivity {
             try {
                 Bitmap image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
                 iv.setImageBitmap(image);
-            } catch (Throwable e) {
-                Log.e(LOG_TAG, "Error while processing Base64 image", e);
+            } catch (Exception e) {
                 iv.setImageDrawable(getResources().getDrawable(R.drawable.person));
             }
         } else if (insuree.getPhotoPath() != null && global.isNetworkAvailable()) {
@@ -452,7 +872,13 @@ public class EnquireActivity extends ImisActivity {
         tvDOB.setText(getResources().getString(R.string.DOB));
         tvGender.setText(getResources().getString(R.string.Gender));
         iv.setImageResource(R.drawable.noimage);
-        ll.setVisibility(View.INVISIBLE);
+        llListView.setVisibility(View.INVISIBLE);
+        llHeadInfo.setVisibility(View.INVISIBLE);
+        llListView.setVisibility(View.INVISIBLE);
+        rvFamilyMembers.setVisibility(View.INVISIBLE);
+        cvPolygamousSection.setVisibility(View.GONE);
         lv.setAdapter(null);
+        familyMemberAdapter.updateFamilyMembers(new ArrayList<>());
+        polygamousHeadAdapter.updatePolygamousHeads(new ArrayList<>());
     }
 }

@@ -16,6 +16,31 @@ query GetInsureeInquire($chfId: String) {
                     filename
                     photo
                 }
+                family {
+                    uuid
+                    members {
+                        edges {
+                            node {
+                                chfId
+                                lastName
+                                otherNames
+                                dob
+                                head
+                                gender {
+                                    gender
+                                }
+                                photos {
+                                    folder
+                                    filename
+                                    photo
+                                }
+                                relationship {
+                                    relation
+                                }
+                            }
+                        }
+                    }
+                }
                 insureePolicies {
                     edges {
                         node {
@@ -38,7 +63,7 @@ query GetInsureeInquire($chfId: String) {
                                     maxNoDelivery
                                     maxAmountDelivery
                                     maxNoHospitalization
-                                    maxAmountHospitalization
+
                                     maxMembers
                                     maxNoVisits
                                     maxInstallments
