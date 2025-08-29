@@ -98,6 +98,8 @@ public class EnquireActivity extends ImisActivity {
         lv = findViewById(R.id.listView1);
         ll = findViewById(R.id.llListView);
 
+        lv.setNestedScrollingEnabled(true);
+
         iv.setOnClickListener(v -> {
             if (ZoomOut) {
                 iv.setLayoutParams(new LinearLayout.LayoutParams(orgWidth, orgHeight));
