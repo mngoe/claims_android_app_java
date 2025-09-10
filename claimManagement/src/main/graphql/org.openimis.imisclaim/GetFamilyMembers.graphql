@@ -1,0 +1,25 @@
+query GetFamilyMembers($familyUuid: String!) {
+  familyMembers(familyUuid: $familyUuid) {
+    edges {
+      node {
+        uuid
+        chfId
+        lastName
+        otherNames
+        gender {
+          code
+          gender
+        }
+        dob
+        photo {
+          id
+          photo
+        }
+        relationship {
+          id
+          relation
+        }
+      }
+    }
+  }
+}

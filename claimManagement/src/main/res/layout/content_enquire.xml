@@ -4,13 +4,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:padding="0dp"
+    android:layout_margin="0dp"
+    android:clipToPadding="false"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     tools:context="org.openimis.imisclaims.EnquireActivity"
     tools:showIn="@layout/activity_enquire">
 <LinearLayout
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="0dp"
+    android:layout_margin="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -29,8 +34,8 @@
             android:typeface="monospace"
             android:fontFamily="sans-serif-light"
             android:background="@drawable/corner"
-            android:imeOptions="actionGo" >
-
+            android:imeOptions="actionGo"
+            android:layout_marginBottom="0dp">
             <requestFocus />
         </EditText>
 
@@ -111,23 +116,54 @@
 
 
     </LinearLayout>
+    
+    <!-- Section Membres de la famille -->
+    <LinearLayout
+        android:id="@+id/llFamilyMembers"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_marginTop="0dp"
+        android:paddingTop="0dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/family_members"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginBottom="4dp"
+            android:textColor="@color/colorPrimary" />
+
+        <ListView
+            android:id="@+id/listViewFamilyMembers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:divider="@android:color/darker_gray"
+            android:dividerHeight="1dp"
+            android:padding="2dp"
+            android:clipToPadding="false"
+            android:scrollbars="vertical"
+            android:nestedScrollingEnabled="false" />
+    </LinearLayout>
 
     <LinearLayout
         android:id="@+id/llListView"
-        android:visibility="invisible"
-        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:background="@color/white"
         android:fontFamily="sans-serif-light" >
         <ListView
             android:id="@+id/listView1"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:choiceMode="none"
             android:divider="@color/grey2"
             android:dividerHeight="0.5dp"
             android:fadeScrollbars="true"
-            android:padding="10dp"
+            android:padding="0dp"
             android:background="@color/white"
             android:fontFamily="sans-serif-light" >
         </ListView>

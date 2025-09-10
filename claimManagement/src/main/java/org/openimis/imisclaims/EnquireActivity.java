@@ -15,6 +15,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -34,8 +35,11 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.squareup.picasso.Picasso;
 
+import org.openimis.imisclaims.adapter.FamilyMemberAdapter;
+import org.openimis.imisclaims.domain.entity.FamilyMember;
 import org.openimis.imisclaims.domain.entity.Insuree;
 import org.openimis.imisclaims.domain.entity.Policy;
+import org.openimis.imisclaims.network.GetFamilyMembersGraphQLRequest;
 import org.openimis.imisclaims.network.exception.HttpException;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.usecase.FetchInsureeInquire;
@@ -57,9 +61,12 @@ public class EnquireActivity extends ImisActivity {
     TextView tvCHFID, tvName, tvGender, tvDOB;
     ImageButton btnGo, btnScan;
     ListView lv;
+    ListView listViewFamilyMembers;
+    LinearLayout llFamilyMembers;
     ImageView iv;
     LinearLayout ll;
     ProgressDialog pd;
+    FamilyMemberAdapter familyMemberAdapter;
 
     private boolean ZoomOut = false;
     private int orgHeight, orgWidth;
@@ -95,6 +102,8 @@ public class EnquireActivity extends ImisActivity {
         btnGo = findViewById(R.id.btnGo);
         btnScan = findViewById(R.id.btnScan);
         lv = findViewById(R.id.listView1);
+        listViewFamilyMembers = findViewById(R.id.listViewFamilyMembers);
+        llFamilyMembers = findViewById(R.id.llFamilyMembers);
         ll = findViewById(R.id.llListView);
 
         iv.setOnClickListener(v -> {
@@ -261,7 +270,8 @@ public class EnquireActivity extends ImisActivity {
                     /* gender = */ gender,
                     /* photoPath = */ null,
                     /* photo = */ photo,
-                    /* policies = */ policies
+                    /* policies = */ policies,
+                    /* familyUuid = */ null // Pas d'UUID famille en mode hors ligne
             );
         } catch (Exception e) {
             Log.e(LOG_TAG, "Parsing offline enquire failed", e);
@@ -435,6 +445,19 @@ public class EnquireActivity extends ImisActivity {
         );
 
         lv.setAdapter(adapter);
+        
+        // Récupérer et afficher les membres de famille
+        Log.d(LOG_TAG, "Family UUID: " + (insuree.getFamilyUuid() != null ? insuree.getFamilyUuid() : "null"));
+        if (insuree.getFamilyUuid() != null && !insuree.getFamilyUuid().isEmpty()) {
+            Log.d(LOG_TAG, "Loading family members for UUID: " + insuree.getFamilyUuid());
+            loadFamilyMembers(insuree.getFamilyUuid());
+        } else {
+            // Masquer la section famille si pas d'UUID
+            Log.d(LOG_TAG, "No family UUID found, hiding family section");
+            if (llFamilyMembers != null) {
+                llFamilyMembers.setVisibility(View.GONE);
+            }
+        }
     }
 
     protected String buildEnquireValue(@Nullable Number value, @StringRes int labelId) {
@@ -446,13 +469,103 @@ public class EnquireActivity extends ImisActivity {
         }
     }
 
+    private void loadFamilyMembers(String familyUuid) {
+        Log.d(LOG_TAG, "loadFamilyMembers called with UUID: " + familyUuid);
+        if (!global.isNetworkAvailable()) {
+            // Mode hors ligne - masquer la section famille
+            Log.d(LOG_TAG, "Network not available, hiding family section");
+            if (llFamilyMembers != null) {
+                llFamilyMembers.setVisibility(View.GONE);
+            }
+            return;
+        }
+        
+        Log.d(LOG_TAG, "Network available, starting family members request");
+        new Thread(() -> {
+            try {
+                GetFamilyMembersGraphQLRequest request = new GetFamilyMembersGraphQLRequest();
+                List<FamilyMember> familyMembers = request.get(familyUuid);
+                
+                Log.d(LOG_TAG, "Family members received: " + (familyMembers != null ? familyMembers.size() : "null"));
+                
+                runOnUiThread(() -> {
+                    if (familyMembers != null && !familyMembers.isEmpty()) {
+                        Log.d(LOG_TAG, "Displaying " + familyMembers.size() + " family members");
+                        if (familyMemberAdapter == null) {
+                            familyMemberAdapter = new FamilyMemberAdapter(this, familyMembers);
+                            listViewFamilyMembers.setAdapter(familyMemberAdapter);
+                        } else {
+                            familyMemberAdapter.updateData(familyMembers);
+                        }
+                        // Forcer la ListView à afficher tous les éléments
+                        setListViewHeightBasedOnChildren(listViewFamilyMembers);
+                        llFamilyMembers.setVisibility(View.VISIBLE);
+                        Log.d(LOG_TAG, "Family section set to VISIBLE");
+                    } else {
+                        Log.d(LOG_TAG, "No family members found, hiding section");
+                        llFamilyMembers.setVisibility(View.GONE);
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "Error loading family members", e);
+                runOnUiThread(() -> {
+                    if (llFamilyMembers != null) {
+                        llFamilyMembers.setVisibility(View.GONE);
+                    }
+                });
+            }
+        }).start();
+    }
+
+    private void setListViewHeightBasedOnChildren(ListView listView) {
+        ListAdapter listAdapter = listView.getAdapter();
+        if (listAdapter == null) {
+            return;
+        }
+
+        // Si pas d'éléments, définir la hauteur à 0
+        if (listAdapter.getCount() == 0) {
+            ViewGroup.LayoutParams params = listView.getLayoutParams();
+            params.height = 0;
+            listView.setLayoutParams(params);
+            return;
+        }
+
+        // Optimisation: mesurer seulement le premier élément et multiplier par le nombre d'éléments
+        // Cela évite les appels multiples à getView() qui créent des doublons
+        int desiredWidth = View.MeasureSpec.makeMeasureSpec(listView.getWidth(), View.MeasureSpec.AT_MOST);
+        View listItem = listAdapter.getView(0, null, listView);
+        listItem.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED);
+        int itemHeight = listItem.getMeasuredHeight();
+        
+        // Calculer la hauteur totale basée sur la hauteur d'un seul élément
+        int totalHeight = itemHeight * listAdapter.getCount();
+        
+        ViewGroup.LayoutParams params = listView.getLayoutParams();
+        // Ajouter les diviseurs entre les éléments
+        params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
+        listView.setLayoutParams(params);
+        listView.requestLayout();
+        
+        Log.d(LOG_TAG, "ListView height set to: " + params.height + " for " + listAdapter.getCount() + " items (optimized)");
+    }
+
     private void ClearForm() {
         tvCHFID.setText(getResources().getString(R.string.CHFID));
         tvName.setText(getResources().getString(R.string.InsureeName));
         tvDOB.setText(getResources().getString(R.string.DOB));
         tvGender.setText(getResources().getString(R.string.Gender));
         iv.setImageResource(R.drawable.noimage);
-        ll.setVisibility(View.INVISIBLE);
+        ll.setVisibility(View.GONE);
         lv.setAdapter(null);
+        
+        // Nettoyer aussi la liste des membres de famille
+        if (listViewFamilyMembers != null) {
+            listViewFamilyMembers.setAdapter(null);
+        }
+        if (llFamilyMembers != null) {
+            llFamilyMembers.setVisibility(View.GONE);
+        }
+        familyMemberAdapter = null;
     }
 }
