@@ -1,0 +1,50 @@
+query GetFamiliesWithParent($parent_Uuid: String!) {
+  families(parent_Uuid: $parent_Uuid, first: 20) {
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    edges {
+      node {
+        id
+        uuid
+        confirmationNo
+        address
+        parent {
+          id
+          uuid
+          familyType {
+            code
+          }
+          headInsuree {
+            uuid
+          }
+        }
+        headInsuree {
+          id
+          uuid
+          chfId
+          lastName
+          otherNames
+          gender {
+            code
+          }
+          dob
+          photo {
+            id
+            photo
+          }
+        }
+        location {
+          id
+          uuid
+          code
+          name
+        }
+      }
+    }
+  }
+}

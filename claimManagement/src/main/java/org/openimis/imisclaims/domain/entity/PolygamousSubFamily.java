@@ -1,8 +1,9 @@
 package org.openimis.imisclaims.domain.entity;
 
 import java.io.Serializable;
+import java.util.List;
 
-public class FamilyMember implements Serializable {
+public class PolygamousSubFamily implements Serializable {
     private static final long serialVersionUID = 1L;
     private String uuid;
     private String chfId;
@@ -14,8 +15,11 @@ public class FamilyMember implements Serializable {
     private String photoId;
     private String photoData;
     private String relationship;
+    private String familyUuid;
+    private String parentUuid; // UUID du chef de famille polygame principal
+    private List<FamilyMember> members;
     
-    public FamilyMember() {
+    public PolygamousSubFamily() {
     }
     
     public String getUuid() {
@@ -90,6 +94,14 @@ public class FamilyMember implements Serializable {
         this.photoData = photoData;
     }
     
+    public String getPhoto() {
+        return photoData;
+    }
+    
+    public void setPhoto(String photo) {
+        this.photoData = photo;
+    }
+    
     public String getRelationship() {
         return relationship;
     }
@@ -98,7 +110,36 @@ public class FamilyMember implements Serializable {
         this.relationship = relationship;
     }
     
+    public String getFamilyUuid() {
+        return familyUuid;
+    }
+    
+    public void setFamilyUuid(String familyUuid) {
+        this.familyUuid = familyUuid;
+    }
+    
+    public String getParentUuid() {
+        return parentUuid;
+    }
+    
+    public void setParentUuid(String parentUuid) {
+        this.parentUuid = parentUuid;
+    }
+    
+    public List<FamilyMember> getMembers() {
+        return members;
+    }
+    
+    public void setMembers(List<FamilyMember> members) {
+        this.members = members;
+    }
+    
     public String getFullName() {
         return (otherNames != null ? otherNames : "") + " " + (lastName != null ? lastName : "");
+    }
+    
+    public boolean isPolygamousHead() {
+        // Un chef de ménage polygame est identifié par sa relation "Head" et le fait d'avoir des sous-familles
+        return "Head".equalsIgnoreCase(relationship) && members != null && !members.isEmpty();
     }
 }

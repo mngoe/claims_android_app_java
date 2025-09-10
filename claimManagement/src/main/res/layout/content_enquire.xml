@@ -136,12 +136,39 @@
             android:layout_marginBottom="4dp"
             android:textColor="@color/colorPrimary" />
 
-        <ListView
+        <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/listViewFamilyMembers"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:divider="@android:color/darker_gray"
-            android:dividerHeight="1dp"
+            android:padding="2dp"
+            android:clipToPadding="false"
+            android:scrollbars="vertical"
+            android:nestedScrollingEnabled="false" />
+    </LinearLayout>
+
+    <!-- Section Sous-familles polygames -->
+    <LinearLayout
+        android:id="@+id/llPolygamousSubFamilies"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="gone"
+        android:layout_marginTop="8dp"
+        android:paddingTop="0dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/polygamous_sub_families"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginBottom="4dp"
+            android:textColor="@color/colorPrimary" />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/listViewPolygamousSubFamilies"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:padding="2dp"
             android:clipToPadding="false"
             android:scrollbars="vertical"

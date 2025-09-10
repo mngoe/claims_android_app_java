@@ -1,0 +1,8 @@
+query GetFamilyTypes {
+  familyTypes {
+    code
+    type
+    sortOrder
+    altLanguage
+  }
+}

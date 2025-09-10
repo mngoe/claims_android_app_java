@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true">
+
+    <!-- Photo du chef de sous-famille -->
+    <ImageView
+        android:id="@+id/ivSubFamilyHeadPhoto"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_gravity="center_vertical"
+        android:layout_marginEnd="12dp"
+        android:scaleType="centerCrop"
+        android:src="@drawable/ic_person_placeholder"
+        android:background="@drawable/corner"
+        android:contentDescription="@string/sub_family_head_photo" />
+
+    <!-- Informations du chef de sous-famille -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:layout_gravity="center_vertical">
+
+        <!-- Nom complet -->
+        <TextView
+            android:id="@+id/tvSubFamilyHeadName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Nom Prénom"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textColor="@android:color/black"
+            android:fontFamily="sans-serif-medium" />
+
+        <!-- CHFID -->
+        <TextView
+            android:id="@+id/tvSubFamilyHeadCHFID"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CHFID: 123456789"
+            android:textSize="14sp"
+            android:textColor="@color/colorPrimary"
+            android:fontFamily="monospace"
+            android:layout_marginTop="2dp" />
+
+        <!-- Genre et Date de naissance -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="2dp">
+
+            <TextView
+                android:id="@+id/tvSubFamilyHeadGender"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Genre"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"
+                android:fontFamily="sans-serif-light" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="  •  "
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray" />
+
+            <TextView
+                android:id="@+id/tvSubFamilyHeadDOB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="01/01/1980"
+                android:textSize="12sp"
+                android:textColor="@android:color/darker_gray"
+                android:fontFamily="sans-serif-light" />
+        </LinearLayout>
+
+        <!-- Nombre de membres de la sous-famille -->
+        <TextView
+            android:id="@+id/tvSubFamilyMembersCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="3 membres"
+            android:textSize="12sp"
+            android:textColor="@color/colorAccent"
+            android:fontFamily="sans-serif-light"
+            android:layout_marginTop="2dp" />
+    </LinearLayout>
+
+    <!-- Icône de flèche pour indiquer que c'est cliquable -->
+    <ImageView
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/ic_arrow_forward"
+        android:contentDescription="@string/view_sub_family_members"
+        android:tint="@android:color/darker_gray" />
+
+</LinearLayout>

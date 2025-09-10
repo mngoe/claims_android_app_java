@@ -19,6 +19,12 @@ query GetFamilyMembers($familyUuid: String!) {
           id
           relation
         }
+        family {
+          uuid
+          parent {
+            uuid
+          }
+        }
       }
     }
   }

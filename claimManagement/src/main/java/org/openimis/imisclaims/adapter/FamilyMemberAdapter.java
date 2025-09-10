@@ -8,7 +8,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -21,7 +22,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
-public class FamilyMemberAdapter extends BaseAdapter {
+public class FamilyMemberAdapter extends RecyclerView.Adapter<FamilyMemberAdapter.ViewHolder> {
     private static final String LOG_TAG = "FamilyMemberAdapter";
     private Context context;
     private List<FamilyMember> familyMembers;
@@ -45,42 +46,24 @@ public class FamilyMemberAdapter extends BaseAdapter {
     }
 
     @Override
-    public int getCount() {
+    public int getItemCount() {
         int count = familyMembers != null ? familyMembers.size() : 0;
-        Log.d(LOG_TAG, "getCount() returning: " + count);
+        Log.d(LOG_TAG, "getItemCount() returning: " + count);
         return count;
     }
 
+    @NonNull
     @Override
-    public Object getItem(int position) {
-        return familyMembers != null && position < familyMembers.size() ? familyMembers.get(position) : null;
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = inflater.inflate(R.layout.family_member_item, parent, false);
+        Log.d(LOG_TAG, "onCreateViewHolder called");
+        return new ViewHolder(view);
     }
 
     @Override
-    public long getItemId(int position) {
-        return position;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder holder;
-        Log.d(LOG_TAG, "getView called for position: " + position);
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        Log.d(LOG_TAG, "onBindViewHolder called for position: " + position);
         
-        if (convertView == null) {
-            convertView = inflater.inflate(R.layout.family_member_item, parent, false);
-            holder = new ViewHolder();
-            holder.ivMemberPhoto = convertView.findViewById(R.id.ivMemberPhoto);
-            holder.tvMemberName = convertView.findViewById(R.id.tvMemberName);
-            holder.tvMemberChfId = convertView.findViewById(R.id.tvMemberChfId);
-            holder.tvMemberGender = convertView.findViewById(R.id.tvMemberGender);
-            holder.tvMemberDob = convertView.findViewById(R.id.tvMemberDob);
-            convertView.setTag(holder);
-            Log.d(LOG_TAG, "New view created for position: " + position);
-        } else {
-            holder = (ViewHolder) convertView.getTag();
-            Log.d(LOG_TAG, "Reusing view for position: " + position);
-        }
-
         FamilyMember member = familyMembers.get(position);
         Log.d(LOG_TAG, "Displaying member at position " + position + ": " + member.getFullName());
         
@@ -135,7 +118,6 @@ public class FamilyMemberAdapter extends BaseAdapter {
         }
         
         Log.d(LOG_TAG, "View setup complete for position " + position + ": " + member.getFullName());
-        return convertView;
     }
 
     public void updateData(List<FamilyMember> newFamilyMembers) {
@@ -179,11 +161,20 @@ public class FamilyMemberAdapter extends BaseAdapter {
         return dateString;
     }
 
-    private static class ViewHolder {
+    public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivMemberPhoto;
         TextView tvMemberName;
         TextView tvMemberChfId;
         TextView tvMemberGender;
         TextView tvMemberDob;
+        
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            ivMemberPhoto = itemView.findViewById(R.id.ivMemberPhoto);
+            tvMemberName = itemView.findViewById(R.id.tvMemberName);
+            tvMemberChfId = itemView.findViewById(R.id.tvMemberChfId);
+            tvMemberGender = itemView.findViewById(R.id.tvMemberGender);
+            tvMemberDob = itemView.findViewById(R.id.tvMemberDob);
+        }
     }
 }
