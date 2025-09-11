@@ -252,9 +252,7 @@ public class SynchronizeActivity extends ImisActivity {
                     String tag_name = "";
                     for (int i = 0; i < jsonarray.length(); i++){
                         JSONObject releaseObj = jsonarray.getJSONObject(i);
-                        // Temporarily commented out to fix compilation
-                        // if(releaseObj.getString("tag_name").equals(getResources().getString(R.string.release_tag))){
-                        if(true){ // Always true for now
+                        if(releaseObj.getString("tag_name").equals(getResources().getString(R.string.release_tag))){
                             tag_name = releaseObj.getString("tag_name");
                             String releaseName = releaseObj.getString("name");
                             if(!releaseName.equals(currentVersion)){
