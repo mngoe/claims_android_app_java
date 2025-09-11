@@ -15,6 +15,7 @@ import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Environment;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
@@ -23,6 +24,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListAdapter;
 import android.widget.ListView;
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
 
@@ -34,8 +37,14 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.squareup.picasso.Picasso;
 
+import org.openimis.imisclaims.adapter.FamilyMemberAdapter;
+import org.openimis.imisclaims.adapter.PolygamousSubFamilyAdapter;
+import org.openimis.imisclaims.domain.entity.FamilyMember;
 import org.openimis.imisclaims.domain.entity.Insuree;
 import org.openimis.imisclaims.domain.entity.Policy;
+import org.openimis.imisclaims.domain.entity.PolygamousSubFamily;
+import org.openimis.imisclaims.network.GetFamilyMembersGraphQLRequest;
+import org.openimis.imisclaims.network.GetPolygamousSubFamiliesGraphQLRequest;
 import org.openimis.imisclaims.network.exception.HttpException;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.usecase.FetchInsureeInquire;
@@ -57,9 +66,15 @@ public class EnquireActivity extends ImisActivity {
     TextView tvCHFID, tvName, tvGender, tvDOB;
     ImageButton btnGo, btnScan;
     ListView lv;
+    RecyclerView listViewFamilyMembers;
+    RecyclerView listViewPolygamousSubFamilies;
+    LinearLayout llFamilyMembers;
+    LinearLayout llPolygamousSubFamilies;
     ImageView iv;
     LinearLayout ll;
     ProgressDialog pd;
+    FamilyMemberAdapter familyMemberAdapter;
+    PolygamousSubFamilyAdapter polygamousSubFamilyAdapter;
 
     private boolean ZoomOut = false;
     private int orgHeight, orgWidth;
@@ -95,6 +110,12 @@ public class EnquireActivity extends ImisActivity {
         btnGo = findViewById(R.id.btnGo);
         btnScan = findViewById(R.id.btnScan);
         lv = findViewById(R.id.listView1);
+        listViewFamilyMembers = findViewById(R.id.listViewFamilyMembers);
+        listViewFamilyMembers.setLayoutManager(new LinearLayoutManager(this));
+        listViewPolygamousSubFamilies = findViewById(R.id.listViewPolygamousSubFamilies);
+        listViewPolygamousSubFamilies.setLayoutManager(new LinearLayoutManager(this));
+        llFamilyMembers = findViewById(R.id.llFamilyMembers);
+        llPolygamousSubFamilies = findViewById(R.id.llPolygamousSubFamilies);
         ll = findViewById(R.id.llListView);
 
         iv.setOnClickListener(v -> {
@@ -261,7 +282,8 @@ public class EnquireActivity extends ImisActivity {
                     /* gender = */ gender,
                     /* photoPath = */ null,
                     /* photo = */ photo,
-                    /* policies = */ policies
+                    /* policies = */ policies,
+                    /* familyUuid = */ null // Pas d'UUID famille en mode hors ligne
             );
         } catch (Exception e) {
             Log.e(LOG_TAG, "Parsing offline enquire failed", e);
@@ -300,6 +322,84 @@ public class EnquireActivity extends ImisActivity {
             return;
         }
 
+        // PREMIÈRE ÉTAPE : Vérifier le type de famille (polygame ou monogame)
+        if (insuree.getFamilyUuid() != null && !insuree.getFamilyUuid().isEmpty()) {
+            checkFamilyTypeAndRender(insuree);
+        } else {
+            // Pas d'UUID famille, afficher directement les informations de base
+            renderInsureeBasicInfo(insuree);
+        }
+    }
+    
+    private void checkFamilyTypeAndRender(Insuree insuree) {
+        String familyUuid = insuree.getFamilyUuid();
+        
+        // Vérification du type de famille
+        
+        if (!global.isNetworkAvailable()) {
+            renderInsureeBasicInfo(insuree);
+            return;
+        }
+        
+        new Thread(() -> {
+            try {
+                GetFamilyMembersGraphQLRequest familyRequest = new GetFamilyMembersGraphQLRequest(sqlHandler);
+                String familyType = familyRequest.getFamilyType(familyUuid);
+                
+                GetPolygamousSubFamiliesGraphQLRequest polygamousRequest = new GetPolygamousSubFamiliesGraphQLRequest(sqlHandler);
+                String detectedType = polygamousRequest.detectFamilyType(familyUuid);
+                boolean isPolygamousCheck = polygamousRequest.isPolygamousFamily(familyUuid);
+                List<PolygamousSubFamily> polygamousSubFamilies = polygamousRequest.get(familyUuid);
+                
+                boolean isPolygamous = polygamousSubFamilies != null && !polygamousSubFamilies.isEmpty();
+                
+                runOnUiThread(() -> {
+                    if (isPolygamous) {
+                        renderPolygamousFamily(insuree, polygamousSubFamilies);
+                    } else {
+                        renderMonogamousFamily(insuree);
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "Error checking family type", e);
+                runOnUiThread(() -> renderInsureeBasicInfo(insuree));
+            }
+        }).start();
+    }
+    
+    private void renderPolygamousFamily(Insuree insuree, List<PolygamousSubFamily> polygamousSubFamilies) {
+        renderInsureeBasicInfoForPolygamous(insuree);
+        
+        if (polygamousSubFamilyAdapter == null) {
+            polygamousSubFamilyAdapter = new PolygamousSubFamilyAdapter(this, polygamousSubFamilies);
+            polygamousSubFamilyAdapter.setOnSubFamilyClickListener(subFamily -> {
+                showSubFamilyMembers(subFamily);
+            });
+            listViewPolygamousSubFamilies.setAdapter(polygamousSubFamilyAdapter);
+        } else {
+            polygamousSubFamilyAdapter.updateData(polygamousSubFamilies);
+        }
+        llPolygamousSubFamilies.setVisibility(View.VISIBLE);
+        
+        if (llFamilyMembers != null) {
+            llFamilyMembers.setVisibility(View.GONE);
+        }
+        
+        if (ll != null) {
+            ll.setVisibility(View.GONE);
+        }
+    }
+    
+    private void renderMonogamousFamily(Insuree insuree) {
+        renderInsureeBasicInfo(insuree);
+        loadFamilyMembers(insuree.getFamilyUuid());
+        
+        if (llPolygamousSubFamilies != null) {
+            llPolygamousSubFamilies.setVisibility(View.GONE);
+        }
+    }
+    
+    private void renderInsureeBasicInfo(Insuree insuree) {
         ll.setVisibility(View.VISIBLE);
 
         if (!etCHFID.getText().toString().trim().equals(insuree.getChfId()))
@@ -437,6 +537,38 @@ public class EnquireActivity extends ImisActivity {
         lv.setAdapter(adapter);
     }
 
+    private void renderInsureeBasicInfoForPolygamous(Insuree insuree) {
+        // Ne pas rendre llListView visible pour les familles polygames
+        
+        if (!etCHFID.getText().toString().trim().equals(insuree.getChfId()))
+            return;
+
+        tvCHFID.setText(insuree.getChfId());
+        tvName.setText(insuree.getName());
+        TextViewUtils.setDate(tvDOB, insuree.getDateOfBirth());
+        tvGender.setText(insuree.getGender());
+
+        byte[] imageBytes = insuree.getPhoto();
+        if (imageBytes != null) {
+            try {
+                Bitmap image = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
+                iv.setImageBitmap(image);
+            } catch (Throwable e) {
+                Log.e(LOG_TAG, "Error while processing Base64 image", e);
+                iv.setImageDrawable(getResources().getDrawable(R.drawable.person));
+            }
+        } else if (insuree.getPhotoPath() != null && global.isNetworkAvailable()) {
+            iv.setImageResource(R.drawable.person);
+            new Picasso.Builder(this).build()
+                    .load(API_BASE_URL + REST_API_PREFIX + insuree.getPhotoPath())
+                    .placeholder(R.drawable.person)
+                    .error(R.drawable.person)
+                    .into(iv);
+        } else {
+            iv.setImageDrawable(getResources().getDrawable(R.drawable.person));
+        }
+    }
+
     protected String buildEnquireValue(@Nullable Number value, @StringRes int labelId) {
         if (value == null) {
             return "";
@@ -446,13 +578,151 @@ public class EnquireActivity extends ImisActivity {
         }
     }
 
+    private void loadFamilyMembers(String familyUuid) {
+        if (!global.isNetworkAvailable()) {
+            if (llFamilyMembers != null) {
+                llFamilyMembers.setVisibility(View.GONE);
+            }
+            return;
+        }
+        
+        new Thread(() -> {
+            try {
+                GetFamilyMembersGraphQLRequest request = new GetFamilyMembersGraphQLRequest();
+                List<FamilyMember> familyMembers = request.get(familyUuid);
+                
+                runOnUiThread(() -> {
+                    if (familyMembers != null && !familyMembers.isEmpty()) {
+                        if (familyMemberAdapter == null) {
+                            familyMemberAdapter = new FamilyMemberAdapter(this, familyMembers);
+                            listViewFamilyMembers.setAdapter(familyMemberAdapter);
+                        } else {
+                            familyMemberAdapter.updateData(familyMembers);
+                        }
+                        llFamilyMembers.setVisibility(View.VISIBLE);
+                    } else {
+                        llFamilyMembers.setVisibility(View.GONE);
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "Error loading family members", e);
+                runOnUiThread(() -> {
+                    if (llFamilyMembers != null) {
+                        llFamilyMembers.setVisibility(View.GONE);
+                    }
+                });
+            }
+        }).start();
+    }
+
+    private void showSubFamilyMembers(PolygamousSubFamily subFamily) {
+        try {
+            if (subFamily == null) {
+                return;
+            }
+            
+            PolygamousSubFamily safeCopy = createSafeCopy(subFamily);
+             
+            Intent intent = new Intent(this, SubHouseholdActivity.class);
+            intent.putExtra(SubHouseholdActivity.EXTRA_SUB_HEAD, safeCopy);
+             
+            if (safeCopy.getMembers() != null) {
+                ArrayList<FamilyMember> allMembers = new ArrayList<>(safeCopy.getMembers());
+                intent.putExtra(SubHouseholdActivity.EXTRA_ALL_MEMBERS, allMembers);
+            }
+            
+            startActivity(intent);
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Error launching SubHouseholdActivity", e);
+        }
+    }
+
+    private PolygamousSubFamily createSafeCopy(PolygamousSubFamily original) {
+        try {
+            PolygamousSubFamily copy = new PolygamousSubFamily();
+            copy.setUuid(original.getUuid());
+            copy.setChfId(original.getChfId());
+            copy.setLastName(original.getLastName());
+            copy.setOtherNames(original.getOtherNames());
+            copy.setGender(original.getGender());
+            copy.setGenderCode(original.getGenderCode());
+            copy.setDob(original.getDob());
+            copy.setPhotoId(original.getPhotoId());
+            copy.setPhotoData(original.getPhotoData());
+            copy.setRelationship(original.getRelationship());
+            copy.setFamilyUuid(original.getFamilyUuid());
+            copy.setParentUuid(original.getParentUuid());
+            
+            if (original.getMembers() != null) {
+                List<FamilyMember> membersCopy = new ArrayList<>();
+                for (FamilyMember member : original.getMembers()) {
+                    if (member != null) {
+                        membersCopy.add(member);
+                    }
+                }
+                copy.setMembers(membersCopy);
+            }
+            
+            return copy;
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Error creating safe copy, using original", e);
+            return original;
+        }
+    }
+
+    private void setListViewHeightBasedOnChildren(ListView listView) {
+        ListAdapter listAdapter = listView.getAdapter();
+        if (listAdapter == null) {
+            return;
+        }
+
+        // Si pas d'éléments, définir la hauteur à 0
+        if (listAdapter.getCount() == 0) {
+            ViewGroup.LayoutParams params = listView.getLayoutParams();
+            params.height = 0;
+            listView.setLayoutParams(params);
+            return;
+        }
+
+        // Optimisation: mesurer seulement le premier élément et multiplier par le nombre d'éléments
+        // Cela évite les appels multiples à getView() qui créent des doublons
+        int desiredWidth = View.MeasureSpec.makeMeasureSpec(listView.getWidth(), View.MeasureSpec.AT_MOST);
+        View listItem = listAdapter.getView(0, null, listView);
+        listItem.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED);
+        int itemHeight = listItem.getMeasuredHeight();
+        
+        // Calculer la hauteur totale basée sur la hauteur d'un seul élément
+        int totalHeight = itemHeight * listAdapter.getCount();
+        
+        ViewGroup.LayoutParams params = listView.getLayoutParams();
+        params.height = totalHeight + (listView.getDividerHeight() * (listAdapter.getCount() - 1));
+        listView.setLayoutParams(params);
+        listView.requestLayout();
+    }
+
     private void ClearForm() {
         tvCHFID.setText(getResources().getString(R.string.CHFID));
         tvName.setText(getResources().getString(R.string.InsureeName));
         tvDOB.setText(getResources().getString(R.string.DOB));
         tvGender.setText(getResources().getString(R.string.Gender));
         iv.setImageResource(R.drawable.noimage);
-        ll.setVisibility(View.INVISIBLE);
+        ll.setVisibility(View.GONE);
         lv.setAdapter(null);
+        
+        // Clear family members and polygamous sub-families lists
+        if (listViewFamilyMembers != null) {
+            listViewFamilyMembers.setAdapter(null);
+        }
+        if (llFamilyMembers != null) {
+            llFamilyMembers.setVisibility(View.GONE);
+        }
+        if (listViewPolygamousSubFamilies != null) {
+            listViewPolygamousSubFamilies.setAdapter(null);
+        }
+        if (llPolygamousSubFamilies != null) {
+            llPolygamousSubFamilies.setVisibility(View.GONE);
+        }
+        familyMemberAdapter = null;
+        polygamousSubFamilyAdapter = null;
     }
 }

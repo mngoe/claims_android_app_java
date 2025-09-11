@@ -1,0 +1,55 @@
+query GetFamilyWithType($uuid: String!) {
+  families(uuid: $uuid, first: 1) {
+    totalCount
+    pageInfo {
+      hasNextPage
+      hasPreviousPage
+      startCursor
+      endCursor
+    }
+    edges {
+      node {
+        id
+        uuid
+        confirmationNo
+        address
+        familyType {
+          code
+          type
+          sortOrder
+          altLanguage
+        }
+        headInsuree {
+          id
+          uuid
+          chfId
+          lastName
+          otherNames
+          gender {
+            code
+            gender
+          }
+          dob
+          photo {
+            id
+            photo
+          }
+        }
+        location {
+          id
+          uuid
+          code
+          name
+        }
+        parent {
+          id
+          uuid
+          familyType {
+            code
+            type
+          }
+        }
+      }
+    }
+  }
+}

@@ -148,6 +148,8 @@
     <string name="DOB">DOB</string>
     <string name="GetingInsuuree">Getting insuree info…</string>
     <string name="RecordNotFound">Member with this Insurance No. does not exist.</string>
+    <string name="family_members">Membres de la famille</string>
+    <string name="member_photo">Photo du membre</string>
     <string name="change_language">Change Language</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -259,5 +261,19 @@
     <string name="newVersion">New version </string>
     <string name="NoServicesPricelist">This healthfacility don\'t have services pricelist</string>
     <string name="NoItemsPricelist">This healthfacility don\'t have items pricelist</string>
+<!-- Polygamous family strings -->
+<string name="polygamous_sub_families">Polygamous sub-families</string>
+<string name="sub_family_head_photo">Sub-family head photo</string>
+<string name="view_sub_family_members">View sub-family members</string>
+<string name="unknown_name">Unknown name</string>
+<string name="chfid_format">CHFID: %s</string>
+<string name="chfid_not_available">CHFID not available</string>
+<string name="unknown_gender">Unknown gender</string>
+<string name="unknown_dob">Unknown date of birth</string>
+<plurals name="sub_family_members_count">
+    <item quantity="zero">No members</item>
+    <item quantity="one">1 member</item>
+    <item quantity="other">%d members</item>
+</plurals>
     <string name="News">New changes:</string>
 </resources>

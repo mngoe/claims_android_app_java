@@ -46,8 +46,10 @@ import org.openimis.imisclaims.domain.entity.Medication;
 import org.openimis.imisclaims.domain.entity.PaymentList;
 import org.openimis.imisclaims.domain.entity.Service;
 import org.openimis.imisclaims.domain.entity.SubServiceItem;
+import org.openimis.imisclaims.network.GetFamilyTypesGraphQLRequest;
 import org.openimis.imisclaims.network.exception.HttpException;
 import org.openimis.imisclaims.tools.Log;
+import org.openimis.imisclaims.util.FamilyTypeInitializer;
 import org.openimis.imisclaims.usecase.CheckHealthFacility;
 import org.openimis.imisclaims.usecase.FetchClaimAdmin;
 import org.openimis.imisclaims.usecase.FetchClaimAdmins;
@@ -625,6 +627,13 @@ public class MainActivity extends ImisActivity {
                         for (Diagnosis diagnosis : diagnosesServicesMedications.getDiagnoses()) {
                             sqlHandler.InsertReferences(diagnosis.getCode(), diagnosis.getName(), "D", "");
                         }
+
+                        // Initialiser les types de famille par défaut (si pas encore synchronisés)
+                        FamilyTypeInitializer.initializeDefaultFamilyTypes(sqlHandler);
+                        
+                        // Synchroniser les types de famille depuis le serveur
+                        GetFamilyTypesGraphQLRequest familyTypesRequest = new GetFamilyTypesGraphQLRequest(sqlHandler);
+                        familyTypesRequest.getFamilyTypes();
 
                         if (officerCode != null) {
                             PaymentList paymentList = new FetchPaymentList().execute(officerCode);

@@ -25,6 +25,8 @@ public class Insuree implements Parcelable {
     private final byte[] photo;
     @NonNull
     private final List<Policy> policies;
+    @Nullable
+    private final String familyUuid;
 
     public Insuree(
             @NonNull String chfId,
@@ -33,7 +35,8 @@ public class Insuree implements Parcelable {
             @Nullable String gender,
             @Nullable String photoPath,
             @Nullable byte[] photo,
-            @NonNull List<Policy> policies
+            @NonNull List<Policy> policies,
+            @Nullable String familyUuid
             ) {
         this.chfId = chfId.trim();
         this.name = name;
@@ -42,6 +45,7 @@ public class Insuree implements Parcelable {
         this.photoPath = photoPath;
         this.photo = photo;
         this.policies = policies;
+        this.familyUuid = familyUuid;
     }
 
     protected Insuree(Parcel in) {
@@ -52,6 +56,7 @@ public class Insuree implements Parcelable {
         photoPath = in.readString();
         photo = in.createByteArray();
         policies = in.createTypedArrayList(Policy.CREATOR);
+        familyUuid = in.readString();
     }
 
     @Override
@@ -63,6 +68,7 @@ public class Insuree implements Parcelable {
         dest.writeString(photoPath);
         dest.writeByteArray(photo);
         dest.writeTypedList(policies);
+        dest.writeString(familyUuid);
     }
 
     @Override
@@ -103,6 +109,11 @@ public class Insuree implements Parcelable {
     @NonNull
     public List<Policy> getPolicies() {
         return policies;
+    }
+
+    @Nullable
+    public String getFamilyUuid() {
+        return familyUuid;
     }
 
     public static final Creator<Insuree> CREATOR = new Creator<>() {

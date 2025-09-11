@@ -197,4 +197,20 @@
   <string name="initializing">Inaanza...</string>
   <string name="initializing_complete">Kuanza kumekamilika</string>
   <string name="application">Programu</string>
+  
+  <!-- Polygamous family strings -->
+  <string name="polygamous_sub_families">Familia ndogo za kiume wengi</string>
+  <string name="sub_family_head_photo">Picha ya mkuu wa familia ndogo</string>
+  <string name="view_sub_family_members">Ona wanafamilia wa familia ndogo</string>
+  <string name="unknown_name">Jina halijulikani</string>
+  <string name="chfid_format">CHFID: %s</string>
+  <string name="chfid_not_available">CHFID haipatikani</string>
+  <string name="unknown_gender">Jinsia haijulikani</string>
+  <string name="unknown_dob">Tarehe ya kuzaliwa haijulikani</string>
+  
+  <plurals name="sub_family_members_count">
+    <item quantity="zero">Hakuna mwanafamilia</item>
+    <item quantity="one">Mwanafamilia 1</item>
+    <item quantity="other">Wanafamilia %d</item>
+  </plurals>
 </resources>
