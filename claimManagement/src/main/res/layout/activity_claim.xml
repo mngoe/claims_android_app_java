@@ -279,6 +279,13 @@
                     android:tag="R"
                     android:text="@string/Referral" />
 
+                <RadioButton
+                    android:id="@+id/rbTreatment"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:tag="T"
+                    android:text="@string/Treatment" />
+
             </RadioGroup>
         </LinearLayout>
 

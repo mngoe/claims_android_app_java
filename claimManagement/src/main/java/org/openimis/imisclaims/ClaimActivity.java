@@ -590,6 +590,9 @@ public class ClaimActivity extends ImisActivity {
                             case "R":
                                 rgPatientCondition.check(R.id.rbReferal);
                                 break;
+                            case "T":
+                                rgPatientCondition.check(R.id.rbTreatment);
+                                break;
                             default:
                                 rgPatientCondition.clearCheck();
                         }

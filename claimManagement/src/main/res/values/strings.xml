@@ -126,6 +126,7 @@
     <string name="Saving">Saving…</string>
     <string name="Emergency">Emergency</string>
     <string name="Referral">Referral</string>
+    <string name="Treatment">In Treatment</string>
     <string name="Other">Other</string>
     <string name="MissingVisitType">Please select visit type.</string>
     <string name="New">New Claim</string>
@@ -260,20 +261,19 @@
     <string name="newVersion">New version </string>
     <string name="NoServicesPricelist">This healthfacility don\'t have services pricelist</string>
     <string name="NoItemsPricelist">This healthfacility don\'t have items pricelist</string>
-    
-    <!-- Polygamous family strings -->
-    <string name="polygamous_sub_families">Sous-familles polygames</string>
-    <string name="sub_family_head_photo">Photo du chef de sous-famille</string>
-    <string name="view_sub_family_members">Voir les membres de la sous-famille</string>
-    <string name="unknown_name">Nom inconnu</string>
-    <string name="chfid_format">CHFID: %s</string>
-    <string name="chfid_not_available">CHFID non disponible</string>
-    <string name="unknown_gender">Genre inconnu</string>
-    <string name="unknown_dob">Date de naissance inconnue</string>
-    
-    <plurals name="sub_family_members_count">
-        <item quantity="zero">Aucun membre</item>
-        <item quantity="one">1 membre</item>
-        <item quantity="other">%d membres</item>
-    </plurals>
+<!-- Polygamous family strings -->
+<string name="polygamous_sub_families">Polygamous sub-families</string>
+<string name="sub_family_head_photo">Sub-family head photo</string>
+<string name="view_sub_family_members">View sub-family members</string>
+<string name="unknown_name">Unknown name</string>
+<string name="chfid_format">CHFID: %s</string>
+<string name="chfid_not_available">CHFID not available</string>
+<string name="unknown_gender">Unknown gender</string>
+<string name="unknown_dob">Unknown date of birth</string>
+<plurals name="sub_family_members_count">
+    <item quantity="zero">No members</item>
+    <item quantity="one">1 member</item>
+    <item quantity="other">%d members</item>
+</plurals>
+    <string name="News">New changes:</string>
 </resources>
