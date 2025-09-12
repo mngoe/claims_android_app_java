@@ -45,24 +45,30 @@ public class GetPolygamousSubFamiliesGraphQLRequest extends BaseGraphQLRequest {
             
             // Famille polygame - récupération des sous-familles
             
-            // ÉTAPE 2: Récupérer les chefs de sous-familles qui ont le même parent
-            // Récupération des sous-familles avec parent_Uuid
-            GetFamiliesGraphQLRequest familiesRequest = new GetFamiliesGraphQLRequest();
+            // ÉTAPE 2: Récupérer les sous-familles avec la nouvelle logique de pagination
+            Log.d(LOG_TAG, "🔍 RÉCUPÉRATION SOUS-FAMILLES POUR UUID: " + familyUuid);
             
-            List<Family> subFamilies = familiesRequest.getFamiliesWithParent(familyUuid);
-            
-            if (subFamilies == null || subFamilies.isEmpty()) {
-                // Aucune sous-famille trouvée
-                return new ArrayList<>();
+            // Log spécial pour le chef problématique
+            if ("4a7b67f6-3138-4094-b2f0-6e6d747d0b93".equals(familyUuid)) {
+                Log.e(LOG_TAG, "🚨 RECHERCHE SOUS-FAMILLES POUR CHEF PROBLÉMATIQUE: 391284976466");
             }
             
-            // Conversion des familles en sous-familles polygames
+            GetFamilyMembersGraphQLRequest familyMembersRequest = new GetFamilyMembersGraphQLRequest(sqlHandler);
             
-            // Traitement de la sous-famille
+            List<PolygamousSubFamily> subFamilies = familyMembersRequest.getPolygamousSubFamilies(familyUuid);
             
-            List<PolygamousSubFamily> result = convertFamiliesToPolygamousSubFamilies(subFamilies, familyUuid);
-            // Fin de la récupération
-            return result;
+            Log.d(LOG_TAG, "✅ Récupéré " + subFamilies.size() + " sous-familles polygames avec pagination");
+            
+            // Log détaillé pour le chef problématique
+            if ("4a7b67f6-3138-4094-b2f0-6e6d747d0b93".equals(familyUuid)) {
+                Log.e(LOG_TAG, "🔍 DÉTAILS SOUS-FAMILLES POUR 391284976466:");
+                for (int i = 0; i < subFamilies.size(); i++) {
+                    PolygamousSubFamily sf = subFamilies.get(i);
+                    Log.e(LOG_TAG, "  Sous-famille " + (i+1) + ": " + sf.getChfId() + " - " + sf.getLastName() + " " + sf.getOtherNames());
+                }
+            }
+            
+            return subFamilies;
             
         } catch (Exception e) {
             Log.e(LOG_TAG, "Error retrieving sub-families for UUID: " + familyUuid, e);

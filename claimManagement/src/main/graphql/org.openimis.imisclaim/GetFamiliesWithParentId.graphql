@@ -1,5 +1,5 @@
-query GetFamiliesWithParent($parent_Uuid: String!, $first: Int, $after: String, $showHistory: Boolean) {
-  families(parent_Uuid: $parent_Uuid, first: $first, after: $after, showHistory: $showHistory) {
+query GetFamiliesWithParentId($parent_Id: String, $first: Int, $after: String, $showHistory: Boolean) {
+    families(parent_Uuid: $parent_Id, first: $first, after: $after, showHistory: $showHistory) {
     totalCount
     pageInfo {
       hasNextPage

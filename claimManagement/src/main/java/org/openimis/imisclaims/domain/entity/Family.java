@@ -11,6 +11,7 @@ public class Family {
     private String headInsureeChfId;
     private String headInsureeName;
     private String location;
+    private String familyType;
     private List<FamilyMember> members;
     
     public Family() {
@@ -21,6 +22,14 @@ public class Family {
         this.confirmationNo = confirmationNo;
         this.parentUuid = parentUuid;
         this.headInsureeUuid = headInsureeUuid;
+    }
+    
+    public Family(String uuid, String confirmationNo, String parentUuid, String headInsureeUuid, String familyType) {
+        this.uuid = uuid;
+        this.confirmationNo = confirmationNo;
+        this.parentUuid = parentUuid;
+        this.headInsureeUuid = headInsureeUuid;
+        this.familyType = familyType;
     }
     
     public String getUuid() {
@@ -93,6 +102,14 @@ public class Family {
     
     public void setMembers(List<FamilyMember> members) {
         this.members = members;
+    }
+    
+    public String getFamilyType() {
+        return familyType;
+    }
+    
+    public void setFamilyType(String familyType) {
+        this.familyType = familyType;
     }
     
     /**

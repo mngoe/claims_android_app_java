@@ -28,49 +28,72 @@ public class GetFamiliesGraphQLRequest extends BaseGraphQLRequest {
             // TEST SPÉCIAL pour le chef problématique 391284976466
             if ("391284976466".equals(parentUuid)) {
                 Log.e(LOG_TAG, "🚨 RECHERCHE SOUS-FAMILLES POUR CHEF PROBLÉMATIQUE: 391284976466");
-                Log.e(LOG_TAG, "🚨 Cette requête devrait retourner 2 sous-familles selon le web");
+                Log.e(LOG_TAG, "🚨 Cette requête devrait retourner 100 sous-familles selon le web");
             }
             
-            // Utiliser la vraie requête GraphQL
-            Log.d(LOG_TAG, "Création de GetFamiliesWithParentQuery avec parent_Uuid=" + parentUuid);
-            GetFamiliesWithParentQuery query = new GetFamiliesWithParentQuery(parentUuid);
-            Log.d(LOG_TAG, "Exécution de la requête GraphQL...");
+            // Implémenter la pagination pour récupérer toutes les sous-familles
+            List<Family> allFamilies = new ArrayList<>();
+            String cursor = null;
+            int pageSize = 50; // Augmenter la taille de page pour plus d'efficacité
+            boolean hasNextPage = true;
+            int pageCount = 0;
             
-            GetFamiliesWithParentQuery.Data response = makeSynchronous(query).getData();
+            while (hasNextPage) {
+                pageCount++;
+                Log.d(LOG_TAG, "Récupération page " + pageCount + " (cursor: " + cursor + ")");
+                
+                // Utiliser la vraie requête GraphQL avec pagination
+                GetFamiliesWithParentQuery query = new GetFamiliesWithParentQuery(parentUuid, Input.fromNullable(pageSize), Input.fromNullable(cursor), Input.fromNullable(true));
+                Log.d(LOG_TAG, "Exécution de la requête GraphQL page " + pageCount + "...");
+                
+                GetFamiliesWithParentQuery.Data response = makeSynchronous(query).getData();
             
-            Log.d(LOG_TAG, "Réponse reçue: " + (response != null ? "Données disponibles" : "NULL"));
-            
-            if (response == null) {
-                Log.w(LOG_TAG, "RÉPONSE NULL - Aucune donnée retournée par la requête");
-                return new ArrayList<>();
-            }
-            
-            if (response.families() == null) {
-                Log.w(LOG_TAG, "FAMILIES NULL - Le champ families est null dans la réponse");
-                return new ArrayList<>();
-            }
-            
-            Log.d(LOG_TAG, "Objet families trouvé, vérification des edges...");
-            
-            if (response.families().edges() == null) {
-                Log.w(LOG_TAG, "EDGES NULL - Aucun edge dans families");
-                return new ArrayList<>();
-            }
-            
-            Log.i(LOG_TAG, "✓ EDGES TROUVÉS: " + response.families().edges().size() + " éléments");
-            
-            // TEST SPÉCIAL pour le chef problématique 391284976466
-            if ("391284976466".equals(parentUuid)) {
-                Log.e(LOG_TAG, "🚨 CHEF 391284976466 - Edges trouvés: " + response.families().edges().size() + " (devrait être 2)");
-                if (response.families().edges().size() == 0) {
-                    Log.e(LOG_TAG, "🚨 ❌ PROBLÈME: Aucune sous-famille trouvée pour le chef polygame 391284976466!");
-                    Log.e(LOG_TAG, "🚨 Vérifiez que les sous-familles ont parent_Uuid = 391284976466 dans la base de données");
+                Log.d(LOG_TAG, "Réponse reçue page " + pageCount + ": " + (response != null ? "Données disponibles" : "NULL"));
+                
+                if (response == null) {
+                    Log.w(LOG_TAG, "RÉPONSE NULL - Aucune donnée retournée par la requête page " + pageCount);
+                    break;
                 }
-            }
-            
-            List<Family> familyList = new ArrayList<>();
-            
-            Log.d(LOG_TAG, "--- DÉBUT PARSING DES FAMILLES ---");
+                
+                if (response.families() == null) {
+                    Log.w(LOG_TAG, "FAMILIES NULL - Le champ families est null dans la réponse page " + pageCount);
+                    break;
+                }
+                
+                Log.d(LOG_TAG, "Objet families trouvé page " + pageCount + ", vérification des edges...");
+                
+                if (response.families().edges() == null) {
+                    Log.w(LOG_TAG, "EDGES NULL - Aucun edge dans families page " + pageCount);
+                    break;
+                }
+                
+                Log.i(LOG_TAG, "✓ EDGES TROUVÉS page " + pageCount + ": " + response.families().edges().size() + " éléments");
+                Log.i(LOG_TAG, "✓ TOTAL COUNT: " + (response.families().totalCount() != null ? response.families().totalCount() : "non disponible"));
+                
+                // Vérifier la pagination
+                hasNextPage = response.families().pageInfo() != null && 
+                             response.families().pageInfo().hasNextPage();
+                             
+                if (hasNextPage && response.families().pageInfo().endCursor() != null) {
+                    cursor = response.families().pageInfo().endCursor();
+                    Log.d(LOG_TAG, "Page suivante disponible, cursor: " + cursor);
+                } else {
+                    Log.d(LOG_TAG, "Dernière page atteinte");
+                }
+                
+                // TEST SPÉCIAL pour le chef problématique 391284976466
+                if ("391284976466".equals(parentUuid)) {
+                    Log.e(LOG_TAG, "🚨 CHEF 391284976466 - Page " + pageCount + " - Edges: " + response.families().edges().size());
+                    Log.e(LOG_TAG, "🚨 Total accumulé: " + (allFamilies.size() + response.families().edges().size()));
+                    if (response.families().edges().size() == 0 && pageCount == 1) {
+                        Log.e(LOG_TAG, "🚨 ❌ PROBLÈME: Aucune sous-famille trouvée pour le chef polygame 391284976466!");
+                        Log.e(LOG_TAG, "🚨 Vérifiez que les sous-familles ont parent_Uuid = 391284976466 dans la base de données");
+                    }
+                }
+                
+                List<Family> pageFamilies = new ArrayList<>();
+                
+                Log.d(LOG_TAG, "--- DÉBUT PARSING DES FAMILLES PAGE " + pageCount + " ---");
             
             for (int i = 0; i < response.families().edges().size(); i++) {
                 GetFamiliesWithParentQuery.Edge edge = response.families().edges().get(i);
@@ -143,13 +166,40 @@ public class GetFamiliesGraphQLRequest extends BaseGraphQLRequest {
                     Log.w(LOG_TAG, "    - HEAD INSUREE NULL pour cette famille");
                 }
                 
-                familyList.add(family);
+                pageFamilies.add(family);
                 Log.i(LOG_TAG, "  ✓ Famille " + (i+1) + " ajoutée: " + family.getHeadInsureeName());
             }
             
-            Log.i(LOG_TAG, "--- FIN PARSING: " + familyList.size() + " familles créées ---");
-            Log.i(LOG_TAG, "=== FIN REQUÊTE FAMILLES AVEC PARENT ===");
-            return familyList;
+            // Ajouter les familles de cette page à la liste totale
+            allFamilies.addAll(pageFamilies);
+            Log.i(LOG_TAG, "--- FIN PARSING PAGE " + pageCount + ": " + pageFamilies.size() + " familles ajoutées ---");
+            Log.i(LOG_TAG, "--- TOTAL ACCUMULÉ: " + allFamilies.size() + " familles ---");
+            
+            // TEST SPÉCIAL pour le chef problématique 391284976466
+            if ("391284976466".equals(parentUuid)) {
+                Log.e(LOG_TAG, "🚨 CHEF 391284976466 - Total après page " + pageCount + ": " + allFamilies.size() + " familles");
+            }
+            
+            // Sortir de la boucle si pas de page suivante
+            if (!hasNextPage) {
+                Log.d(LOG_TAG, "Toutes les pages récupérées");
+                break;
+            }
+        }
+        
+        Log.i(LOG_TAG, "=== FIN REQUÊTE FAMILLES AVEC PARENT - TOTAL: " + allFamilies.size() + " familles ===");
+        
+        // TEST SPÉCIAL pour le chef problématique 391284976466
+        if ("391284976466".equals(parentUuid)) {
+            Log.e(LOG_TAG, "🚨 RÉSULTAT FINAL CHEF 391284976466: " + allFamilies.size() + " sous-familles trouvées");
+            if (allFamilies.size() >= 100) {
+                Log.e(LOG_TAG, "🚨 ✅ SUCCÈS: Les 100 sous-familles ont été récupérées!");
+            } else {
+                Log.e(LOG_TAG, "🚨 ⚠ ATTENTION: Seulement " + allFamilies.size() + " sous-familles trouvées sur 100 attendues");
+            }
+        }
+        
+        return allFamilies;
             
         } catch (Exception e) {
             Log.e(LOG_TAG, "ERREUR lors de la récupération des familles avec parent UUID: " + parentUuid, e);

@@ -87,11 +87,23 @@ public class PolygamousSubFamilyAdapter extends RecyclerView.Adapter<PolygamousS
             Log.d(LOG_TAG, "DOB: '" + subFamily.getDob() + "'");
             Log.d(LOG_TAG, "PhotoData: " + (subFamily.getPhotoData() != null ? "Present (" + subFamily.getPhotoData().length() + " chars)" : "null"));
         
-        // Nom complet
+        // Nom complet avec indication du type de chef
         String fullName = subFamily.getFullName().trim();
         if (fullName.isEmpty()) {
             fullName = context.getString(R.string.unknown_name);
         }
+        
+        // Ajouter une indication visuelle dans le nom
+        if (subFamily.isPolygamousHead()) {
+            fullName = "👑 " + fullName + " (Chef Principal)";
+            holder.tvName.setTextColor(context.getResources().getColor(R.color.colorPrimary));
+        } else if (subFamily.isSubFamilyHead()) {
+            fullName = "👥 " + fullName + " (Chef Sous-Famille)";
+            holder.tvName.setTextColor(context.getResources().getColor(android.R.color.black));
+        } else {
+            holder.tvName.setTextColor(context.getResources().getColor(android.R.color.black));
+        }
+        
         holder.tvName.setText(fullName);
         Log.d(LOG_TAG, "FullName set to: '" + fullName + "'");
         
@@ -137,10 +149,33 @@ public class PolygamousSubFamilyAdapter extends RecyclerView.Adapter<PolygamousS
             Log.d(LOG_TAG, "DOB set to N/A (original was: '" + dob + "')");
         }
         
-        // Nombre de membres
+        // Nombre de membres et type de chef
         int membersCount = subFamily.getMembers() != null ? subFamily.getMembers().size() : 0;
-        String membersText = context.getResources().getQuantityString(
-            R.plurals.sub_family_members_count, membersCount, membersCount);
+        String membersText;
+        
+        // Distinguer le chef polygame principal des chefs de sous-familles
+        if (subFamily.isPolygamousHead()) {
+            // Chef polygame principal
+            membersText = "👑 Chef Principal - " + context.getResources().getQuantityString(
+                R.plurals.sub_family_members_count, membersCount, membersCount);
+            holder.tvMembersCount.setTextColor(context.getResources().getColor(R.color.colorPrimary));
+            Log.d(LOG_TAG, "Chef polygame principal identifié: " + subFamily.getFullName());
+        } else if (subFamily.isSubFamilyHead()) {
+            // Chef de sous-famille
+            membersText = "👥 Chef Sous-Famille - " + context.getResources().getQuantityString(
+                R.plurals.sub_family_members_count, membersCount, membersCount);
+            holder.tvMembersCount.setTextColor(context.getResources().getColor(R.color.colorAccent));
+            Log.d(LOG_TAG, "Chef de sous-famille identifié: " + subFamily.getFullName());
+        } else {
+            // Cas par défaut (ne devrait pas arriver)
+            membersText = context.getResources().getQuantityString(
+                R.plurals.sub_family_members_count, membersCount, membersCount);
+            holder.tvMembersCount.setTextColor(context.getResources().getColor(android.R.color.darker_gray));
+            Log.w(LOG_TAG, "Type de chef non identifié pour: " + subFamily.getFullName() + 
+                  ", relationship: " + subFamily.getRelationship() + 
+                  ", parentUuid: " + subFamily.getParentUuid());
+        }
+        
         holder.tvMembersCount.setText(membersText);
         
         // Photo

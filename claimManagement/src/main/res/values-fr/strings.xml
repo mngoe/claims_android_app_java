@@ -126,7 +126,6 @@
   <string name="Saving">Enregistrer</string>
   <string name="Emergency">Urgence</string>
   <string name="Referral">Référer</string>
-  <string name="Treatment">En Traitement</string>
   <string name="Other">Autre</string>
   <string name="MissingVisitType">Veuillez sélectionner le type de visite.</string>
   <string name="New">Nouvelle prestation</string>
@@ -214,6 +213,7 @@
   <string name="NoServicesPricelist">La formation sanitaire n\'a pas de liste de prix pour les services </string>
   <string name="NoItemsPricelist">La formation sanitaire n\'a pas de liste de prix pour les produits </string>
   <string name="entered">Entrée</string>
+  
   <!-- Polygamous family strings -->
   <string name="polygamous_sub_families">Sous-familles polygames</string>
   <string name="sub_family_head_photo">Photo du chef de sous-famille</string>
@@ -223,10 +223,10 @@
   <string name="chfid_not_available">CHFID non disponible</string>
   <string name="unknown_gender">Genre inconnu</string>
   <string name="unknown_dob">Date de naissance inconnue</string>
+  
   <plurals name="sub_family_members_count">
     <item quantity="zero">Aucun membre</item>
     <item quantity="one">1 membre</item>
     <item quantity="other">%d membres</item>
   </plurals>
-  <string name="News">Nouveautés:</string>
 </resources>
