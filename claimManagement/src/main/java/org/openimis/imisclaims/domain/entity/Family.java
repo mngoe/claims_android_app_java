@@ -10,6 +10,7 @@ public class Family {
     private String headInsureeUuid;
     private String headInsureeChfId;
     private String headInsureeName;
+    private Insuree headInsuree;
     private String location;
     private String familyType;
     private List<FamilyMember> members;
@@ -110,6 +111,14 @@ public class Family {
     
     public void setFamilyType(String familyType) {
         this.familyType = familyType;
+    }
+    
+    public Insuree getHeadInsuree() {
+        return headInsuree;
+    }
+    
+    public void setHeadInsuree(Insuree headInsuree) {
+        this.headInsuree = headInsuree;
     }
     
     /**

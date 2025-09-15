@@ -10,6 +10,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
@@ -88,7 +89,7 @@ public class SubHouseholdActivity extends AppCompatActivity {
         llListView = findViewById(R.id.llListView);
         cvPolicyInfo = findViewById(R.id.cvPolicyInfo);
         
-        Log.d(LOG_TAG, "Vues initialisées pour SubHouseholdActivity");
+
     }
 
     private void setupRecyclerView() {
@@ -98,26 +99,76 @@ public class SubHouseholdActivity extends AppCompatActivity {
     }
 
     private void loadDataFromIntent() {
-        // Vérifier si l'Intent contient les extras
-        if (getIntent().hasExtra(EXTRA_SUB_HEAD) && getIntent().hasExtra(EXTRA_ALL_MEMBERS)) {
-            PolygamousSubFamily subHead = (PolygamousSubFamily) getIntent().getSerializableExtra(EXTRA_SUB_HEAD);
-            ArrayList<FamilyMember> allMembers = (ArrayList<FamilyMember>) getIntent().getSerializableExtra(EXTRA_ALL_MEMBERS);
-
-            if (subHead != null && subHead.getChfId() != null && subHead.getFullName() != null) {
-                displaySubHeadInfo(subHead);
-                displayPolicyInfo(subHead);
-                loadSubHouseholdMembers(subHead, allMembers);
-            } else {
-                finish();
+        try {
+            // Check if Intent contains the extras
+            if (getIntent() == null) {
+                Log.e(LOG_TAG, "Intent is null");
+                showErrorAndFinish("Erreur: Données manquantes");
+                return;
             }
-        } else {
-            Log.e(LOG_TAG, "Données manquantes dans l'Intent");
-            finish();
+            
+            if (!getIntent().hasExtra(EXTRA_SUB_HEAD)) {
+                Log.e(LOG_TAG, "Missing EXTRA_SUB_HEAD");
+                showErrorAndFinish("Erreur: Informations du chef de sous-famille manquantes");
+                return;
+            }
+            
+            PolygamousSubFamily subHead = null;
+            ArrayList<FamilyMember> allMembers = null;
+            
+            try {
+                subHead = (PolygamousSubFamily) getIntent().getSerializableExtra(EXTRA_SUB_HEAD);
+            } catch (ClassCastException e) {
+                Log.e(LOG_TAG, "Error casting EXTRA_SUB_HEAD", e);
+                showErrorAndFinish("Erreur: Format de données invalide");
+                return;
+            }
+            
+            if (getIntent().hasExtra(EXTRA_ALL_MEMBERS)) {
+                try {
+                    allMembers = (ArrayList<FamilyMember>) getIntent().getSerializableExtra(EXTRA_ALL_MEMBERS);
+                } catch (ClassCastException e) {
+                    Log.w(LOG_TAG, "Error casting EXTRA_ALL_MEMBERS, continuing without", e);
+                    allMembers = new ArrayList<>();
+                }
+            } else {
+                allMembers = new ArrayList<>();
+            }
+
+            if (subHead == null) {
+                Log.e(LOG_TAG, "SubHead is null");
+                showErrorAndFinish("Erreur: Données du chef de sous-famille invalides");
+                return;
+            }
+            
+            if (subHead.getChfId() == null || subHead.getChfId().trim().isEmpty()) {
+                Log.e(LOG_TAG, "SubHead CHFID is null or empty");
+                showErrorAndFinish("Erreur: Identifiant du chef de sous-famille manquant");
+                return;
+            }
+            
+            String fullName = subHead.getFullName();
+            if (fullName == null || fullName.trim().isEmpty()) {
+                Log.w(LOG_TAG, "SubHead full name is null or empty, using CHFID as fallback");
+            }
+            
+            // Load data if everything is valid
+            displaySubHeadInfo(subHead);
+            displayPolicyInfo(subHead);
+            loadSubHouseholdMembers(subHead, allMembers);
+            
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Unexpected error in loadDataFromIntent", e);
+            showErrorAndFinish("Erreur inattendue lors du chargement des données");
         }
+    }
+    
+    private void showErrorAndFinish(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        finish();
     }
 
     private void displaySubHeadInfo(PolygamousSubFamily subHead) {
-        Log.d(LOG_TAG, "Affichage des informations du chef de sous-famille: " + subHead.getOtherNames() + " " + subHead.getLastName());
 
         // Nom complet
         String fullName = (subHead.getOtherNames() != null ? subHead.getOtherNames() + " " : "") + 
@@ -151,7 +202,7 @@ public class SubHouseholdActivity extends AppCompatActivity {
         String detailedStatus = getDetailedInsuranceStatus(subHead);
         boolean hasActiveContract = isInsuranceStatusActive(detailedStatus);
         
-        Log.d(LOG_TAG, "Statut du contrat d'assurance pour " + subHead.getChfId() + ": " + hasActiveContract + " - " + detailedStatus);
+
         
         if (hasActiveContract) {
             // Design pour contrat actif - Vert
@@ -195,13 +246,13 @@ public class SubHouseholdActivity extends AppCompatActivity {
         }
         
         try {
-            Log.d(LOG_TAG, "Récupération du statut d'assurance depuis le serveur pour: " + subHead.getChfId());
+
             
-            // Utiliser FetchInsureeInquire pour récupérer les données depuis le serveur
+            // Use FetchInsureeInquire to retrieve data from the server
             FetchInsureeInquire fetchInsureeInquire = new FetchInsureeInquire();
             Insuree insuree = fetchInsureeInquire.execute(subHead.getChfId());
             
-            // Récupérer la police la plus récente (active ou la plus récente)
+            // Retrieve the most recent policy (active or most recent)
             Policy activePolicy = null;
             Policy mostRecentPolicy = null;
             
@@ -227,16 +278,13 @@ public class SubHouseholdActivity extends AppCompatActivity {
                 if (policyToShow.getName() != null && !policyToShow.getName().isEmpty()) {
                     statusText += " - " + policyToShow.getName();
                 }
-                Log.d(LOG_TAG, "Statut d'assurance récupéré depuis le serveur: " + statusText);
                 return statusText;
             } else {
-                Log.d(LOG_TAG, "Aucune police trouvée pour " + subHead.getChfId());
                 return "Aucune police d'assurance";
             }
             
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Erreur lors de la récupération du statut d'assurance depuis le serveur", e);
-            // En cas d'erreur serveur, essayer de récupérer depuis la base locale comme fallback
+            // In case of server error, try to retrieve from local database as fallback
             return getLocalInsuranceStatus(subHead);
         }
     }
@@ -255,20 +303,17 @@ public class SubHouseholdActivity extends AppCompatActivity {
     private String getLocalInsuranceStatus(PolygamousSubFamily subHead) {
         try {
             SQLHandler sqlHandler = new SQLHandler(this);
-            Log.d(LOG_TAG, "Création des tables de la base de données...");
             sqlHandler.createTables();
             SQLiteDatabase db = sqlHandler.getReadableDatabase();
             
-            // Vérifier si la table existe
+            // Check if table exists
             Cursor tableCheck = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='tblPolicyInquiry'", null);
-            Log.d(LOG_TAG, "Vérification de l'existence de tblPolicyInquiry: " + tableCheck.getCount() + " résultat(s)");
             
             if (tableCheck.getCount() == 0) {
                 tableCheck.close();
                 return "Table tblPolicyInquiry manquante";
             }
             tableCheck.close();
-            Log.d(LOG_TAG, "Table tblPolicyInquiry trouvée, recherche des données...");
             
             String query = "SELECT Status, ExpiryDate, ProductName FROM tblPolicyInquiry WHERE InsureeNumber = ? ORDER BY ExpiryDate DESC LIMIT 1";
             Cursor cursor = db.rawQuery(query, new String[]{subHead.getChfId()});
@@ -299,34 +344,99 @@ public class SubHouseholdActivity extends AppCompatActivity {
             return statusText;
             
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Erreur lors de la récupération du statut détaillé: " + e.getMessage());
             return "Erreur de vérification";
         }
     }
 
     private void loadSubHeadPhoto(PolygamousSubFamily subHead) {
-        if (subHead.getPhoto() != null && !subHead.getPhoto().isEmpty()) {
-            try {
-                // Décoder la photo depuis base64
-                byte[] decodedString = android.util.Base64.decode(subHead.getPhoto(), android.util.Base64.DEFAULT);
-                Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
-                ivSubHeadPhoto.setImageBitmap(decodedByte);
-            } catch (Exception e) {
+        if (ivSubHeadPhoto == null) {
+            Log.w(LOG_TAG, "Photo view not found");
+            return;
+        }
+        
+        // Check if subHead and photo are valid
+        if (subHead == null) {
+            Log.w(LOG_TAG, "SubHead is null, using default avatar");
+            ivSubHeadPhoto.setImageResource(R.drawable.ic_person_placeholder);
+            return;
+        }
+        
+        String photoData = subHead.getPhoto();
+        if (photoData == null || photoData.trim().isEmpty()) {
+            Log.d(LOG_TAG, "No photo data available, using default avatar");
+            ivSubHeadPhoto.setImageResource(R.drawable.ic_person_placeholder);
+            return;
+        }
+        
+        try {
+            // Clean base64 data (remove spaces and unwanted characters)
+            photoData = photoData.trim().replaceAll("\\s+", "");
+            
+            // Check if data appears to be valid base64
+            if (photoData.length() % 4 != 0) {
+                Log.w(LOG_TAG, "Invalid base64 data length, using default avatar");
                 ivSubHeadPhoto.setImageResource(R.drawable.ic_person_placeholder);
+                return;
             }
-        } else {
-            // Photo par défaut
+            
+            // Decode base64 data
+            byte[] decodedString = android.util.Base64.decode(photoData, android.util.Base64.DEFAULT);
+            
+            if (decodedString == null || decodedString.length == 0) {
+                Log.w(LOG_TAG, "Decoded data is empty, using default avatar");
+                ivSubHeadPhoto.setImageResource(R.drawable.ic_person_placeholder);
+                return;
+            }
+            
+            // Create the bitmap
+            Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
+            
+            if (decodedByte == null) {
+                Log.w(LOG_TAG, "Failed to decode bitmap from data, using default avatar");
+                ivSubHeadPhoto.setImageResource(R.drawable.ic_person_placeholder);
+                return;
+            }
+            
+            // Check bitmap size to avoid OutOfMemoryError
+            int width = decodedByte.getWidth();
+            int height = decodedByte.getHeight();
+            
+            if (width > 1000 || height > 1000) {
+                Log.w(LOG_TAG, "Bitmap too large (" + width + "x" + height + "), scaling down");
+                // Redimensionner le bitmap si trop grand
+                int maxSize = 500;
+                float ratio = Math.min((float) maxSize / width, (float) maxSize / height);
+                int newWidth = Math.round(width * ratio);
+                int newHeight = Math.round(height * ratio);
+                
+                Bitmap scaledBitmap = Bitmap.createScaledBitmap(decodedByte, newWidth, newHeight, true);
+                if (scaledBitmap != decodedByte) {
+                    decodedByte.recycle(); // Free memory of original bitmap
+                }
+                decodedByte = scaledBitmap;
+            }
+            
+            ivSubHeadPhoto.setImageBitmap(decodedByte);
+            Log.d(LOG_TAG, "Photo loaded successfully");
+            
+        } catch (IllegalArgumentException e) {
+            Log.e(LOG_TAG, "Invalid base64 data for photo", e);
+            ivSubHeadPhoto.setImageResource(R.drawable.ic_person_placeholder);
+        } catch (OutOfMemoryError e) {
+            Log.e(LOG_TAG, "Out of memory while decoding photo", e);
+            ivSubHeadPhoto.setImageResource(R.drawable.ic_person_placeholder);
+            // Forcer le garbage collection
+            System.gc();
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Unexpected error while loading photo", e);
             ivSubHeadPhoto.setImageResource(R.drawable.ic_person_placeholder);
         }
     }
 
     private void loadSubHouseholdMembers(PolygamousSubFamily subHead, ArrayList<FamilyMember> allMembers) {
         List<FamilyMember> subHouseholdMembers = subHead.getMembers();
-        Log.d(LOG_TAG, "Chargement des membres pour " + subHead.getChfId() + ": " + 
-               (subHouseholdMembers != null ? subHouseholdMembers.size() + " membres directs" : "aucun membre direct"));
         
         if (subHouseholdMembers != null && !subHouseholdMembers.isEmpty()) {
-            Log.d(LOG_TAG, "Affichage de " + subHouseholdMembers.size() + " membres directs");
             displayMembers(subHouseholdMembers);
         } else {
             if (allMembers == null || allMembers.isEmpty()) {
@@ -334,12 +444,12 @@ public class SubHouseholdActivity extends AppCompatActivity {
                 return;
             }
 
-            // Filtrer les membres qui appartiennent à cette sous-famille
+            // Filter members that belong to this sub-family
             List<FamilyMember> filteredMembers = new ArrayList<>();
             for (FamilyMember member : allMembers) {
                 if (member.getLastName() != null && 
                     member.getLastName().equals(subHead.getLastName()) &&
-                    !member.getChfId().equals(subHead.getChfId())) { // Exclure le chef lui-même
+                    !member.getChfId().equals(subHead.getChfId())) { // Exclude the head himself
                     filteredMembers.add(member);
                 }
             }
@@ -359,56 +469,63 @@ public class SubHouseholdActivity extends AppCompatActivity {
     }
 
     private void displayMembers(List<FamilyMember> members) {
-        Log.d(LOG_TAG, "displayMembers appelée avec " + (members != null ? members.size() : 0) + " membres");
-        
         rvSubHouseholdMembers.setVisibility(View.VISIBLE);
         tvNoMembers.setVisibility(View.GONE);
         
-        Log.d(LOG_TAG, "Mise à jour de l'adapter avec " + (members != null ? members.size() : 0) + " membres");
         memberAdapter.updateData(members);
     }
 
     private void displayPolicyInfo(PolygamousSubFamily subHead) {
-        Log.d(LOG_TAG, "Affichage des informations de police pour CHFID: " + subHead.getChfId());
+        SQLHandler sqlHandler = null;
+        SQLiteDatabase db = null;
+        Cursor tableCheck = null;
         
         try {
-            SQLHandler sqlHandler = new SQLHandler(this);
-        // S'assurer que les tables sont créées
-        sqlHandler.createTables();
-        SQLiteDatabase db = sqlHandler.getReadableDatabase();
+            sqlHandler = new SQLHandler(this);
+            
+            if (sqlHandler == null) {
+                Log.e(LOG_TAG, "SQLHandler is null");
+                return;
+            }
+            
+            // Ensure tables are created
+            sqlHandler.createTables();
+            db = sqlHandler.getReadableDatabase();
+            
+            if (db == null) {
+                Log.e(LOG_TAG, "Database is null");
+                return;
+            }
+            
+            if (subHead == null || subHead.getChfId() == null || subHead.getChfId().trim().isEmpty()) {
+                Log.e(LOG_TAG, "Invalid subHead or CHFID for policy query");
+                return;
+            }
         
-        // Vérifier si la table existe
-        Cursor tableCheck = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='tblPolicyInquiry'", null);
-        if (tableCheck.getCount() == 0) {
-            Log.e(LOG_TAG, "Table tblPolicyInquiry n'existe pas!");
-            tableCheck.close();
-            return;
-        }
-        tableCheck.close();
-        Log.d(LOG_TAG, "Table tblPolicyInquiry trouvée, exécution de la requête");
+            // Check if table exists
+            tableCheck = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='tblPolicyInquiry'", null);
+            if (tableCheck.getCount() == 0) {
+                Log.w(LOG_TAG, "Table tblPolicyInquiry does not exist");
+                return;
+            }
             
             String query = "SELECT * FROM tblPolicyInquiry WHERE InsureeNumber = ?";
-            Log.d(LOG_TAG, "Recherche des polices pour CHFID: " + subHead.getChfId());
             Cursor cursor = db.rawQuery(query, new String[]{subHead.getChfId()});
             
-            Log.d(LOG_TAG, "Nombre de résultats trouvés pour sous-famille: " + cursor.getCount());
-            
-            // Si aucun résultat avec le CHFID de la sous-famille, essayer avec le chef de famille principal
+            // If no result with sub-family CHFID, try with main family head
             if (cursor.getCount() == 0 && subHead.getParentUuid() != null) {
                 cursor.close();
                 
-                // Récupérer le CHFID du chef de famille principal
+                // Retrieve CHFID of main family head
                 String parentQuery = "SELECT CHFID FROM tblInsuree WHERE InsureeUUID = ?";
                 Cursor parentCursor = db.rawQuery(parentQuery, new String[]{subHead.getParentUuid()});
                 
                 if (parentCursor.moveToFirst()) {
                     String parentChfId = parentCursor.getString(0);
-                    Log.d(LOG_TAG, "Recherche des polices pour le chef principal CHFID: " + parentChfId);
                     parentCursor.close();
                     
                     String parentPolicyQuery = "SELECT * FROM tblPolicyInquiry WHERE InsureeNumber = ?";
                     cursor = db.rawQuery(parentPolicyQuery, new String[]{parentChfId});
-                    Log.d(LOG_TAG, "Nombre de résultats trouvés pour chef principal: " + cursor.getCount());
                 } else {
                     parentCursor.close();
                 }
@@ -417,13 +534,13 @@ public class SubHouseholdActivity extends AppCompatActivity {
             ArrayList<Map<String, String>> PolicyList = new ArrayList<>();
             
             while (cursor.moveToNext()) {
-                // Récupération directe des données depuis le curseur
+                // Direct data retrieval from cursor
                 String policyId = cursor.getString(cursor.getColumnIndexOrThrow("PolicyId"));
                 String productName = cursor.getString(cursor.getColumnIndexOrThrow("ProductName"));
                 String expiryDateStr = cursor.getString(cursor.getColumnIndexOrThrow("ExpiryDate"));
                 String policyStatus = cursor.getString(cursor.getColumnIndexOrThrow("PolicyStatus"));
                 
-                // Récupération des données de déduction et plafond
+                // Retrieve deduction and ceiling data
                 String ded1 = cursor.getString(cursor.getColumnIndexOrThrow("DedType1"));
                 String ded2 = cursor.getString(cursor.getColumnIndexOrThrow("DedType2"));
                 String ceiling1 = cursor.getString(cursor.getColumnIndexOrThrow("CeilingType1"));
@@ -440,8 +557,6 @@ public class SubHouseholdActivity extends AppCompatActivity {
                 }
                 
                 Map<String, String> policyMap = new HashMap<>();
-                
-                Log.d(LOG_TAG, "Processing policy: " + productName + " (" + policyId + ")");
                 
                 String heading1;
                 if (expiryDateStr != null && !expiryDateStr.isEmpty()) {
@@ -513,7 +628,6 @@ public class SubHouseholdActivity extends AppCompatActivity {
              }
             
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Erreur lors de la récupération des informations de police: " + e.getMessage());
             if (cvPolicyInfo != null) {
                 cvPolicyInfo.setVisibility(View.GONE);
             }

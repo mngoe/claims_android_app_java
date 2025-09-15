@@ -148,7 +148,7 @@ public class EnquireActivity extends ImisActivity {
             pd = ProgressDialog.show(EnquireActivity.this, "", getResources().getString(R.string.GetingInsuuree));
             new Thread(() -> {
                 getInsureeInfo();
-                pd.dismiss();
+                // ProgressDialog will be closed in renderResult() or in error methods
             }).start();
         });
 
@@ -168,7 +168,7 @@ public class EnquireActivity extends ImisActivity {
                 pd = ProgressDialog.show(EnquireActivity.this, "", getResources().getString(R.string.GetingInsuuree));
                 new Thread(() -> {
                     getInsureeInfo();
-                    pd.dismiss();
+                    // ProgressDialog will be closed in renderResult() or in error methods
                 }).start();
             }
             return false;
@@ -190,7 +190,7 @@ public class EnquireActivity extends ImisActivity {
                     pd = ProgressDialog.show(EnquireActivity.this, "", getResources().getString(R.string.GetingInsuuree));
                     new Thread(() -> {
                         getInsureeInfo();
-                        pd.dismiss();
+                        // ProgressDialog will be closed in renderResult() or in error methods
                     }).start();
                 }
                 break;
@@ -288,7 +288,7 @@ public class EnquireActivity extends ImisActivity {
                     /* familyUuid = */ null // Pas d'UUID famille en mode hors ligne
             );
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Parsing offline enquire failed", e);
+
             return null;
         }
 
@@ -304,27 +304,39 @@ public class EnquireActivity extends ImisActivity {
                 runOnUiThread(() -> renderResult(insuree));
             } catch (HttpException e) {
                 if (e.getCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-                    runOnUiThread(() -> showDialog(getResources().getString(R.string.RecordNotFound)));
+                    runOnUiThread(() -> {
+                        pd.dismiss();
+                        showDialog(getResources().getString(R.string.RecordNotFound));
+                    });
                 } else {
-                    runOnUiThread(() -> showDialog(e.getMessage()));
+                    runOnUiThread(() -> {
+                        pd.dismiss();
+                        showDialog(e.getMessage());
+                    });
                 }
             } catch (Exception e) {
-                Log.e(LOG_TAG, "Fetching online enquire failed", e);
-                runOnUiThread(() -> showDialog(getResources().getString(R.string.UnknownError)));
+
+                runOnUiThread(() -> {
+                    pd.dismiss();
+                    showDialog(getResources().getString(R.string.UnknownError));
+                });
             }
         } else {
             //TODO: yet to be done
-            runOnUiThread(() -> renderResult(getDataFromDb(chfid)));
+            runOnUiThread(() -> {
+                renderResult(getDataFromDb(chfid));
+            });
         }
     }
 
     public void renderResult(@Nullable Insuree insuree) {
         if (insuree == null) {
+            pd.dismiss();
             showDialog(getResources().getString(R.string.RecordNotFound));
             return;
         }
 
-        // PREMIÈRE ÉTAPE : Vérifier le type de famille (polygame ou monogame)
+        // FIRST STEP: Check family type (polygamous or monogamous)
         if (insuree.getFamilyUuid() != null && !insuree.getFamilyUuid().isEmpty()) {
             checkFamilyTypeAndRender(insuree);
         } else {
@@ -334,64 +346,126 @@ public class EnquireActivity extends ImisActivity {
     }
     
     /**
-     * Détermine si les sous-familles polygames doivent être affichées
-     * Logique avancée :
-     * - Si la famille actuelle est polygame : afficher les sous-familles
-     * - Si l'assuré appartient à une sous-famille ET le parent est polygame ET l'assuré est le chef du parent : afficher les sous-familles du parent
-     * - Sinon : afficher les membres normaux
+     * Détermine si on doit afficher les sous-familles polygames ou les membres normaux
+     * Implémentation basée sur la logique JavaScript conditionnelle :
+     * 
+     * JavaScript équivalent :
+     * {
+     *   shouldShowSubFamilies(insuree.family?.parent?.uuid || insuree.family?.uuid, familyUuid) ? (
+     *     <SubFamiliesTable />
+     *   ) : (
+     *     <FamilyMembersTable />
+     *   )
+     * }
+     * 
+     * Logique conditionnelle intégrée :
+     * 1. Si la famille actuelle est polygame → afficher sous-familles (SubFamiliesTable)
+     * 2. Si l'assuré est lui-même un chef polygame → afficher ses sous-familles
+     * 3. Si le parent est polygame ET l'assuré est chef du parent → afficher sous-familles du parent
+     * 4. Sinon → afficher membres normaux (FamilyMembersTable)
+     * 
+     * @param insuree L'assuré principal
+     * @param familyType Type de la famille actuelle
+     * @param parentFamily Famille parent (peut être null)
+     * @return true pour afficher SubFamiliesTable, false pour FamilyMembersTable
      */
     private boolean shouldShowPolygamousSubFamilies(Insuree insuree, String familyType, Family parentFamily) {
-        // Vérifier si la famille actuelle est polygame
+        // JavaScript equivalent: const parent = insuree?.family?.parent;
+        Family parent = parentFamily;
+        
+        // JavaScript equivalent: isPolygamyFamilyType (condition for SubFamiliesTable)
         boolean isPolygamyFamilyType = FamilyTypeConstants.isPolygamyFamilyType(familyType);
         
-        if (isPolygamyFamilyType) {
-            Log.d(LOG_TAG, "👑 Famille actuelle polygame - Affichage des sous-familles");
-            return true;
+        // Integrated conditional logic: check if insuree is himself a polygamous head
+        // This corresponds to the shouldShowSubFamilies() condition in JavaScript
+        boolean isInsureePolygamousHead = isInsureePolygamousHead(insuree);
+        
+        // JavaScript equivalent: const isParentPolygamy = parent?.familyType?.code === FAMILY_TYPE_POLYGAMY_CODE;
+        boolean isParentPolygamy = false;
+        if (parent != null && parent.getFamilyType() != null) {
+            isParentPolygamy = FamilyTypeConstants.isPolygamyFamilyType(parent.getFamilyType());
         }
         
-        // Si pas de parent, pas de logique avancée
-        if (parentFamily == null) {
-            Log.d(LOG_TAG, "👥 Pas de famille parent - Affichage des membres normaux");
-            return false;
+        // JavaScript equivalent: const isInsureeParentHead = insuree.uuid === parent.headInsuree.uuid;
+        // Using chfId for identity comparison
+        boolean isInsureeParentHead = false;
+        if (insuree != null && insuree.getChfId() != null && 
+            parent != null && parent.getHeadInsureeChfId() != null) {
+            isInsureeParentHead = insuree.getChfId().equals(parent.getHeadInsureeChfId());
         }
         
-        // Vérifier si le parent est polygame
-        boolean isParentPolygamy = FamilyTypeConstants.isPolygamyFamilyType(parentFamily.getFamilyType());
+        // Logique conditionnelle finale : true = SubFamiliesTable, false = FamilyMembersTable
+        // Equivalent to: shouldShowSubFamilies() ? <SubFamiliesTable /> : <FamilyMembersTable />
+        boolean shouldShowSubFamilies = isPolygamyFamilyType || isInsureePolygamousHead || (isParentPolygamy && isInsureeParentHead);
         
-        if (!isParentPolygamy) {
-            Log.d(LOG_TAG, "👥 Parent non-polygame - Affichage des membres normaux");
-            return false;
-        }
-        
-        // Vérifier si l'assuré est le chef du parent polygame
-        // Note: Insuree n'a pas d'UUID, on utilise le chfId comme identifiant
-        String insureeChfId = insuree.getChfId();
-        String parentHeadUuid = parentFamily.getHeadInsureeUuid();
-        
-        // Si on n'a pas l'information du chef du parent, on ne peut pas déterminer
-        // si l'assuré est le chef du parent, donc on affiche les membres normaux
-        if (parentHeadUuid == null) {
-            Log.d(LOG_TAG, "ℹ️ Chef du parent non disponible - Affichage des membres normaux");
-            return false;
-        }
-        
-        // Note: Comparaison simplifiée car on n'a pas l'UUID de l'assuré
-        // Pour l'instant, on considère que l'assuré n'est pas le chef du parent
-        // Cette logique pourrait nécessiter une amélioration avec plus d'informations
-        boolean isInsureeParentHead = false; // Temporairement désactivé car pas d'UUID insuree
-        
-        if (isInsureeParentHead) {
-            Log.d(LOG_TAG, "👑 Assuré est chef du parent polygame - Affichage des sous-familles du parent");
-            return true;
-        } else {
-            Log.d(LOG_TAG, "👥 Assuré n'est pas chef du parent polygame - Affichage des membres normaux");
-            return false;
-        }
+        return shouldShowSubFamilies;
     }
     
     /**
+     * Vérifie si un assuré est un chef polygame en vérifiant s'il a des sous-familles
+     * Cette méthode résout le problème où un chef polygame inclus dans une sous-famille
+     * perdrait son statut de polygame
+     * 
+     * @param insuree L'assuré à vérifier
+     * @return true si l'assuré a des sous-familles (donc est un chef polygame)
+     */
+    private boolean isInsureePolygamousHead(Insuree insuree) {
+        try {
+            String familyUuid = insuree.getFamilyUuid();
+            if (familyUuid == null) {
+                return false;
+            }
+            
+            // Check if this insuree has sub-families
+            GetPolygamousSubFamiliesGraphQLRequest polygamousRequest = new GetPolygamousSubFamiliesGraphQLRequest(sqlHandler);
+            List<PolygamousSubFamily> subFamilies = polygamousRequest.get(familyUuid);
+            
+            boolean hasSubFamilies = subFamilies != null && !subFamilies.isEmpty();
+            
+            return hasSubFamilies;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    /**
+     * Récupère l'UUID de famille approprié pour l'affichage des sous-familles
+     * Implémentation directe de la logique JavaScript :
+     * insuree.family?.parent?.uuid || insuree.family?.uuid
+     * 
+     * Cette méthode implémente l'opérateur de coalescence nullish (??) du JavaScript
+     * pour déterminer quel UUID de famille utiliser dans la logique conditionnelle.
+     * 
+     * @param insuree L'assuré principal
+     * @param parentFamily La famille parent (peut être null)
+     * @return L'UUID de la famille à utiliser (parent en priorité, sinon famille actuelle)
+     */
+    private String getFamilyUuidForSubFamilies(Insuree insuree, Family parentFamily) {
+        // JavaScript equivalent: insuree.family?.parent?.uuid
+        // First priority: Parent family UUID if it exists
+        if (parentFamily != null && parentFamily.getUuid() != null && !parentFamily.getUuid().isEmpty()) {
+            return parentFamily.getUuid();
+        }
+        
+        // JavaScript equivalent: || insuree.family?.uuid
+        // Second priority: Insuree's family UUID (fallback)
+        String familyUuid = insuree != null ? insuree.getFamilyUuid() : null;
+        
+        return familyUuid;
+    }
+
+    /**
      * Détecte automatiquement si la famille est polygame ou monogame
-     * et affiche le contenu approprié selon la logique avancée
+     * et affiche le contenu approprié selon la logique conditionnelle intégrée
+     * 
+     * Implémentation de la logique JavaScript :
+     * {
+     *   shouldShowSubFamilies(insuree.family?.parent?.uuid || insuree.family?.uuid, familyUuid) ? (
+     *     <SubFamiliesTable />  // renderPolygamousFamily()
+     *   ) : (
+     *     <FamilyMembersTable />  // renderMonogamousFamily()
+     *   )
+     * }
      */
     private void checkFamilyTypeAndRender(Insuree insuree) {
         String familyUuid = insuree.getFamilyUuid();
@@ -403,51 +477,41 @@ public class EnquireActivity extends ImisActivity {
         
         new Thread(() -> {
             try {
-                // Étape 1: Récupérer les informations de la famille et du parent
+                // Step 1: Retrieve family and parent information
                 GetFamilyMembersGraphQLRequest familyRequest = new GetFamilyMembersGraphQLRequest(sqlHandler);
                 String familyType = familyRequest.getFamilyType(familyUuid);
                 Family parentFamily = familyRequest.getParentFamily(familyUuid);
                 
-                Log.d(LOG_TAG, "🔍 Analyse famille - UUID: " + familyUuid + ", Type: " + familyType);
-                if (parentFamily != null) {
-                    Log.d(LOG_TAG, "🔍 Parent trouvé - UUID: " + parentFamily.getUuid() + ", Type: " + parentFamily.getFamilyType());
-                }
-                
-                // Étape 2: Déterminer si on doit afficher les sous-familles polygames
+                // Step 2: Apply integrated conditional logic
+                // Equivalent to: shouldShowSubFamilies() ? <SubFamiliesTable /> : <FamilyMembersTable />
                 boolean shouldShowPolygamous = shouldShowPolygamousSubFamilies(insuree, familyType, parentFamily);
                 
                 if (shouldShowPolygamous) {
-                    // Déterminer quelle famille utiliser pour récupérer les sous-familles
-                    String targetFamilyUuid = familyUuid;
-                    if (parentFamily != null && !FamilyTypeConstants.isPolygamyFamilyType(familyType)) {
-                        // Si la famille actuelle n'est pas polygame mais le parent l'est, utiliser le parent
-                        targetFamilyUuid = parentFamily.getUuid();
-                        Log.d(LOG_TAG, "👑 Utilisation du parent polygame pour les sous-familles: " + targetFamilyUuid);
-                    }
+                    // BRANCHE: <SubFamiliesTable /> - Afficher les sous-familles polygames
                     
-                    // Récupérer et afficher les chefs de sous-familles
+                    // Utiliser la logique JavaScript: insuree.family?.parent?.uuid || insuree.family?.uuid
+                    String targetFamilyUuid = getFamilyUuidForSubFamilies(insuree, parentFamily);
+                    
+                    // Retrieve and display sub-family heads (SubFamiliesTable equivalent)
                     GetPolygamousSubFamiliesGraphQLRequest polygamousRequest = new GetPolygamousSubFamiliesGraphQLRequest(sqlHandler);
                     List<PolygamousSubFamily> polygamousSubFamilies = polygamousRequest.get(targetFamilyUuid);
                     
                     runOnUiThread(() -> {
                         if (polygamousSubFamilies != null && !polygamousSubFamilies.isEmpty()) {
-                            Log.d(LOG_TAG, "✅ Affichage de " + polygamousSubFamilies.size() + " chefs de sous-familles");
                             renderPolygamousFamily(insuree, polygamousSubFamilies);
                         } else {
-                            Log.w(LOG_TAG, "⚠️ Aucun chef de sous-famille trouvé");
                             renderInsureeBasicInfo(insuree);
                         }
                     });
                 } else {
+                    // BRANCHE: <FamilyMembersTable /> - Afficher les membres de famille normaux
                     // Afficher les membres normaux
-                    Log.d(LOG_TAG, "👥 Affichage des membres de famille normaux");
                     runOnUiThread(() -> {
                         renderMonogamousFamily(insuree);
                     });
                 }
                 
             } catch (Exception e) {
-                Log.e(LOG_TAG, "❌ Erreur lors de la détection du type de famille", e);
                 runOnUiThread(() -> renderInsureeBasicInfo(insuree));
             }
         }).start();
@@ -459,8 +523,6 @@ public class EnquireActivity extends ImisActivity {
      * @param polygamousSubFamilies Liste des chefs de sous-familles à afficher
      */
     private void renderPolygamousFamily(Insuree insuree, List<PolygamousSubFamily> polygamousSubFamilies) {
-        Log.d(LOG_TAG, "👑 Rendu famille polygame - " + polygamousSubFamilies.size() + " chefs de sous-familles");
-        
         renderInsureeBasicInfoForPolygamous(insuree);
         
         if (polygamousSubFamilyAdapter == null) {
@@ -469,11 +531,10 @@ public class EnquireActivity extends ImisActivity {
                 showSubFamilyMembers(subFamily);
             });
             listViewPolygamousSubFamilies.setAdapter(polygamousSubFamilyAdapter);
-            Log.d(LOG_TAG, "✅ Adapter polygame créé et configuré");
         } else {
             polygamousSubFamilyAdapter.updateData(polygamousSubFamilies);
-            Log.d(LOG_TAG, "🔄 Adapter polygame mis à jour");
         }
+        
         llPolygamousSubFamilies.setVisibility(View.VISIBLE);
         
         if (llFamilyMembers != null) {
@@ -483,6 +544,9 @@ public class EnquireActivity extends ImisActivity {
         if (ll != null) {
             ll.setVisibility(View.GONE);
         }
+        
+        // Close loading indicator once all information is displayed
+        pd.dismiss();
     }
     
     /**
@@ -490,8 +554,6 @@ public class EnquireActivity extends ImisActivity {
      * @param insuree L'assuré principal
      */
     private void renderMonogamousFamily(Insuree insuree) {
-        Log.d(LOG_TAG, "👥 Rendu famille monogame - Chargement des membres de famille");
-        
         renderInsureeBasicInfo(insuree);
         loadFamilyMembers(insuree.getFamilyUuid());
         
@@ -499,8 +561,6 @@ public class EnquireActivity extends ImisActivity {
         if (llPolygamousSubFamilies != null) {
             llPolygamousSubFamilies.setVisibility(View.GONE);
         }
-        
-        Log.d(LOG_TAG, "✅ Interface famille monogame configurée");
     }
     
     private void renderInsureeBasicInfo(Insuree insuree) {
@@ -639,6 +699,9 @@ public class EnquireActivity extends ImisActivity {
         );
 
         lv.setAdapter(adapter);
+        
+        // Close loading indicator once all information is displayed
+        pd.dismiss();
     }
 
     private void renderInsureeBasicInfoForPolygamous(Insuree insuree) {
@@ -671,6 +734,9 @@ public class EnquireActivity extends ImisActivity {
         } else {
             iv.setImageDrawable(getResources().getDrawable(R.drawable.person));
         }
+        
+        // Close loading indicator once all information is displayed
+        pd.dismiss();
     }
 
     protected String buildEnquireValue(@Nullable Number value, @StringRes int labelId) {
@@ -687,10 +753,7 @@ public class EnquireActivity extends ImisActivity {
      * @param familyUuid UUID de la famille dont charger les membres
      */
     private void loadFamilyMembers(String familyUuid) {
-        Log.d(LOG_TAG, "👥 Chargement des membres de famille monogame - UUID: " + familyUuid);
-        
         if (!global.isNetworkAvailable()) {
-            Log.w(LOG_TAG, "⚠️ Pas de connexion réseau - Masquage des membres de famille");
             if (llFamilyMembers != null) {
                 llFamilyMembers.setVisibility(View.GONE);
             }
@@ -704,24 +767,18 @@ public class EnquireActivity extends ImisActivity {
                 
                 runOnUiThread(() -> {
                     if (familyMembers != null && !familyMembers.isEmpty()) {
-                        Log.d(LOG_TAG, "✅ " + familyMembers.size() + " membres de famille chargés");
-                        
                         if (familyMemberAdapter == null) {
                             familyMemberAdapter = new FamilyMemberAdapter(this, familyMembers);
                             listViewFamilyMembers.setAdapter(familyMemberAdapter);
-                            Log.d(LOG_TAG, "✅ Adapter membres de famille créé");
                         } else {
                             familyMemberAdapter.updateData(familyMembers);
-                            Log.d(LOG_TAG, "🔄 Adapter membres de famille mis à jour");
                         }
                         llFamilyMembers.setVisibility(View.VISIBLE);
                     } else {
-                        Log.w(LOG_TAG, "⚠️ Aucun membre de famille trouvé");
                         llFamilyMembers.setVisibility(View.GONE);
                     }
                 });
             } catch (Exception e) {
-                Log.e(LOG_TAG, "❌ Erreur lors du chargement des membres de famille", e);
                 runOnUiThread(() -> {
                     if (llFamilyMembers != null) {
                         llFamilyMembers.setVisibility(View.GONE);
@@ -749,7 +806,7 @@ public class EnquireActivity extends ImisActivity {
             
             startActivity(intent);
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Error launching SubHouseholdActivity", e);
+
         }
     }
 
@@ -781,7 +838,7 @@ public class EnquireActivity extends ImisActivity {
             
             return copy;
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Error creating safe copy, using original", e);
+
             return original;
         }
     }
@@ -792,7 +849,7 @@ public class EnquireActivity extends ImisActivity {
             return;
         }
 
-        // Si pas d'éléments, définir la hauteur à 0
+        // If no items, set height to 0
         if (listAdapter.getCount() == 0) {
             ViewGroup.LayoutParams params = listView.getLayoutParams();
             params.height = 0;
@@ -800,14 +857,14 @@ public class EnquireActivity extends ImisActivity {
             return;
         }
 
-        // Optimisation: mesurer seulement le premier élément et multiplier par le nombre d'éléments
-        // Cela évite les appels multiples à getView() qui créent des doublons
+        // Optimization: measure only first item and multiply by number of items
+        // This avoids multiple getView() calls that create duplicates
         int desiredWidth = View.MeasureSpec.makeMeasureSpec(listView.getWidth(), View.MeasureSpec.AT_MOST);
         View listItem = listAdapter.getView(0, null, listView);
         listItem.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED);
         int itemHeight = listItem.getMeasuredHeight();
         
-        // Calculer la hauteur totale basée sur la hauteur d'un seul élément
+        // Calculate total height based on single item height
         int totalHeight = itemHeight * listAdapter.getCount();
         
         ViewGroup.LayoutParams params = listView.getLayoutParams();

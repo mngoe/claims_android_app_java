@@ -156,7 +156,7 @@ public class FamilyMemberAdapter extends RecyclerView.Adapter<FamilyMemberAdapte
             }
         }
 
-        // Si aucun format ne fonctionne, retourner la chaîne originale
+        // If no format works, return the original string
         Log.w(LOG_TAG, "Unable to parse date: " + dateString);
         return dateString;
     }

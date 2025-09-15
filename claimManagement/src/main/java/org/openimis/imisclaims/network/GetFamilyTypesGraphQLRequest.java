@@ -19,10 +19,10 @@ public class GetFamilyTypesGraphQLRequest extends BaseGraphQLRequest {
     @NonNull
     @WorkerThread
     public void getFamilyTypes() {
-        // Récupération des types de famille depuis le serveur
+        // Retrieve family types from server
         
         try {
-            // Récupérer les types de famille depuis le serveur via GraphQL
+            // Retrieve family types from server via GraphQL
             
             GetFamilyTypesQuery.Data response = makeSynchronous(
                 new GetFamilyTypesQuery()
@@ -30,7 +30,7 @@ public class GetFamilyTypesGraphQLRequest extends BaseGraphQLRequest {
             
             if (response != null && response.familyTypes() != null) {
                 
-                // Synchroniser avec la base de données locale
+                // Synchronize with local database
                 for (GetFamilyTypesQuery.FamilyType familyType : response.familyTypes()) {
                     String code = familyType.code();
                     String type = familyType.type();
@@ -39,7 +39,7 @@ public class GetFamilyTypesGraphQLRequest extends BaseGraphQLRequest {
                 }
 
             } else {
-                // Fallback vers les types par défaut
+                // Fallback to default types
                 sqlHandler.InsertReferences("P", "Polygame", "F", "");
                 sqlHandler.InsertReferences("M", "Monogame", "F", "");
             }
@@ -47,7 +47,7 @@ public class GetFamilyTypesGraphQLRequest extends BaseGraphQLRequest {
         } catch (Exception e) {
             
             try {
-                // Fallback vers les types par défaut en cas d'erreur
+                // Fallback to default types in case of error
                 sqlHandler.InsertReferences("P", "Polygame", "F", "");
                 sqlHandler.InsertReferences("M", "Monogame", "F", "");
             } catch (Exception fallbackError) {

@@ -14,7 +14,7 @@ public class GetFamilyWithTypeGraphQLRequest extends BaseGraphQLRequest {
     private static final String LOG_TAG = "GetFamilyWithType";
     
     public GetFamilyWithTypeGraphQLRequest() {
-        // Constructeur par défaut
+        // Default constructor
     }
     
     /**
@@ -26,9 +26,9 @@ public class GetFamilyWithTypeGraphQLRequest extends BaseGraphQLRequest {
     @WorkerThread
     public String getFamilyTypeFromServer(String familyUuid) throws Exception {
         try {
-            // Récupération du type de famille depuis le serveur
+            // Retrieve family type from server
             
-            // Exécuter la requête GraphQL
+            // Execute GraphQL query
             GetFamilyWithTypeQuery.Data response = makeSynchronous(
                 new GetFamilyWithTypeQuery(familyUuid)
             ).getData();
@@ -37,7 +37,7 @@ public class GetFamilyWithTypeGraphQLRequest extends BaseGraphQLRequest {
                 return null;
             }
             
-            // Récupérer la première famille (il ne devrait y en avoir qu'une avec cet UUID)
+            // Retrieve first family (there should only be one with this UUID)
             GetFamilyWithTypeQuery.Edge firstEdge = response.families().edges().get(0);
             if (firstEdge.node() == null) {
                 return null;
@@ -45,7 +45,7 @@ public class GetFamilyWithTypeGraphQLRequest extends BaseGraphQLRequest {
             
             GetFamilyWithTypeQuery.Node familyNode = firstEdge.node();
             
-            // Récupérer le type de famille
+            // Retrieve family type
             String familyTypeCode = null;
             if (familyNode.familyType() != null && familyNode.familyType().code() != null) {
                 familyTypeCode = familyNode.familyType().code();
@@ -74,7 +74,7 @@ public class GetFamilyWithTypeGraphQLRequest extends BaseGraphQLRequest {
             return isPolygamous;
         } catch (Exception e) {
             Log.e(LOG_TAG, "Error checking polygamy", e);
-            return false; // Par défaut, considérer comme monogame en cas d'erreur
+            return false; // By default, consider as monogamous in case of error
         }
     }
 }

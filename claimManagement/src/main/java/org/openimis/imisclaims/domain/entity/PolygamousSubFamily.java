@@ -147,13 +147,13 @@ public class PolygamousSubFamily implements Serializable {
     }
     
     public boolean isPolygamousHead() {
-        // Un chef de ménage polygame principal est identifié par sa relation "Head" et l'absence de parentUuid
-        // Les chefs de sous-familles ont la relation "SubFamilyHead" et un parentUuid défini
+        // A main polygamous household head is identified by "Head" relationship and absence of parentUuid
+        // Sub-family heads have "SubFamilyHead" relationship and a defined parentUuid
         return "Head".equalsIgnoreCase(relationship) && (parentUuid == null || parentUuid.isEmpty());
     }
     
     public boolean isSubFamilyHead() {
-        // Un chef de sous-famille est identifié par sa relation "SubFamilyHead" et un parentUuid défini
+        // A sub-family head is identified by "SubFamilyHead" relationship and a defined parentUuid
         return "SubFamilyHead".equalsIgnoreCase(relationship) && parentUuid != null && !parentUuid.isEmpty();
     }
     
@@ -170,7 +170,7 @@ public class PolygamousSubFamily implements Serializable {
             return false;
         }
 
-        // Détection basée uniquement sur le familyType
+        // Detection based only on familyType
         return FamilyTypeConstants.isPolygamyFamilyType(insureeFamily.getFamilyType());
     }
     
@@ -211,12 +211,12 @@ public class PolygamousSubFamily implements Serializable {
             return false;
         }
 
-        // Vérification directe : si la famille est polygame
+        // Direct verification: if family is polygamous
         if (FamilyTypeConstants.isPolygamyFamilyType(family.getFamilyType())) {
             return true;
         }
 
-        // Vérification indirecte : si c'est une sous-famille d'une famille polygame
+        // Indirect verification: if it's a sub-family of a polygamous family
         if (parentFamily != null && FamilyTypeConstants.isPolygamyFamilyType(parentFamily.getFamilyType())) {
             return true;
         }
@@ -249,19 +249,19 @@ public class PolygamousSubFamily implements Serializable {
         }
         
         SQLHandler sqlHandler = new SQLHandler(context);
-        // S'assurer que les tables sont créées
+        // Ensure tables are created
         sqlHandler.createTables();
         SQLiteDatabase db = sqlHandler.getReadableDatabase();
         
-        // Vérifier si la table existe
+        // Check if table exists
         Cursor tableCheck = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='tblPolicyInquiry'", null);
         if (tableCheck.getCount() == 0) {
-            Log.e("PolygamousSubFamily", "Table tblPolicyInquiry n'existe pas!");
+            
             tableCheck.close();
             return false;
         }
         tableCheck.close();
-        Log.d("PolygamousSubFamily", "Table tblPolicyInquiry trouvée, exécution de la requête");
+        
         
         String[] columns = {"Status", "ExpiryDate"};
         String[] selectionArgs = {chfId.trim()};
@@ -275,7 +275,7 @@ public class PolygamousSubFamily implements Serializable {
                     String status = cursor.getString(cursor.getColumnIndex("Status"));
                     String expiryDate = cursor.getString(cursor.getColumnIndex("ExpiryDate"));
                     
-                    // Vérifier si le contrat est actif
+                    // Check if contract is active
                     if ("ACTIVE".equals(status)) {
                         return true;
                     }
@@ -283,7 +283,7 @@ public class PolygamousSubFamily implements Serializable {
             }
         } catch (Exception e) {
             // Log l'erreur mais ne pas faire planter l'application
-            android.util.Log.e("PolygamousSubFamily", "Erreur lors de la vérification du contrat d'assurance", e);
+            
         } finally {
             if (cursor != null) {
                 cursor.close();
