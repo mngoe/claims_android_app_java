@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.annotation.StringRes;
@@ -790,23 +791,49 @@ public class EnquireActivity extends ImisActivity {
 
     private void showSubFamilyMembers(PolygamousSubFamily subFamily) {
         try {
-            if (subFamily == null) {
+            if (subFamily == null || subFamily.getChfId() == null) {
+                Log.e(LOG_TAG, "Sous-famille ou ID CHF manquant");
                 return;
             }
             
-            PolygamousSubFamily safeCopy = createSafeCopy(subFamily);
-             
             Intent intent = new Intent(this, SubHouseholdActivity.class);
-            intent.putExtra(SubHouseholdActivity.EXTRA_SUB_HEAD, safeCopy);
-             
-            if (safeCopy.getMembers() != null) {
-                ArrayList<FamilyMember> allMembers = new ArrayList<>(safeCopy.getMembers());
-                intent.putExtra(SubHouseholdActivity.EXTRA_ALL_MEMBERS, allMembers);
+            // Transmission de toutes les informations disponibles du chef de sous-famille
+            intent.putExtra(SubHouseholdActivity.EXTRA_CHF_ID, subFamily.getChfId());
+            
+            // Ajout des informations personnelles
+            if (subFamily.getLastName() != null) {
+                intent.putExtra("EXTRA_LAST_NAME", subFamily.getLastName());
             }
+            if (subFamily.getOtherNames() != null) {
+                intent.putExtra("EXTRA_OTHER_NAMES", subFamily.getOtherNames());
+            }
+            if (subFamily.getGender() != null) {
+                intent.putExtra("EXTRA_GENDER", subFamily.getGender());
+            }
+            if (subFamily.getDob() != null) {
+                intent.putExtra("EXTRA_DOB", subFamily.getDob());
+            }
+            if (subFamily.getPhoto() != null) {
+                 intent.putExtra("EXTRA_PHOTO_PATH", subFamily.getPhoto());
+             }
+            
+            // Si un UUID de famille est disponible, on l'ajoute aux extras
+            if (subFamily.getFamilyUuid() != null) {
+                intent.putExtra(SubHouseholdActivity.EXTRA_FAMILY_UUID, subFamily.getFamilyUuid());
+            }
+            
+            Log.d(LOG_TAG, "📤 Transmission des données vers SubHouseholdActivity:");
+            Log.d(LOG_TAG, "   - CHFID: '" + subFamily.getChfId() + "'");
+            Log.d(LOG_TAG, "   - LastName: '" + subFamily.getLastName() + "'");
+            Log.d(LOG_TAG, "   - OtherNames: '" + subFamily.getOtherNames() + "'");
+            Log.d(LOG_TAG, "   - Gender: '" + subFamily.getGender() + "'");
+            Log.d(LOG_TAG, "   - DOB: '" + subFamily.getDob() + "'");
+            Log.d(LOG_TAG, "   - FamilyUuid: '" + subFamily.getFamilyUuid() + "'");
             
             startActivity(intent);
         } catch (Exception e) {
-
+            Log.e(LOG_TAG, "Erreur dans showSubFamilyMembers", e);
+            Toast.makeText(this, "Erreur lors de l'affichage des détails de la famille", Toast.LENGTH_SHORT).show();
         }
     }
 

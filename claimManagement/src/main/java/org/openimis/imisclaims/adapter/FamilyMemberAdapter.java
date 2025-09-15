@@ -34,7 +34,7 @@ public class FamilyMemberAdapter extends RecyclerView.Adapter<FamilyMemberAdapte
         this.context = context;
         this.familyMembers = familyMembers;
         this.inflater = LayoutInflater.from(context);
-        this.outputDateFormat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
+        this.outputDateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         this.inputDateFormat = new SimpleDateFormat("EEE MMM dd HH:mm:ss 'GMT'XXX yyyy", Locale.ENGLISH);
         Log.d(LOG_TAG, "FamilyMemberAdapter created with " + (familyMembers != null ? familyMembers.size() : "null") + " members");
         if (familyMembers != null) {
@@ -48,7 +48,8 @@ public class FamilyMemberAdapter extends RecyclerView.Adapter<FamilyMemberAdapte
     @Override
     public int getItemCount() {
         int count = familyMembers != null ? familyMembers.size() : 0;
-        Log.d(LOG_TAG, "getItemCount() returning: " + count);
+        Log.d(LOG_TAG, "📊 getItemCount() appelé - Retourne: " + count + 
+              " (familyMembers: " + (familyMembers != null ? "non-null" : "NULL") + ")");
         return count;
     }
 
@@ -62,13 +63,29 @@ public class FamilyMemberAdapter extends RecyclerView.Adapter<FamilyMemberAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        Log.d(LOG_TAG, "onBindViewHolder called for position: " + position);
+        Log.d(LOG_TAG, "🎨 === DÉBUT onBindViewHolder - Position: " + position + " ===");
+        
+        if (familyMembers == null || position >= familyMembers.size()) {
+            Log.e(LOG_TAG, "❌ ERREUR: familyMembers null ou position invalide");
+            return;
+        }
         
         FamilyMember member = familyMembers.get(position);
-        Log.d(LOG_TAG, "Displaying member at position " + position + ": " + member.getFullName());
+        Log.d(LOG_TAG, "Membre à afficher: " + member.getFullName() + " (CHFID: " + member.getChfId() + ")");
         
-        // Nom complet
-        holder.tvMemberName.setText(member.getFullName());
+        // Nom de famille
+        if (member.getLastName() != null && !member.getLastName().isEmpty()) {
+            holder.tvMemberLastName.setText(member.getLastName());
+        } else {
+            holder.tvMemberLastName.setText("N/A");
+        }
+        
+        // Prénom
+        if (member.getOtherNames() != null && !member.getOtherNames().isEmpty()) {
+            holder.tvMemberFirstName.setText(member.getOtherNames());
+        } else {
+            holder.tvMemberFirstName.setText("N/A");
+        }
         
         // CHFID
         if (member.getChfId() != null && !member.getChfId().isEmpty()) {
@@ -117,19 +134,31 @@ public class FamilyMemberAdapter extends RecyclerView.Adapter<FamilyMemberAdapte
             Log.d(LOG_TAG, "No photo data for " + member.getFullName() + ", using placeholder");
         }
         
-        Log.d(LOG_TAG, "View setup complete for position " + position + ": " + member.getFullName());
+        Log.d(LOG_TAG, "✅ Affichage terminé pour position " + position + ": " + member.getFullName());
+        Log.d(LOG_TAG, "🎨 === FIN onBindViewHolder - Position: " + position + " ===");
     }
 
     public void updateData(List<FamilyMember> newFamilyMembers) {
+        Log.d(LOG_TAG, "=== DÉBUT UPDATE DATA ADAPTER ===");
+        Log.d(LOG_TAG, "Anciens membres: " + (this.familyMembers != null ? this.familyMembers.size() : "null"));
+        Log.d(LOG_TAG, "Nouveaux membres: " + (newFamilyMembers != null ? newFamilyMembers.size() : "null"));
+        
         this.familyMembers = newFamilyMembers;
         if (newFamilyMembers != null) {
+            Log.d(LOG_TAG, "Détail des nouveaux membres:");
             for (int i = 0; i < newFamilyMembers.size(); i++) {
                 FamilyMember member = newFamilyMembers.get(i);
-                Log.d(LOG_TAG, "Updated Member " + i + ": " + member.getFullName() + ", CHFID: " + member.getChfId());
+                Log.d(LOG_TAG, "  Membre " + (i+1) + ": " + member.getFullName() + 
+                      " (CHFID: " + member.getChfId() + ", UUID: " + member.getUuid() + ")");
             }
+        } else {
+            Log.w(LOG_TAG, "⚠ Liste des nouveaux membres est NULL");
         }
+        
+        Log.d(LOG_TAG, "Appel de notifyDataSetChanged()...");
         notifyDataSetChanged();
-        Log.d(LOG_TAG, "notifyDataSetChanged() called");
+        Log.d(LOG_TAG, "✓ notifyDataSetChanged() terminé");
+        Log.d(LOG_TAG, "=== FIN UPDATE DATA ADAPTER ===");
     }
 
     private String formatDate(String dateString) {
@@ -156,14 +185,15 @@ public class FamilyMemberAdapter extends RecyclerView.Adapter<FamilyMemberAdapte
             }
         }
 
-        // If no format works, return the original string
+        // Si aucun format ne fonctionne, retourner la chaîne originale
         Log.w(LOG_TAG, "Unable to parse date: " + dateString);
         return dateString;
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivMemberPhoto;
-        TextView tvMemberName;
+        TextView tvMemberLastName;
+        TextView tvMemberFirstName;
         TextView tvMemberChfId;
         TextView tvMemberGender;
         TextView tvMemberDob;
@@ -171,7 +201,8 @@ public class FamilyMemberAdapter extends RecyclerView.Adapter<FamilyMemberAdapte
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             ivMemberPhoto = itemView.findViewById(R.id.ivMemberPhoto);
-            tvMemberName = itemView.findViewById(R.id.tvMemberName);
+            tvMemberLastName = itemView.findViewById(R.id.tvMemberLastName);
+            tvMemberFirstName = itemView.findViewById(R.id.tvMemberFirstName);
             tvMemberChfId = itemView.findViewById(R.id.tvMemberChfId);
             tvMemberGender = itemView.findViewById(R.id.tvMemberGender);
             tvMemberDob = itemView.findViewById(R.id.tvMemberDob);

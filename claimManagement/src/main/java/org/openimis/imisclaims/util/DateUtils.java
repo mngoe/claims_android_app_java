@@ -12,7 +12,7 @@ import java.util.Locale;
 public class DateUtils {
 
     private static final SimpleDateFormat DATE_FORMAT = AppInformation.DateTimeInfo.getDefaultDateFormatter();
-    private static final SimpleDateFormat EXPIRY_DATE_FORMAT = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
+    private static final SimpleDateFormat EXPIRY_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
 
     private DateUtils() {
         throw new IllegalAccessError("This constructor is private");
@@ -35,13 +35,26 @@ public class DateUtils {
 
     @NonNull
     public static String formatExpiryDateString(@NonNull String dateString) {
-        try {
-            Date date = DATE_FORMAT.parse(dateString);
-            return EXPIRY_DATE_FORMAT.format(date);
-        } catch (ParseException e) {
-            // Si le parsing échoue, retourner la chaîne originale
-            return dateString;
+        // Try multiple date formats
+        SimpleDateFormat[] inputFormats = {
+            DATE_FORMAT,
+            new SimpleDateFormat("EEE MMM dd HH:mm:ss 'GMT'XXX yyyy", Locale.US),
+            new SimpleDateFormat("yyyy-MM-dd", Locale.US),
+            new SimpleDateFormat("dd-MM-yyyy", Locale.US),
+            new SimpleDateFormat("dd/MM/yyyy", Locale.US)
+        };
+        
+        for (SimpleDateFormat format : inputFormats) {
+            try {
+                Date date = format.parse(dateString);
+                return EXPIRY_DATE_FORMAT.format(date);
+            } catch (ParseException e) {
+                // Continue to next format
+            }
         }
+        
+        // If all parsing fails, return original string
+        return dateString;
     }
 
 }

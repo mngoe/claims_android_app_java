@@ -41,21 +41,39 @@ public class GetFamilyMembersGraphQLRequest extends BaseGraphQLRequest {
     @NonNull
     @WorkerThread
     public List<FamilyMember> get(String familyUuid) throws Exception {
+        Log.d("GetFamilyMembersGraphQL", "=== DÉBUT RÉCUPÉRATION MEMBRES FAMILLE ===");
+        Log.d("GetFamilyMembersGraphQL", "FamilyUUID demandé: " + familyUuid);
+        
         try {
             // Retrieve family members
+            Log.d("GetFamilyMembersGraphQL", "Envoi de la requête GraphQL au serveur...");
             GetFamilyMembersQuery.Data response = makeSynchronous(
                 new GetFamilyMembersQuery(familyUuid)
             ).getData();
             
+            Log.d("GetFamilyMembersGraphQL", "Réponse reçue du serveur: " + (response != null ? "OK" : "NULL"));
+            
             if (response == null || response.familyMembers() == null) {
+                Log.w("GetFamilyMembersGraphQL", "Réponse vide ou familyMembers null");
                 return new ArrayList<>();
             }
             
+            Log.d("GetFamilyMembersGraphQL", "Nombre d'edges dans la réponse: " + 
+                (response.familyMembers().edges() != null ? response.familyMembers().edges().size() : 0));
+            
             List<FamilyMember> familyMembers = new ArrayList<>();
             
+            int memberCount = 0;
             for (GetFamilyMembersQuery.Edge edge : response.familyMembers().edges()) {
                 if (edge.node() != null) {
+                    memberCount++;
                     GetFamilyMembersQuery.Node node = edge.node();
+                    Log.d("GetFamilyMembersGraphQL", "--- Traitement membre #" + memberCount + " ---");
+                    Log.d("GetFamilyMembersGraphQL", "UUID: " + node.uuid());
+                    Log.d("GetFamilyMembersGraphQL", "CHFID: " + node.chfId());
+                    Log.d("GetFamilyMembersGraphQL", "Nom: " + node.lastName() + " " + node.otherNames());
+                    Log.d("GetFamilyMembersGraphQL", "Relation: " + (node.relationship() != null ? node.relationship().relation() : "NULL"));
+                    
                     FamilyMember member = new FamilyMember();
                     
                     member.setUuid(node.uuid());
@@ -73,16 +91,29 @@ public class GetFamilyMembersGraphQLRequest extends BaseGraphQLRequest {
                         member.setPhotoData(node.photo().photo());
                     }
                     
-                    // Note: Les informations de famille (familyUuid, parentUuid) sont disponibles
-                    // but are not stored in FamilyMember for now
-                    // They will be used for polygamous household detection
+                    // Store family information for polygamous household detection
+                    if (node.family() != null) {
+                        member.setFamilyUuid(node.family().uuid());
+                        Log.d("GetFamilyMembersGraphQL", "FamilyUUID du membre: " + node.family().uuid());
+                        if (node.family().parent() != null) {
+                            member.setParentUuid(node.family().parent().uuid());
+                            Log.d("GetFamilyMembersGraphQL", "ParentUUID du membre: " + node.family().parent().uuid());
+                        } else {
+                            Log.d("GetFamilyMembersGraphQL", "ParentUUID du membre: NULL (chef principal)");
+                        }
+                    } else {
+                        Log.w("GetFamilyMembersGraphQL", "Informations de famille manquantes pour ce membre");
+                    }
                     
                     familyMembers.add(member);
+                    Log.d("GetFamilyMembersGraphQL", "Membre ajouté à la liste");
                 }
             }
+            
+            Log.d("GetFamilyMembersGraphQL", "=== FIN RÉCUPÉRATION - Total membres: " + familyMembers.size() + " ===");
             return familyMembers;
         } catch (Exception e) {
-
+            Log.e("GetFamilyMembersGraphQL", "ERREUR lors de la récupération: " + e.getMessage(), e);
             e.printStackTrace();
             return new ArrayList<>();
         }

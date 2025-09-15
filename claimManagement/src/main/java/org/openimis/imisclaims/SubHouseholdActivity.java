@@ -23,6 +23,7 @@ import org.openimis.imisclaims.adapter.FamilyMemberAdapter;
 import org.openimis.imisclaims.domain.entity.FamilyMember;
 import org.openimis.imisclaims.domain.entity.PolygamousSubFamily;
 import org.openimis.imisclaims.domain.entity.Policy;
+import org.openimis.imisclaims.network.GetFamilyMembersGraphQLRequest;
 import org.openimis.imisclaims.util.TextViewUtils;
 import org.openimis.imisclaims.util.DateUtils;
 import org.openimis.imisclaims.domain.entity.Insuree;
@@ -42,11 +43,16 @@ import android.database.sqlite.SQLiteDatabase;
 public class SubHouseholdActivity extends AppCompatActivity {
     private static final String LOG_TAG = "SubHouseholdActivity";
 
-    public static final String EXTRA_SUB_HEAD = "extra_sub_head";
-    public static final String EXTRA_ALL_MEMBERS = "extra_all_members";
+    public static final String EXTRA_CHF_ID = "extra_chf_id";
+    public static final String EXTRA_FAMILY_UUID = "extra_family_uuid";
+    
+    // Database helper
+    private SQLHandler sqlHandler;
+    private SQLiteDatabase db;
 
     private ImageView ivSubHeadPhoto;
-    private TextView tvSubHeadName;
+    private TextView tvSubHeadLastName;
+    private TextView tvSubHeadFirstName;
     private TextView tvSubHeadChfId;
     private TextView tvSubHeadGender;
     private TextView tvSubHeadDob;
@@ -76,7 +82,8 @@ public class SubHouseholdActivity extends AppCompatActivity {
 
     private void initializeViews() {
         ivSubHeadPhoto = findViewById(R.id.ivSubHeadPhoto);
-        tvSubHeadName = findViewById(R.id.tvSubHeadName);
+        tvSubHeadLastName = findViewById(R.id.tvSubHeadLastName);
+        tvSubHeadFirstName = findViewById(R.id.tvSubHeadFirstName);
         tvSubHeadChfId = findViewById(R.id.tvSubHeadChfId);
         tvSubHeadGender = findViewById(R.id.tvSubHeadGender);
         tvSubHeadDob = findViewById(R.id.tvSubHeadDob);
@@ -98,104 +105,631 @@ public class SubHouseholdActivity extends AppCompatActivity {
         rvSubHouseholdMembers.setAdapter(memberAdapter);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (db != null) {
+            db.close();
+        }
+    }
+    
+
     private void loadDataFromIntent() {
         try {
-            // Check if Intent contains the extras
+            // Initialize database helper
+            sqlHandler = new SQLHandler(this);
+            sqlHandler.createTables();
+            db = sqlHandler.getReadableDatabase();
+            
+            // Check if Intent contains the required extras
             if (getIntent() == null) {
-                Log.e(LOG_TAG, "Intent is null");
+                Log.e(LOG_TAG, "L'intent est null");
                 showErrorAndFinish("Erreur: Données manquantes");
                 return;
             }
             
-            if (!getIntent().hasExtra(EXTRA_SUB_HEAD)) {
-                Log.e(LOG_TAG, "Missing EXTRA_SUB_HEAD");
-                showErrorAndFinish("Erreur: Informations du chef de sous-famille manquantes");
-                return;
-            }
+            String chfId = getIntent().getStringExtra(EXTRA_CHF_ID);
+            Log.d(LOG_TAG, "🔍 CHFID récupéré de l'Intent: '" + chfId + "'");
             
-            PolygamousSubFamily subHead = null;
-            ArrayList<FamilyMember> allMembers = null;
+            // Log des données supplémentaires de l'Intent
+            String lastName = getIntent().getStringExtra("EXTRA_LAST_NAME");
+            String otherNames = getIntent().getStringExtra("EXTRA_OTHER_NAMES");
+            String gender = getIntent().getStringExtra("EXTRA_GENDER");
+            String dob = getIntent().getStringExtra("EXTRA_DOB");
+            String familyUuid = getIntent().getStringExtra(EXTRA_FAMILY_UUID);
             
-            try {
-                subHead = (PolygamousSubFamily) getIntent().getSerializableExtra(EXTRA_SUB_HEAD);
-            } catch (ClassCastException e) {
-                Log.e(LOG_TAG, "Error casting EXTRA_SUB_HEAD", e);
-                showErrorAndFinish("Erreur: Format de données invalide");
-                return;
-            }
+            Log.d(LOG_TAG, "📋 Données Intent - LastName: '" + lastName + "', OtherNames: '" + otherNames + "'");
+            Log.d(LOG_TAG, "📋 Données Intent - Gender: '" + gender + "', DOB: '" + dob + "'");
+            Log.d(LOG_TAG, "📋 Données Intent - FamilyUuid: '" + familyUuid + "'");
             
-            if (getIntent().hasExtra(EXTRA_ALL_MEMBERS)) {
-                try {
-                    allMembers = (ArrayList<FamilyMember>) getIntent().getSerializableExtra(EXTRA_ALL_MEMBERS);
-                } catch (ClassCastException e) {
-                    Log.w(LOG_TAG, "Error casting EXTRA_ALL_MEMBERS, continuing without", e);
-                    allMembers = new ArrayList<>();
-                }
-            } else {
-                allMembers = new ArrayList<>();
-            }
-
-            if (subHead == null) {
-                Log.e(LOG_TAG, "SubHead is null");
-                showErrorAndFinish("Erreur: Données du chef de sous-famille invalides");
-                return;
-            }
-            
-            if (subHead.getChfId() == null || subHead.getChfId().trim().isEmpty()) {
-                Log.e(LOG_TAG, "SubHead CHFID is null or empty");
+            if (chfId == null || chfId.trim().isEmpty()) {
+                Log.e(LOG_TAG, "ID CHF manquant ou vide");
                 showErrorAndFinish("Erreur: Identifiant du chef de sous-famille manquant");
                 return;
             }
             
-            String fullName = subHead.getFullName();
-            if (fullName == null || fullName.trim().isEmpty()) {
-                Log.w(LOG_TAG, "SubHead full name is null or empty, using CHFID as fallback");
+            // Récupération des données du chef de famille depuis la base de données
+            Log.d(LOG_TAG, "🔄 Tentative de récupération depuis la base de données...");
+            PolygamousSubFamily subHead = fetchSubHeadFromDatabase(chfId);
+            if (subHead == null) {
+                Log.e(LOG_TAG, "❌ Impossible de trouver le chef de famille avec l'ID CHF: " + chfId);
+                Log.d(LOG_TAG, "🔄 Tentative de création depuis l'Intent comme solution de secours...");
+                subHead = createSubHeadFromIntent(chfId);
+                if (subHead == null) {
+                    showErrorAndFinish("Erreur: Impossible de trouver les détails du chef de sous-famille");
+                    return;
+                }
             }
+            
+            // Log des données récupérées
+            Log.d(LOG_TAG, "✅ Chef de sous-famille récupéré:");
+            Log.d(LOG_TAG, "   - CHFID: '" + subHead.getChfId() + "'");
+            Log.d(LOG_TAG, "   - LastName: '" + subHead.getLastName() + "'");
+            Log.d(LOG_TAG, "   - OtherNames: '" + subHead.getOtherNames() + "'");
+            Log.d(LOG_TAG, "   - Gender: '" + subHead.getGender() + "'");
+            Log.d(LOG_TAG, "   - DOB: '" + subHead.getDob() + "'");
+            Log.d(LOG_TAG, "   - FamilyUuid: '" + subHead.getFamilyUuid() + "'");
+            
+            // Fetch family members
+            List<FamilyMember> familyMembers = fetchFamilyMembers(familyUuid != null ? familyUuid : subHead.getFamilyUuid());
             
             // Load data if everything is valid
             displaySubHeadInfo(subHead);
             displayPolicyInfo(subHead);
-            loadSubHouseholdMembers(subHead, allMembers);
+            loadSubHouseholdMembers(subHead, new ArrayList<>(familyMembers));
             
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Unexpected error in loadDataFromIntent", e);
+            Log.e(LOG_TAG, "Erreur inattendue dans loadDataFromIntent", e);
             showErrorAndFinish("Erreur inattendue lors du chargement des données");
         }
     }
     
+    private boolean doesTableExist(SQLiteDatabase db, String tableName) {
+        if (db == null || !db.isOpen()) {
+            return false;
+        }
+        Cursor cursor = null;
+        try {
+            cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name=?", 
+                              new String[]{tableName});
+            return cursor != null && cursor.getCount() > 0;
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Erreur lors de la vérification de l'existence de la table " + tableName, e);
+            return false;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
+    private PolygamousSubFamily fetchSubHeadFromDatabase(String chfId) {
+        if (db == null || !db.isOpen()) {
+            Log.e(LOG_TAG, "La base de données n'est pas ouverte");
+            return null;
+        }
+
+        // Vérifier d'abord si la table tblPolicyInquiry existe
+        if (!doesTableExist(db, "tblPolicyInquiry")) {
+            Log.w(LOG_TAG, "La table tblPolicyInquiry n'existe pas, tentative avec tblInsuree");
+            return fetchFromTblInsuree(chfId);
+        }
+
+        Cursor cursor = null;
+        try {
+            cursor = db.query(
+                "tblPolicyInquiry",
+                new String[]{"InsureeNumber", "InsureeName", "Gender", "DOB", "Photo"},
+                "TRIM(InsureeNumber) = ?",
+                new String[]{chfId},
+                null, null, null
+            );
+
+            if (cursor != null && cursor.moveToFirst()) {
+                return createSubHeadFromCursor(cursor);
+            }
+            
+            // Si non trouvé dans tblPolicyInquiry, essayer tblInsuree
+            Log.d(LOG_TAG, "Aucun résultat dans tblPolicyInquiry, tentative avec tblInsuree");
+            return fetchFromTblInsuree(chfId);
+            
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Erreur lors de la récupération du chef de famille depuis tblPolicyInquiry", e);
+            // En cas d'erreur, essayer avec tblInsuree
+            return fetchFromTblInsuree(chfId);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+    
+    private PolygamousSubFamily fetchFromTblInsuree(String chfId) {
+        if (!doesTableExist(db, "tblInsuree")) {
+            Log.e(LOG_TAG, "La table tblInsuree n'existe pas non plus");
+            // Créer un objet basique avec les données disponibles de l'Intent
+            return createSubHeadFromIntent(chfId);
+        }
+        
+        Cursor cursor = null;
+        try {
+            cursor = db.query(
+                "tblInsuree",
+                new String[]{"CHFID", "LastName", "OtherNames", "Gender", "DOB", "PhotoPath"},
+                "TRIM(CHFID) = ?",
+                new String[]{chfId},
+                null, null, null
+            );
+            
+            if (cursor != null && cursor.moveToFirst()) {
+                return createSubHeadFromTblInsuree(cursor);
+            }
+            
+            Log.e(LOG_TAG, "Aucun résultat dans tblInsuree pour l'ID CHF: " + chfId);
+            // Créer un objet depuis l'Intent comme solution de secours
+            return createSubHeadFromIntent(chfId);
+            
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Erreur lors de la récupération depuis tblInsuree", e);
+            return null;
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+    
+    private PolygamousSubFamily createSubHeadFromIntent(String chfId) {
+        try {
+            PolygamousSubFamily subHead = new PolygamousSubFamily();
+            subHead.setChfId(chfId);
+            
+            // Récupérer les données supplémentaires de l'Intent si disponibles
+            String lastName = getIntent().getStringExtra("EXTRA_LAST_NAME");
+            String otherNames = getIntent().getStringExtra("EXTRA_OTHER_NAMES");
+            String gender = getIntent().getStringExtra("EXTRA_GENDER");
+            String dob = getIntent().getStringExtra("EXTRA_DOB");
+            String familyUuid = getIntent().getStringExtra(EXTRA_FAMILY_UUID);
+            
+            // CORRECTION CRITIQUE: Définir le FamilyUuid pour permettre le filtrage correct
+            if (familyUuid != null && !familyUuid.isEmpty()) {
+                subHead.setFamilyUuid(familyUuid);
+                Log.d(LOG_TAG, "FamilyUuid défini depuis l'Intent: " + familyUuid);
+            } else {
+                Log.w(LOG_TAG, "FamilyUuid manquant dans l'Intent - le filtrage utilisera LastName");
+            }
+            
+            // Utiliser les vraies données de l'Intent
+            if (lastName != null && !lastName.isEmpty()) {
+                subHead.setLastName(lastName);
+                Log.d(LOG_TAG, "✅ LastName récupéré de l'Intent: '" + lastName + "'");
+            } else {
+                subHead.setLastName("Chef de sous-famille"); // Valeur par défaut
+                Log.w(LOG_TAG, "⚠️ LastName manquant dans l'Intent, utilisation de la valeur par défaut");
+            }
+            
+            if (otherNames != null && !otherNames.isEmpty()) {
+                subHead.setOtherNames(otherNames);
+                Log.d(LOG_TAG, "✅ OtherNames récupéré de l'Intent: '" + otherNames + "'");
+            } else {
+                Log.w(LOG_TAG, "⚠️ OtherNames manquant dans l'Intent");
+            }
+            
+            if (gender != null && !gender.isEmpty()) {
+                subHead.setGender(gender);
+                Log.d(LOG_TAG, "✅ Gender récupéré de l'Intent: '" + gender + "'");
+            } else {
+                Log.w(LOG_TAG, "⚠️ Gender manquant dans l'Intent");
+            }
+            
+            if (dob != null && !dob.isEmpty()) {
+                subHead.setDob(dob);
+                Log.d(LOG_TAG, "✅ DOB récupéré de l'Intent: '" + dob + "'");
+            } else {
+                Log.w(LOG_TAG, "⚠️ DOB manquant dans l'Intent");
+            }
+            
+            if (gender != null && !gender.isEmpty()) {
+                subHead.setGender(gender);
+            }
+            
+            if (dob != null && !dob.isEmpty()) {
+                subHead.setDob(dob);
+            }
+            
+            Log.d(LOG_TAG, "Objet PolygamousSubFamily créé depuis l'Intent avec CHFID: " + chfId);
+            return subHead;
+            
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Erreur lors de la création de l'objet depuis l'Intent", e);
+            // Créer un objet minimal en cas d'erreur
+            PolygamousSubFamily subHead = new PolygamousSubFamily();
+            subHead.setChfId(chfId);
+            subHead.setLastName("Chef de sous-famille");
+            
+            // Même en cas d'erreur, essayer de définir le FamilyUuid
+            String familyUuid = getIntent().getStringExtra(EXTRA_FAMILY_UUID);
+            if (familyUuid != null && !familyUuid.isEmpty()) {
+                subHead.setFamilyUuid(familyUuid);
+            }
+            
+            return subHead;
+        }
+    }
+    
+    private PolygamousSubFamily createSubHeadFromCursor(Cursor cursor) {
+        try {
+            PolygamousSubFamily subHead = new PolygamousSubFamily();
+            subHead.setChfId(cursor.getString(cursor.getColumnIndexOrThrow("InsureeNumber")));
+            
+            // Traiter le nom complet depuis InsureeName
+            String fullName = cursor.getString(cursor.getColumnIndexOrThrow("InsureeName"));
+            if (fullName != null && !fullName.trim().isEmpty()) {
+                // Séparer le nom complet en prénom et nom de famille
+                String[] nameParts = fullName.trim().split("\\s+", 2);
+                if (nameParts.length >= 2) {
+                    subHead.setOtherNames(nameParts[0]); // Premier mot = prénom
+                    subHead.setLastName(nameParts[1]);   // Reste = nom de famille
+                } else {
+                    subHead.setOtherNames(fullName);     // Si un seul mot, considérer comme prénom
+                    subHead.setLastName("");
+                }
+                Log.d(LOG_TAG, "Nom traité - Prénom: '" + subHead.getOtherNames() + "', Nom: '" + subHead.getLastName() + "'");
+            } else {
+                subHead.setOtherNames("N/A");
+                subHead.setLastName("N/A");
+                Log.w(LOG_TAG, "InsureeName vide ou null");
+            }
+            
+            // CORRECTION: Définir le FamilyUuid depuis l'Intent
+            String familyUuid = getIntent().getStringExtra(EXTRA_FAMILY_UUID);
+            if (familyUuid != null && !familyUuid.isEmpty()) {
+                subHead.setFamilyUuid(familyUuid);
+                Log.d(LOG_TAG, "FamilyUuid défini depuis l'Intent (tblPolicyInquiry): " + familyUuid);
+            }
+            
+            // Gestion des champs optionnels
+            int genderIndex = cursor.getColumnIndex("Gender");
+            if (genderIndex != -1) {
+                subHead.setGender(cursor.getString(genderIndex));
+            }
+            
+            int dobIndex = cursor.getColumnIndex("DOB");
+            if (dobIndex != -1) {
+                subHead.setDob(cursor.getString(dobIndex));
+            }
+            
+            // Gestion de la photo si disponible
+            int photoIndex = cursor.getColumnIndex("Photo");
+            if (photoIndex != -1 && !cursor.isNull(photoIndex)) {
+                byte[] photoBlob = cursor.getBlob(photoIndex);
+                if (photoBlob != null) {
+                    subHead.setPhotoData(android.util.Base64.encodeToString(photoBlob, android.util.Base64.DEFAULT));
+                }
+            }
+            
+            return subHead;
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Erreur lors de la création de l'objet PolygamousSubFamily", e);
+            return null;
+        }
+    }
+    
+    private PolygamousSubFamily createSubHeadFromTblInsuree(Cursor cursor) {
+        try {
+            PolygamousSubFamily subHead = new PolygamousSubFamily();
+            subHead.setChfId(cursor.getString(cursor.getColumnIndexOrThrow("CHFID")));
+            
+            // CORRECTION: Définir le FamilyUuid depuis l'Intent
+            String familyUuid = getIntent().getStringExtra(EXTRA_FAMILY_UUID);
+            if (familyUuid != null && !familyUuid.isEmpty()) {
+                subHead.setFamilyUuid(familyUuid);
+                Log.d(LOG_TAG, "FamilyUuid défini depuis l'Intent (tblInsuree): " + familyUuid);
+            }
+            
+            // Définir LastName et OtherNames séparément
+            int lastNameIndex = cursor.getColumnIndex("LastName");
+            if (lastNameIndex != -1) {
+                String lastName = cursor.getString(lastNameIndex);
+                subHead.setLastName(lastName != null && !lastName.trim().isEmpty() ? lastName.trim() : "N/A");
+                Log.d(LOG_TAG, "Nom de famille récupéré: '" + subHead.getLastName() + "'");
+            } else {
+                subHead.setLastName("N/A");
+                Log.w(LOG_TAG, "Colonne LastName non trouvée");
+            }
+            
+            int otherNamesIndex = cursor.getColumnIndex("OtherNames");
+            if (otherNamesIndex != -1) {
+                String otherNames = cursor.getString(otherNamesIndex);
+                subHead.setOtherNames(otherNames != null && !otherNames.trim().isEmpty() ? otherNames.trim() : "N/A");
+                Log.d(LOG_TAG, "Prénom récupéré: '" + subHead.getOtherNames() + "'");
+            } else {
+                subHead.setOtherNames("N/A");
+                Log.w(LOG_TAG, "Colonne OtherNames non trouvée");
+            }
+            
+            int genderIndex = cursor.getColumnIndex("Gender");
+            if (genderIndex != -1) {
+                subHead.setGender(cursor.getString(genderIndex));
+            }
+            
+            int dobIndex = cursor.getColumnIndex("DOB");
+            if (dobIndex != -1) {
+                subHead.setDob(cursor.getString(dobIndex));
+            }
+            
+            // Gestion de la photo si disponible
+            int photoIndex = cursor.getColumnIndex("PhotoPath");
+            if (photoIndex != -1 && !cursor.isNull(photoIndex)) {
+                String photoPath = cursor.getString(photoIndex);
+                if (photoPath != null && !photoPath.isEmpty()) {
+                    // Ici, vous pourriez charger l'image depuis le chemin si nécessaire
+                    // Pour l'instant, on stocke juste le chemin
+                    subHead.setPhotoData(photoPath);
+                }
+            }
+            
+            return subHead;
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Erreur lors de la création de l'objet PolygamousSubFamily depuis tblInsuree", e);
+            return null;
+        }
+    }
+    
+
+    private List<FamilyMember> fetchFamilyMembers(String familyUuid) {
+        Log.d(LOG_TAG, "=== DÉBUT RÉCUPÉRATION MEMBRES FAMILLE ===");
+        Log.d(LOG_TAG, "FamilyUUID demandé: " + familyUuid);
+        
+        List<FamilyMember> members = new ArrayList<>();
+        if (familyUuid == null) {
+            Log.w(LOG_TAG, "FamilyUUID est null, impossible de récupérer les membres de la famille");
+            return members;
+        }
+
+        try {
+            // Récupérer les membres depuis le serveur via GraphQL
+            Log.d(LOG_TAG, "Tentative de récupération depuis le serveur GraphQL...");
+            
+            GetFamilyMembersGraphQLRequest request = new GetFamilyMembersGraphQLRequest();
+            Log.d(LOG_TAG, "Appel de request.get() avec familyUuid: " + familyUuid);
+            members = request.get(familyUuid);
+            
+            Log.d(LOG_TAG, "Retour de request.get(): " + (members != null ? members.size() + " membres" : "NULL"));
+            
+            if (members != null && !members.isEmpty()) {
+                Log.d(LOG_TAG, "✓ SUCCÈS - Récupéré " + members.size() + " membres depuis le serveur");
+                // Log détaillé des membres récupérés
+                for (int i = 0; i < members.size(); i++) {
+                    FamilyMember member = members.get(i);
+                    Log.d(LOG_TAG, "Membre " + (i+1) + ": " + member.getLastName() + " " + member.getOtherNames() + 
+                          " (CHFID: " + member.getChfId() + ", FamilyUUID: " + member.getFamilyUuid() + ")");
+                }
+                return members;
+            } else {
+                Log.w(LOG_TAG, "⚠ ÉCHEC SERVEUR - Aucun membre trouvé, tentative de récupération locale");
+                return fetchFamilyMembersFromLocalDatabase(familyUuid);
+            }
+            
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "❌ ERREUR SERVEUR - Exception lors de la récupération: " + e.getMessage(), e);
+            Log.d(LOG_TAG, "Tentative de récupération depuis la base de données locale...");
+            // Fallback vers la base de données locale
+            List<FamilyMember> localMembers = fetchFamilyMembersFromLocalDatabase(familyUuid);
+            Log.d(LOG_TAG, "=== FIN RÉCUPÉRATION MEMBRES FAMILLE (via locale) - Total: " + 
+                  (localMembers != null ? localMembers.size() : 0) + " ===");
+            return localMembers;
+        }
+    }
+    
+    private List<FamilyMember> fetchFamilyMembersFromLocalDatabase(String familyUuid) {
+        List<FamilyMember> members = new ArrayList<>();
+        SQLHandler sqlHandler = null;
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
+        
+        try {
+            Log.d(LOG_TAG, "Tentative de récupération depuis la base de données locale");
+            sqlHandler = new SQLHandler(this);
+            db = sqlHandler.getReadableDatabase();
+            
+            if (db == null || !db.isOpen()) {
+                Log.e(LOG_TAG, "Base de données locale non disponible");
+                return createMembersFromIntent();
+            }
+            
+            // Vérifier si la table tblInsuree existe
+            if (doesTableExist(db, "tblInsuree")) {
+                // Récupérer les membres depuis tblInsuree
+                cursor = db.query(
+                    "tblInsuree",
+                    new String[]{"CHFID", "LastName", "OtherNames", "Gender", "DOB", "PhotoPath"},
+                    "FamilyUUID = ? OR CHFID LIKE ?",
+                    new String[]{familyUuid, "%" + familyUuid + "%"},
+                    null, null, "LastName ASC"
+                );
+                
+                if (cursor != null && cursor.moveToFirst()) {
+                    do {
+                        FamilyMember member = createFamilyMemberFromCursor(cursor);
+                        if (member != null) {
+                            members.add(member);
+                        }
+                    } while (cursor.moveToNext());
+                }
+                
+                Log.d(LOG_TAG, "Récupéré " + members.size() + " membres depuis la base locale");
+            } else {
+                Log.w(LOG_TAG, "Table tblInsuree non disponible, création de membres depuis l'Intent");
+                return createMembersFromIntent();
+            }
+            
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Erreur lors de la récupération depuis la base locale", e);
+            return createMembersFromIntent();
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+            if (sqlHandler != null) {
+                sqlHandler.close();
+            }
+        }
+        
+        return members;
+    }
+    
+    private List<FamilyMember> createMembersFromIntent() {
+        List<FamilyMember> members = new ArrayList<>();
+        
+        try {
+            // Créer des membres fictifs ou récupérer depuis l'Intent si disponible
+            String[] memberNames = getIntent().getStringArrayExtra("EXTRA_MEMBER_NAMES");
+            String[] memberChfIds = getIntent().getStringArrayExtra("EXTRA_MEMBER_CHFIDS");
+            String[] memberGenders = getIntent().getStringArrayExtra("EXTRA_MEMBER_GENDERS");
+            
+            if (memberNames != null && memberChfIds != null && memberNames.length == memberChfIds.length) {
+                for (int i = 0; i < memberNames.length; i++) {
+                    FamilyMember member = new FamilyMember();
+                    member.setChfId(memberChfIds[i]);
+                    member.setLastName(memberNames[i]);
+                    
+                    if (memberGenders != null && i < memberGenders.length) {
+                        member.setGender(memberGenders[i]);
+                    }
+                    
+                    members.add(member);
+                }
+            } else {
+                // Créer un membre exemple si aucune donnée n'est disponible
+                Log.d(LOG_TAG, "Aucune donnée de membre dans l'Intent, création d'exemples");
+            }
+            
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Erreur lors de la création des membres depuis l'Intent", e);
+        }
+        
+        return members;
+    }
+    
+    private FamilyMember createFamilyMemberFromCursor(Cursor cursor) {
+        try {
+            FamilyMember member = new FamilyMember();
+            
+            // CHFID
+            int chfIdIndex = cursor.getColumnIndex("CHFID");
+            if (chfIdIndex != -1) {
+                member.setChfId(cursor.getString(chfIdIndex));
+            }
+            
+            // Nom de famille
+            int lastNameIndex = cursor.getColumnIndex("LastName");
+            if (lastNameIndex != -1) {
+                member.setLastName(cursor.getString(lastNameIndex));
+            }
+            
+            // Autres noms
+            int otherNamesIndex = cursor.getColumnIndex("OtherNames");
+            if (otherNamesIndex != -1) {
+                member.setOtherNames(cursor.getString(otherNamesIndex));
+            }
+            
+            // Genre
+            int genderIndex = cursor.getColumnIndex("Gender");
+            if (genderIndex != -1) {
+                member.setGender(cursor.getString(genderIndex));
+            }
+            
+            // Date de naissance
+            int dobIndex = cursor.getColumnIndex("DOB");
+            if (dobIndex != -1) {
+                member.setDob(cursor.getString(dobIndex));
+            }
+            
+            // Photo (si disponible)
+            int photoIndex = cursor.getColumnIndex("PhotoPath");
+            if (photoIndex != -1 && !cursor.isNull(photoIndex)) {
+                String photoPath = cursor.getString(photoIndex);
+                if (photoPath != null && !photoPath.isEmpty()) {
+                    member.setPhotoData(photoPath);
+                }
+            }
+            
+            return member;
+            
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Erreur lors de la création du FamilyMember depuis le curseur", e);
+            return null;
+        }
+    }
+
     private void showErrorAndFinish(String message) {
         Toast.makeText(this, message, Toast.LENGTH_LONG).show();
         finish();
     }
 
     private void displaySubHeadInfo(PolygamousSubFamily subHead) {
+        Log.d(LOG_TAG, "👤 === AFFICHAGE INFORMATIONS CHEF DE SOUS-FAMILLE ===");
+        
+        if (subHead == null) {
+            Log.e(LOG_TAG, "❌ Objet subHead est null - impossible d'afficher les informations");
+            return;
+        }
+        
+        Log.d(LOG_TAG, "CHFID du chef: " + subHead.getChfId());
+        Log.d(LOG_TAG, "FamilyUuid: " + subHead.getFamilyUuid());
 
-        // Nom complet
-        String fullName = (subHead.getOtherNames() != null ? subHead.getOtherNames() + " " : "") + 
-                         (subHead.getLastName() != null ? subHead.getLastName() : "");
-        tvSubHeadName.setText(fullName.trim());
+        // Nom de famille (LastName)
+        String lastName = subHead.getLastName() != null ? subHead.getLastName() : "N/A";
+        tvSubHeadLastName.setText(lastName);
+        Log.d(LOG_TAG, "Nom de famille affiché: " + lastName);
+        
+        // Prénom (OtherNames)
+        String firstName = subHead.getOtherNames() != null ? subHead.getOtherNames() : "N/A";
+        tvSubHeadFirstName.setText(firstName);
+        Log.d(LOG_TAG, "Prénom affiché: " + firstName);
 
         // CHFID
-        tvSubHeadChfId.setText(subHead.getChfId() != null ? subHead.getChfId() : "N/A");
+        String chfIdDisplay = subHead.getChfId() != null ? subHead.getChfId() : "N/A";
+        tvSubHeadChfId.setText(chfIdDisplay);
+        Log.d(LOG_TAG, "CHFID affiché: " + chfIdDisplay);
 
         // Genre
         String gender = subHead.getGender();
+        String genderDisplay;
         if ("M".equals(gender)) {
-            tvSubHeadGender.setText("Masculin");
+            genderDisplay = "Masculin";
         } else if ("F".equals(gender)) {
-            tvSubHeadGender.setText("Féminin");
+            genderDisplay = "Féminin";
         } else {
-            tvSubHeadGender.setText(gender != null ? gender : "N/A");
+            genderDisplay = gender != null ? gender : "N/A";
         }
+        tvSubHeadGender.setText(genderDisplay);
+        Log.d(LOG_TAG, "Genre affiché: " + genderDisplay + " (original: " + gender + ")");
 
-        // Date de naissance
-        tvSubHeadDob.setText(subHead.getDob() != null ? subHead.getDob() : "N/A");
+        // Date de naissance - formatage au format JJ/MM/AAAA
+        String dobDisplay = "N/A";
+        if (subHead.getDob() != null && !subHead.getDob().isEmpty()) {
+            try {
+                dobDisplay = DateUtils.formatExpiryDateString(subHead.getDob());
+                Log.d(LOG_TAG, "Date formatée de '" + subHead.getDob() + "' vers '" + dobDisplay + "'");
+            } catch (Exception e) {
+                Log.w(LOG_TAG, "Impossible de formater la date: " + subHead.getDob() + ", utilisation de la valeur originale");
+                dobDisplay = subHead.getDob();
+            }
+        }
+        tvSubHeadDob.setText(dobDisplay);
+        Log.d(LOG_TAG, "Date de naissance affichée: " + dobDisplay);
 
         // Photo
+        Log.d(LOG_TAG, "Chargement de la photo du chef...");
         loadSubHeadPhoto(subHead);
         
         // Statut du contrat d'assurance
+        Log.d(LOG_TAG, "Affichage du statut d'assurance...");
         displayInsuranceStatus(subHead);
+        
+        Log.d(LOG_TAG, "✅ Informations du chef affichées avec succès");
     }
     
     private void displayInsuranceStatus(PolygamousSubFamily subHead) {
@@ -434,51 +968,111 @@ public class SubHouseholdActivity extends AppCompatActivity {
     }
 
     private void loadSubHouseholdMembers(PolygamousSubFamily subHead, ArrayList<FamilyMember> allMembers) {
+        Log.d(LOG_TAG, "=== DÉBUT CHARGEMENT MEMBRES SOUS-FAMILLE ===");
+        Log.d(LOG_TAG, "Sous-famille: " + subHead.getLastName() + " (UUID: " + subHead.getFamilyUuid() + ")");
+        Log.d(LOG_TAG, "Chef CHFID: " + subHead.getChfId());
+        
         List<FamilyMember> subHouseholdMembers = subHead.getMembers();
         
         if (subHouseholdMembers != null && !subHouseholdMembers.isEmpty()) {
+            Log.d(LOG_TAG, "Utilisation des membres pré-chargés: " + subHouseholdMembers.size());
             displayMembers(subHouseholdMembers);
         } else {
             if (allMembers == null || allMembers.isEmpty()) {
+                Log.w(LOG_TAG, "Aucun membre disponible pour le filtrage");
                 showNoMembersMessage();
                 return;
             }
 
+            Log.d(LOG_TAG, "Filtrage depuis allMembers (total: " + allMembers.size() + ")");
+            
             // Filter members that belong to this sub-family
             List<FamilyMember> filteredMembers = new ArrayList<>();
+            int filteredCount = 0;
             for (FamilyMember member : allMembers) {
-                if (member.getLastName() != null && 
-                    member.getLastName().equals(subHead.getLastName()) &&
-                    !member.getChfId().equals(subHead.getChfId())) { // Exclude the head himself
-                    filteredMembers.add(member);
+                Log.d(LOG_TAG, "--- Examen membre: " + member.getLastName() + " " + member.getOtherNames() + " (CHFID: " + member.getChfId() + ")");
+                Log.d(LOG_TAG, "FamilyUUID du membre: " + member.getFamilyUuid());
+                
+                boolean shouldInclude = false;
+                
+                // Use family information from server if available
+                if (member.getFamilyUuid() != null && subHead.getFamilyUuid() != null) {
+                    // Filter by familyUuid for more accurate sub-family detection
+                    if (member.getFamilyUuid().equals(subHead.getFamilyUuid()) &&
+                        !member.getChfId().equals(subHead.getChfId())) { // Exclude the head himself
+                        filteredMembers.add(member);
+                        filteredCount++;
+                        shouldInclude = true;
+                        Log.d(LOG_TAG, "Filtrage par FamilyUUID: INCLUS");
+                    } else if (member.getChfId().equals(subHead.getChfId())) {
+                        Log.d(LOG_TAG, "Membre EXCLU (chef de sous-famille)");
+                    } else {
+                        Log.d(LOG_TAG, "Filtrage par FamilyUUID: EXCLU (UUID différent)");
+                    }
+                } else {
+                    // Fallback to lastname filtering if family info not available
+                    if (member.getLastName() != null && 
+                        member.getLastName().equals(subHead.getLastName()) &&
+                        !member.getChfId().equals(subHead.getChfId())) { // Exclude the head himself
+                        filteredMembers.add(member);
+                        filteredCount++;
+                        shouldInclude = true;
+                        Log.d(LOG_TAG, "Filtrage par LastName (fallback): INCLUS");
+                    } else if (member.getChfId().equals(subHead.getChfId())) {
+                        Log.d(LOG_TAG, "Membre EXCLU (chef de sous-famille)");
+                    } else {
+                        Log.d(LOG_TAG, "Filtrage par LastName (fallback): EXCLU");
+                    }
+                }
+                
+                if (shouldInclude) {
+                    Log.d(LOG_TAG, "Membre AJOUTÉ à la sous-famille");
+                } else {
+                    Log.d(LOG_TAG, "Membre EXCLU (critères non remplis)");
                 }
             }
+            
+            Log.d(LOG_TAG, "Résultat filtrage: " + filteredCount + " membres trouvés");
 
             if (filteredMembers.isEmpty()) {
+                Log.d(LOG_TAG, "Aucun membre filtré, affichage du message 'pas de membres'");
                 showNoMembersMessage();
             } else {
+                Log.d(LOG_TAG, "Affichage de " + filteredMembers.size() + " membres filtrés");
                 displayMembers(filteredMembers);
             }
         }
+        
+        Log.d(LOG_TAG, "=== FIN CHARGEMENT MEMBRES SOUS-FAMILLE ===");
     }
 
     private void showNoMembersMessage() {
+        Log.d(LOG_TAG, "🚫 === AFFICHAGE MESSAGE AUCUN MEMBRE ===");
         rvSubHouseholdMembers.setVisibility(View.GONE);
         tvNoMembers.setVisibility(View.VISIBLE);
         tvNoMembers.setText("Aucun membre dans cette sous-famille");
+        Log.d(LOG_TAG, "RecyclerView masqué, message 'Aucun membre' affiché");
     }
 
     private void displayMembers(List<FamilyMember> members) {
+        Log.d(LOG_TAG, "👥 === AFFICHAGE DES MEMBRES ===");
+        Log.d(LOG_TAG, "Nombre de membres à afficher: " + (members != null ? members.size() : "null"));
+        
         rvSubHouseholdMembers.setVisibility(View.VISIBLE);
         tvNoMembers.setVisibility(View.GONE);
+        Log.d(LOG_TAG, "RecyclerView visible, message 'Aucun membre' masqué");
         
+        Log.d(LOG_TAG, "Appel de memberAdapter.updateData()...");
         memberAdapter.updateData(members);
+        Log.d(LOG_TAG, "memberAdapter.updateData() terminé");
     }
 
     private void displayPolicyInfo(PolygamousSubFamily subHead) {
         SQLHandler sqlHandler = null;
         SQLiteDatabase db = null;
         Cursor tableCheck = null;
+        Cursor cursor = null;
+        Cursor parentCursor = null;
         
         try {
             sqlHandler = new SQLHandler(this);
@@ -504,30 +1098,29 @@ public class SubHouseholdActivity extends AppCompatActivity {
         
             // Check if table exists
             tableCheck = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table' AND name='tblPolicyInquiry'", null);
-            if (tableCheck.getCount() == 0) {
+            if (tableCheck == null || tableCheck.getCount() == 0) {
                 Log.w(LOG_TAG, "Table tblPolicyInquiry does not exist");
                 return;
             }
             
             String query = "SELECT * FROM tblPolicyInquiry WHERE InsureeNumber = ?";
-            Cursor cursor = db.rawQuery(query, new String[]{subHead.getChfId()});
+            cursor = db.rawQuery(query, new String[]{subHead.getChfId()});
             
             // If no result with sub-family CHFID, try with main family head
-            if (cursor.getCount() == 0 && subHead.getParentUuid() != null) {
+            if (cursor != null && cursor.getCount() == 0 && subHead.getParentUuid() != null) {
                 cursor.close();
+                cursor = null;
                 
-                // Retrieve CHFID of main family head
-                String parentQuery = "SELECT CHFID FROM tblInsuree WHERE InsureeUUID = ?";
-                Cursor parentCursor = db.rawQuery(parentQuery, new String[]{subHead.getParentUuid()});
+                // Log: Cannot retrieve parent CHFID as tblInsuree table does not exist
+                Log.w(LOG_TAG, "Cannot retrieve parent CHFID: tblInsuree table does not exist");
+                // Skip parent query since table doesn't exist
+                parentCursor = null;
                 
-                if (parentCursor.moveToFirst()) {
+                if (parentCursor != null && parentCursor.moveToFirst()) {
                     String parentChfId = parentCursor.getString(0);
-                    parentCursor.close();
                     
                     String parentPolicyQuery = "SELECT * FROM tblPolicyInquiry WHERE InsureeNumber = ?";
                     cursor = db.rawQuery(parentPolicyQuery, new String[]{parentChfId});
-                } else {
-                    parentCursor.close();
                 }
             }
             
@@ -628,11 +1221,49 @@ public class SubHouseholdActivity extends AppCompatActivity {
              }
             
         } catch (Exception e) {
+            Log.e(LOG_TAG, "Error in displayPolicyInfo", e);
             if (cvPolicyInfo != null) {
                 cvPolicyInfo.setVisibility(View.GONE);
             }
             if (llListView != null) {
                 llListView.setVisibility(View.GONE);
+            }
+        } finally {
+            // Properly close all resources
+            if (cursor != null) {
+                try {
+                    cursor.close();
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "Error closing cursor", e);
+                }
+            }
+            if (parentCursor != null) {
+                try {
+                    parentCursor.close();
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "Error closing parentCursor", e);
+                }
+            }
+            if (tableCheck != null) {
+                try {
+                    tableCheck.close();
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "Error closing tableCheck", e);
+                }
+            }
+            if (db != null) {
+                try {
+                    db.close();
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "Error closing database", e);
+                }
+            }
+            if (sqlHandler != null) {
+                try {
+                    sqlHandler.close();
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, "Error closing sqlHandler", e);
+                }
             }
         }
     }

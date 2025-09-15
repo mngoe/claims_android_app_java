@@ -135,9 +135,10 @@ public class PolygamousSubFamilyAdapter extends RecyclerView.Adapter<PolygamousS
             try {
                 // Essayer de formater la date si possible
                 try {
-                    Date dobDate = DateUtils.dateFromString(dob);
-                    holder.tvDOB.setText(DateUtils.toDateString(dobDate));
-                    Log.d(LOG_TAG, "DOB formatted to: '" + DateUtils.toDateString(dobDate) + "'");
+                    // Utiliser le formatage au format JJ/MM/AAAA
+                    String formattedDate = DateUtils.formatExpiryDateString(dob);
+                    holder.tvDOB.setText(formattedDate);
+                    Log.d(LOG_TAG, "DOB formatted from '" + dob + "' to: '" + formattedDate + "'");
                 } catch (Exception e) {
                     holder.tvDOB.setText(dob); // Fallback to original string
                     Log.d(LOG_TAG, "DOB set to original: '" + dob + "' (format failed)");
