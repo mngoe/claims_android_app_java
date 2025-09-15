@@ -29,11 +29,11 @@ public class GetPolygamousSubFamiliesGraphQLRequest extends BaseGraphQLRequest {
     @NonNull
     @WorkerThread
     public List<PolygamousSubFamily> get(String familyUuid) throws Exception {
-        // Récupération des sous-familles polygames
+        // Retrieve polygamous sub-families
         
         try {
-            // ÉTAPE 1: Vérifier d'abord le type de famille
-            // Détection du type de famille
+            // STEP 1: First check the family type
+            // Family type detection
             String familyType = detectFamilyType(familyUuid);
             
             String familyTypeName = familyTypesRequest.getFamilyTypeName(familyType);
@@ -43,29 +43,24 @@ public class GetPolygamousSubFamiliesGraphQLRequest extends BaseGraphQLRequest {
                 return new ArrayList<>();
             }
             
-            // Famille polygame - récupération des sous-familles
+            // Polygamous family - retrieve sub-families
             
-            // ÉTAPE 2: Récupérer les chefs de sous-familles qui ont le même parent
-            // Récupération des sous-familles avec parent_Uuid
-            GetFamiliesGraphQLRequest familiesRequest = new GetFamiliesGraphQLRequest();
+            // STEP 2: Retrieve sub-families with new pagination logic
+
             
-            List<Family> subFamilies = familiesRequest.getFamiliesWithParent(familyUuid);
+
             
-            if (subFamilies == null || subFamilies.isEmpty()) {
-                // Aucune sous-famille trouvée
-                return new ArrayList<>();
-            }
+            GetFamilyMembersGraphQLRequest familyMembersRequest = new GetFamilyMembersGraphQLRequest(sqlHandler);
             
-            // Conversion des familles en sous-familles polygames
+            List<PolygamousSubFamily> subFamilies = familyMembersRequest.getPolygamousSubFamilies(familyUuid);
             
-            // Traitement de la sous-famille
+
             
-            List<PolygamousSubFamily> result = convertFamiliesToPolygamousSubFamilies(subFamilies, familyUuid);
-            // Fin de la récupération
-            return result;
+
+            
+            return subFamilies;
             
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Error retrieving sub-families for UUID: " + familyUuid, e);
             throw e;
         }
     }
@@ -107,7 +102,7 @@ public class GetPolygamousSubFamiliesGraphQLRequest extends BaseGraphQLRequest {
                     }
                 }
                 
-                // Récupérer les membres de cette sous-famille
+                // Retrieve members of this sub-family
                 Log.d(LOG_TAG, "  - Récupération des membres pour famille: " + family.getUuid());
                 GetFamilyMembersGraphQLRequest membersRequest = new GetFamilyMembersGraphQLRequest();
                 List<FamilyMember> members = membersRequest.get(family.getUuid());
@@ -115,7 +110,7 @@ public class GetPolygamousSubFamiliesGraphQLRequest extends BaseGraphQLRequest {
                 Log.d(LOG_TAG, "  - Membres trouvés: " + (members != null ? members.size() : "null"));
                 
                 if (members != null && !members.isEmpty()) {
-                    // Mettre à jour les informations du chef avec les données complètes
+                    // Update head information with complete data
                     boolean headFound = false;
                     for (FamilyMember member : members) {
                         Log.d(LOG_TAG, "    * Membre: " + member.getFullName() + " (" + member.getRelationship() + ")");
@@ -144,7 +139,7 @@ public class GetPolygamousSubFamiliesGraphQLRequest extends BaseGraphQLRequest {
                 
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Error converting family: " + family.getUuid(), e);
-                // Continue avec les autres familles même si une échoue
+                // Continue with other families even if one fails
             }
         }
         return subFamilies;
@@ -158,7 +153,7 @@ public class GetPolygamousSubFamiliesGraphQLRequest extends BaseGraphQLRequest {
         Log.d(LOG_TAG, "=== DÉTECTION TYPE DE FAMILLE (SERVEUR GRAPHQL) ===");
         Log.d(LOG_TAG, "UUID famille: " + familyUuid);
         
-        // TEST SPÉCIAL pour le chef problématique 391284976466
+        // SPECIAL TEST for problematic head 391284976466
         if ("391284976466".equals(familyUuid)) {
             Log.e(LOG_TAG, "🚨 DÉTECTION POUR CHEF PROBLÉMATIQUE: 391284976466");
         }
@@ -170,7 +165,7 @@ public class GetPolygamousSubFamiliesGraphQLRequest extends BaseGraphQLRequest {
             Log.i(LOG_TAG, "  2. Récupération du type de famille officiel");
             Log.i(LOG_TAG, "  3. Fallback: Détection via sous-familles si nécessaire");
             
-            // ÉTAPE 1: Essayer de récupérer le type directement depuis le serveur
+            // STEP 1: Try to retrieve type directly from server
             String serverFamilyType = null;
             try {
                 serverFamilyType = familyWithTypeRequest.getFamilyTypeFromServer(familyUuid);
@@ -181,7 +176,7 @@ public class GetPolygamousSubFamiliesGraphQLRequest extends BaseGraphQLRequest {
                 // Fallback en cas d'erreur serveur
             }
             
-            // ÉTAPE 2: Fallback - Détection via l'existence de sous-familles
+            // STEP 2: Fallback - Detection via existence of sub-families
             
             GetFamiliesGraphQLRequest familiesRequest = new GetFamiliesGraphQLRequest();
             List<Family> families = familiesRequest.getFamiliesWithParent(familyUuid);
@@ -193,8 +188,7 @@ public class GetPolygamousSubFamiliesGraphQLRequest extends BaseGraphQLRequest {
             }
             
         } catch (Exception e) {
-            Log.e(LOG_TAG, "Error detecting family type: " + familyUuid, e);
-            return "M"; // Par défaut, considérer comme monogame
+            return "M"; // By default, consider as monogamous
         }
     }
     

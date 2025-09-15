@@ -14,6 +14,8 @@ public class FamilyMember implements Serializable {
     private String photoId;
     private String photoData;
     private String relationship;
+    private String familyUuid;
+    private String parentUuid;
     
     public FamilyMember() {
     }
@@ -96,6 +98,22 @@ public class FamilyMember implements Serializable {
     
     public void setRelationship(String relationship) {
         this.relationship = relationship;
+    }
+    
+    public String getFamilyUuid() {
+        return familyUuid;
+    }
+    
+    public void setFamilyUuid(String familyUuid) {
+        this.familyUuid = familyUuid;
+    }
+    
+    public String getParentUuid() {
+        return parentUuid;
+    }
+    
+    public void setParentUuid(String parentUuid) {
+        this.parentUuid = parentUuid;
     }
     
     public String getFullName() {

@@ -48,6 +48,22 @@ query GetFamilyWithType($uuid: String!) {
             code
             type
           }
+          headInsuree {
+            id
+            uuid
+            chfId
+            lastName
+            otherNames
+            gender {
+              code
+              gender
+            }
+            dob
+            photo {
+              id
+              photo
+            }
+          }
         }
       }
     }

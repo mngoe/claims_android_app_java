@@ -20,7 +20,9 @@ import org.openimis.imisclaims.util.DateUtils;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class PolygamousSubFamilyAdapter extends RecyclerView.Adapter<PolygamousSubFamilyAdapter.ViewHolder> {
     private static final String LOG_TAG = "PolygamousSubFamilyAdapter";
@@ -87,11 +89,23 @@ public class PolygamousSubFamilyAdapter extends RecyclerView.Adapter<PolygamousS
             Log.d(LOG_TAG, "DOB: '" + subFamily.getDob() + "'");
             Log.d(LOG_TAG, "PhotoData: " + (subFamily.getPhotoData() != null ? "Present (" + subFamily.getPhotoData().length() + " chars)" : "null"));
         
-        // Nom complet
+        // Nom complet avec indication du type de chef
         String fullName = subFamily.getFullName().trim();
         if (fullName.isEmpty()) {
             fullName = context.getString(R.string.unknown_name);
         }
+        
+        // Ajouter une indication visuelle dans le nom
+        if (subFamily.isPolygamousHead()) {
+            fullName = "👑 " + fullName + " (Chef Principal)";
+            holder.tvName.setTextColor(context.getResources().getColor(R.color.colorPrimary));
+        } else if (subFamily.isSubFamilyHead()) {
+            fullName = "👥 " + fullName + " (Chef Sous-Famille)";
+            holder.tvName.setTextColor(context.getResources().getColor(android.R.color.black));
+        } else {
+            holder.tvName.setTextColor(context.getResources().getColor(android.R.color.black));
+        }
+        
         holder.tvName.setText(fullName);
         Log.d(LOG_TAG, "FullName set to: '" + fullName + "'");
         
@@ -121,9 +135,10 @@ public class PolygamousSubFamilyAdapter extends RecyclerView.Adapter<PolygamousS
             try {
                 // Essayer de formater la date si possible
                 try {
-                    Date dobDate = DateUtils.dateFromString(dob);
-                    holder.tvDOB.setText(DateUtils.toDateString(dobDate));
-                    Log.d(LOG_TAG, "DOB formatted to: '" + DateUtils.toDateString(dobDate) + "'");
+                    // Utiliser le formatage au format JJ/MM/AAAA
+                    String formattedDate = DateUtils.formatExpiryDateString(dob);
+                    holder.tvDOB.setText(formattedDate);
+                    Log.d(LOG_TAG, "DOB formatted from '" + dob + "' to: '" + formattedDate + "'");
                 } catch (Exception e) {
                     holder.tvDOB.setText(dob); // Fallback to original string
                     Log.d(LOG_TAG, "DOB set to original: '" + dob + "' (format failed)");
@@ -137,10 +152,33 @@ public class PolygamousSubFamilyAdapter extends RecyclerView.Adapter<PolygamousS
             Log.d(LOG_TAG, "DOB set to N/A (original was: '" + dob + "')");
         }
         
-        // Nombre de membres
+        // Nombre de membres et type de chef
         int membersCount = subFamily.getMembers() != null ? subFamily.getMembers().size() : 0;
-        String membersText = context.getResources().getQuantityString(
-            R.plurals.sub_family_members_count, membersCount, membersCount);
+        String membersText;
+        
+        // Distinguer le chef polygame principal des chefs de sous-familles
+        if (subFamily.isPolygamousHead()) {
+            // Chef polygame principal
+            membersText = "👑 Chef Principal - " + context.getResources().getQuantityString(
+                R.plurals.sub_family_members_count, membersCount, membersCount);
+            holder.tvMembersCount.setTextColor(context.getResources().getColor(R.color.colorPrimary));
+            Log.d(LOG_TAG, "Chef polygame principal identifié: " + subFamily.getFullName());
+        } else if (subFamily.isSubFamilyHead()) {
+            // Chef de sous-famille
+            membersText = "👥 Chef Sous-Famille - " + context.getResources().getQuantityString(
+                R.plurals.sub_family_members_count, membersCount, membersCount);
+            holder.tvMembersCount.setTextColor(context.getResources().getColor(R.color.colorAccent));
+            Log.d(LOG_TAG, "Chef de sous-famille identifié: " + subFamily.getFullName());
+        } else {
+            // Default case (should not happen)
+            membersText = context.getResources().getQuantityString(
+                R.plurals.sub_family_members_count, membersCount, membersCount);
+            holder.tvMembersCount.setTextColor(context.getResources().getColor(android.R.color.darker_gray));
+            Log.w(LOG_TAG, "Type de chef non identifié pour: " + subFamily.getFullName() + 
+                  ", relationship: " + subFamily.getRelationship() + 
+                  ", parentUuid: " + subFamily.getParentUuid());
+        }
+        
         holder.tvMembersCount.setText(membersText);
         
         // Photo
@@ -172,7 +210,7 @@ public class PolygamousSubFamilyAdapter extends RecyclerView.Adapter<PolygamousS
         try {
             if (photoData != null && !photoData.isEmpty()) {
                 Log.d(LOG_TAG, "Attempting to decode Base64 photo...");
-                // Décoder la photo Base64
+                // Decode Base64 photo
                 byte[] decodedBytes = Base64.decode(photoData, Base64.DEFAULT);
                 Log.d(LOG_TAG, "Decoded bytes length: " + decodedBytes.length);
                 
@@ -191,7 +229,7 @@ public class PolygamousSubFamilyAdapter extends RecyclerView.Adapter<PolygamousS
             Log.e(LOG_TAG, "❌ Error loading photo for sub-family head", e);
         }
         
-        // Photo par défaut
+        // Default photo
         Log.d(LOG_TAG, "Using default placeholder image");
         imageView.setImageResource(R.drawable.ic_person_placeholder);
     }
@@ -203,14 +241,57 @@ public class PolygamousSubFamilyAdapter extends RecyclerView.Adapter<PolygamousS
             if (newSubFamilies == null) {
                 this.subFamilies = new ArrayList<>();
             } else {
-                this.subFamilies = new ArrayList<>(newSubFamilies); // Copie défensive
+                // Deduplication based on UUID and CHFID to avoid duplicates
+                this.subFamilies = removeDuplicates(newSubFamilies);
             }
             
             notifyDataSetChanged();
-            Log.d(LOG_TAG, "Données mises à jour avec succès");
+            Log.d(LOG_TAG, "Données mises à jour avec succès - après déduplication: " + this.subFamilies.size());
         } catch (Exception e) {
             Log.e(LOG_TAG, "Erreur lors de la mise à jour des données", e);
         }
+    }
+    
+    /**
+     * Supprime les doublons de la liste des sous-familles polygames
+     * basé sur l'UUID et le CHFID pour éviter l'affichage de chefs en double
+     */
+    private List<PolygamousSubFamily> removeDuplicates(List<PolygamousSubFamily> subFamilies) {
+        List<PolygamousSubFamily> uniqueSubFamilies = new ArrayList<>();
+        Set<String> seenUuids = new HashSet<>();
+        Set<String> seenChfIds = new HashSet<>();
+        
+        for (PolygamousSubFamily subFamily : subFamilies) {
+            if (subFamily == null) {
+                continue;
+            }
+            
+            String uuid = subFamily.getUuid();
+            String chfId = subFamily.getChfId();
+            
+            // Check duplicates based on UUID or CHFID
+            boolean isDuplicateByUuid = uuid != null && seenUuids.contains(uuid);
+            boolean isDuplicateByChfId = chfId != null && seenChfIds.contains(chfId);
+            
+            if (!isDuplicateByUuid && !isDuplicateByChfId) {
+                uniqueSubFamilies.add(subFamily);
+                if (uuid != null) {
+                    seenUuids.add(uuid);
+                }
+                if (chfId != null) {
+                    seenChfIds.add(chfId);
+                }
+            } else {
+                Log.w(LOG_TAG, "Doublon détecté et supprimé - UUID: " + uuid + ", CHFID: " + chfId);
+            }
+        }
+        
+        int duplicatesRemoved = subFamilies.size() - uniqueSubFamilies.size();
+        if (duplicatesRemoved > 0) {
+            Log.i(LOG_TAG, "Déduplication terminée - " + duplicatesRemoved + " doublon(s) supprimé(s)");
+        }
+        
+        return uniqueSubFamilies;
     }
     
     public static class ViewHolder extends RecyclerView.ViewHolder {
