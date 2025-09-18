@@ -39,7 +39,8 @@ public class FetchInsureeInquire {
                 /* gender = */ node.gender() != null ? node.gender().gender() : null,
                 /* photoPath = */ getPhotoPath(node.photos()),
                 /* photo = */ getPhotoBytes(node.photos()),
-                /* policies = */ Mapper.map(node.insureePolicies().edges(), this::toPolicy)
+                /* policies = */ Mapper.map(node.insureePolicies().edges(), this::toPolicy),
+                /* familyUuid = */ node.family() != null ? node.family().uuid() : null
         );
     }
 

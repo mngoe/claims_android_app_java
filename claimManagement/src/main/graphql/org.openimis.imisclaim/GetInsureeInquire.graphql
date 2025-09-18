@@ -11,6 +11,9 @@ query GetInsureeInquire($chfId: String) {
                 gender {
                     gender
                 }
+                family {
+                    uuid
+                }
                 photos {
                     folder
                     filename

@@ -7,10 +7,12 @@ import org.openimis.imisclaims.AppInformation;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class DateUtils {
 
     private static final SimpleDateFormat DATE_FORMAT = AppInformation.DateTimeInfo.getDefaultDateFormatter();
+    private static final SimpleDateFormat EXPIRY_DATE_FORMAT = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
 
     private DateUtils() {
         throw new IllegalAccessError("This constructor is private");
@@ -24,6 +26,35 @@ public class DateUtils {
     @NonNull
     public static Date dateFromString(@NonNull String date) throws ParseException {
         return DATE_FORMAT.parse(date);
+    }
+
+    @NonNull
+    public static String toExpiryDateString(@NonNull Date date) {
+        return EXPIRY_DATE_FORMAT.format(date);
+    }
+
+    @NonNull
+    public static String formatExpiryDateString(@NonNull String dateString) {
+        // Try multiple date formats
+        SimpleDateFormat[] inputFormats = {
+            DATE_FORMAT,
+            new SimpleDateFormat("EEE MMM dd HH:mm:ss 'GMT'XXX yyyy", Locale.US),
+            new SimpleDateFormat("yyyy-MM-dd", Locale.US),
+            new SimpleDateFormat("dd-MM-yyyy", Locale.US),
+            new SimpleDateFormat("dd/MM/yyyy", Locale.US)
+        };
+        
+        for (SimpleDateFormat format : inputFormats) {
+            try {
+                Date date = format.parse(dateString);
+                return EXPIRY_DATE_FORMAT.format(date);
+            } catch (ParseException e) {
+                // Continue to next format
+            }
+        }
+        
+        // If all parsing fails, return original string
+        return dateString;
     }
 
 }
