@@ -114,7 +114,7 @@ public class FetchInsureeInquire {
             return Policy.Status.EXPIRED;
         }
         switch (integer) {
-            case 1: return Policy.Status.IDLE;
+            case 1: return Policy.Status.INACTIF;
             case 2: return Policy.Status.ACTIVE;
             case 4: return Policy.Status.SUSPENDED;
             //case 8: return Policy.Status.EXPIRED; <-- Same as default
