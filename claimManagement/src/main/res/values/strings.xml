@@ -267,7 +267,7 @@
 <string name="view_sub_family_members">View sub-family members</string>
 <string name="unknown_name">Unknown name</string>
 <string name="chfid_format">AMG code: %s</string>
-<string name="chfid_not_available">CHFID not available</string>
+<string name="chfid_not_available">AMG code not available</string>
 <string name="unknown_gender">Unknown gender</string>
 <string name="unknown_dob">Unknown date of birth</string>
 <plurals name="sub_family_members_count">
