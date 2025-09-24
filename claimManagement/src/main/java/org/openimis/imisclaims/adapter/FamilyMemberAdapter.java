@@ -87,11 +87,11 @@ public class FamilyMemberAdapter extends RecyclerView.Adapter<FamilyMemberAdapte
             holder.tvMemberFirstName.setText("N/A");
         }
         
-        // CHFID
+        // Code AMG
         if (member.getChfId() != null && !member.getChfId().isEmpty()) {
-            holder.tvMemberChfId.setText("CHFID: " + member.getChfId());
+            holder.tvMemberChfId.setText("Code AMG: " + member.getChfId());
         } else {
-            holder.tvMemberChfId.setText("CHFID: N/A");
+            holder.tvMemberChfId.setText("Code AMG: N/A");
         }
         
         // Genre

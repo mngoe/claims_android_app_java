@@ -52,7 +52,7 @@
                 android:text="Prénom"
                 android:layout_marginBottom="6dp" />
 
-            <!-- CHFID avec icône -->
+            <!-- Code AMG avec icône -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

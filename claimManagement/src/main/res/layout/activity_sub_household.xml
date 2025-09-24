@@ -102,7 +102,7 @@
 
                     </LinearLayout>
 
-                    <!-- Code d'immatriculation (CHFID) -->
+                    <!-- Code d'immatriculation (Code AMG) -->
                     <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
