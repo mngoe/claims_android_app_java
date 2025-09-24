@@ -826,7 +826,7 @@ public class SubHouseholdActivity extends AppCompatActivity {
     private String getStatusText(Policy.Status status) {
         switch (status) {
             case ACTIVE: return "Actif";
-            case IDLE: return "Inactif";
+            case INACTIF: return "Inactif";
             case SUSPENDED: return "Suspendu";
             case EXPIRED: return "Expiré";
             case READY: return "Prêt";
