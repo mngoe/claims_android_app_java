@@ -121,7 +121,7 @@
                             android:id="@+id/tvSubHeadChfId"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="CHFID"
+                            android:text="Code AMG"
                             android:textColor="@color/colorPrimary"
                             android:textSize="14sp"
                             android:textStyle="bold" />

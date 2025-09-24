@@ -75,7 +75,7 @@
                     android:textSize="13sp"
                     android:textColor="@android:color/black"
                     android:textStyle="bold"
-                    android:text="CHFID: 123456789" />
+                    android:text="Code AMG: 123456789" />
 
             </LinearLayout>
 
