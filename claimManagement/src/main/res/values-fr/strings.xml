@@ -220,7 +220,7 @@
   <string name="view_sub_family_members">Voir les membres de la sous-famille</string>
   <string name="unknown_name">Nom inconnu</string>
   <string name="chfid_format">Code AMG: %s</string>
-  <string name="chfid_not_available">CHFID non disponible</string>
+  <string name="chfid_not_available">Code AMG non disponible</string>
   <string name="unknown_gender">Genre inconnu</string>
   <string name="unknown_dob">Date de naissance inconnue</string>
   
