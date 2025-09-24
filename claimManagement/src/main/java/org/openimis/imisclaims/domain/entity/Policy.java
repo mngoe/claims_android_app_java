@@ -422,7 +422,7 @@ public class Policy implements Parcelable {
     }
 
     public enum Status {
-        IDLE, ACTIVE, SUSPENDED, EXPIRED, READY
+        INACTIF, ACTIVE, SUSPENDED, EXPIRED, READY
     }
 
     public static final Creator<Policy> CREATOR = new Creator<>() {
