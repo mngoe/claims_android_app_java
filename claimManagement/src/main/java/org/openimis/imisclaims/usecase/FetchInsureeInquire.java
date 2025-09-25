@@ -12,6 +12,7 @@ import org.openimis.imisclaims.domain.entity.Policy;
 import org.openimis.imisclaims.network.request.GetInsureeInquireGraphQLRequest;
 import org.openimis.imisclaims.network.util.Mapper;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,6 +33,12 @@ public class FetchInsureeInquire {
     @WorkerThread
     public Insuree execute(@NonNull String chfId) throws Exception {
         GetInsureeInquireQuery.Node node = request.get(chfId);
+        List<GetInsureeInquireQuery.Edge1> policies = new ArrayList<>();
+        for (GetInsureeInquireQuery.Edge1 policy : node.insureePolicies().edges()){
+            if(policy.node().policy().validityTo() == null){
+                policies.add(policy);
+            }
+        }
         return new Insuree(
                 /* chfId = */ Objects.requireNonNull(node.chfId()),
                 /* name = */ node.lastName() + " " + node.otherNames(),
@@ -39,7 +46,7 @@ public class FetchInsureeInquire {
                 /* gender = */ node.gender() != null ? node.gender().gender() : null,
                 /* photoPath = */ getPhotoPath(node.photos()),
                 /* photo = */ getPhotoBytes(node.photos()),
-                /* policies = */ Mapper.map(node.insureePolicies().edges(), this::toPolicy),
+                /* policies = */ Mapper.map(policies , this::toPolicy),
                 /* familyUuid = */ node.family() != null ? node.family().uuid() : null
         );
     }
