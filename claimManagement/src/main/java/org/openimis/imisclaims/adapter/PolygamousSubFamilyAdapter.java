@@ -109,7 +109,7 @@ public class PolygamousSubFamilyAdapter extends RecyclerView.Adapter<PolygamousS
         holder.tvName.setText(fullName);
         Log.d(LOG_TAG, "FullName set to: '" + fullName + "'");
         
-        // CHFID
+        // Code AMG
         String chfid = subFamily.getChfId();
         if (chfid != null && !chfid.isEmpty()) {
             holder.tvCHFID.setText(context.getString(R.string.chfid_format, chfid));

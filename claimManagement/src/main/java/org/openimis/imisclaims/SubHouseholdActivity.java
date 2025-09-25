@@ -129,7 +129,7 @@ public class SubHouseholdActivity extends AppCompatActivity {
             }
             
             String chfId = getIntent().getStringExtra(EXTRA_CHF_ID);
-            Log.d(LOG_TAG, "🔍 CHFID récupéré de l'Intent: '" + chfId + "'");
+            Log.d(LOG_TAG, "🔍 Code AMG récupéré de l'Intent: '" + chfId + "'");
             
             // Log des données supplémentaires de l'Intent
             String lastName = getIntent().getStringExtra("EXTRA_LAST_NAME");
