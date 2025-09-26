@@ -6,6 +6,9 @@ import androidx.annotation.Nullable;
 public class HealthFacility implements Parcelable {
     @NonNull
     private final String id;
+
+    @NonNull
+    private String uuid = "";
     @Nullable
     private final String code;
     @Nullable
@@ -20,10 +23,12 @@ public class HealthFacility implements Parcelable {
         this.code = code;
         this.name = name;
     }
+
     protected HealthFacility (Parcel in){
         id = in.readString();
         code = in.readString();
         name = in.readString();
+        uuid = in.readString();
     }
     @Override
     public int describeContents() {
@@ -38,6 +43,15 @@ public class HealthFacility implements Parcelable {
     @NonNull
     public String getId (){
         return id;
+    }
+
+    @NonNull
+    public String getUuid (){
+        return uuid;
+    }
+
+    public void setUuid(@NonNull String uuid) {
+        this.uuid = uuid;
     }
     @Nullable
     public String getCode(){

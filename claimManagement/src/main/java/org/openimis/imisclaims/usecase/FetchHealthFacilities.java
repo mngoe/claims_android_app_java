@@ -34,11 +34,11 @@ public class FetchHealthFacilities {
                         GetHealthFacilityQuery.Node node = Objects.requireNonNull(dto.node());
                         byte[] bytes = node.id().getBytes();
                         String id = new String(Base64.decodeBase64(bytes)).split(":")[1];
-                        return new HealthFacility(
-                                id,
-                                node.code(),
-                                node.name()
-                        );
+
+                        HealthFacility hf = new HealthFacility(id, node.code(), node.name());
+                        hf.setUuid(node.uuid());
+
+                        return hf;
                     }
             ));
             hasNextPage = response.pageInfo().hasNextPage();
