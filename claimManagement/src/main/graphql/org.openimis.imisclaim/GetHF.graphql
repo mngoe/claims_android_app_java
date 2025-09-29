@@ -6,6 +6,7 @@ query GetHealthFacility ($offset: Int){
         edges {
           node {
             id
+            uuid
             code
             name
           }

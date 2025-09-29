@@ -9,10 +9,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -30,6 +33,8 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.openimis.imisclaims.domain.entity.Claim;
+import org.openimis.imisclaims.domain.entity.Prescripteur;
+import org.openimis.imisclaims.network.request.GetPrescriberGraphQLRequest;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.util.DateUtils;
 import org.openimis.imisclaims.util.TextViewUtils;
@@ -38,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
 
 public class ClaimActivity extends ImisActivity {
@@ -69,7 +75,10 @@ public class ClaimActivity extends ImisActivity {
     int TotalItemService;
 
     EditText etStartDate, etEndDate, etClaimCode, etHealthFacility, etInsureeNumber, etClaimAdmin, etGuaranteeNo, etReferralCode;
-    AutoCompleteTextView etDiagnosis, etDiagnosis1, etDiagnosis2, etDiagnosis3, etDiagnosis4, etReferalHF;
+    AutoCompleteTextView etDiagnosis, etDiagnosis1, etDiagnosis2, etDiagnosis3, etDiagnosis4, etReferalHF, etPrescriber;
+    // Adapter and selected uuid for prescriber autocomplete
+    private ArrayAdapter<Prescripteur> prescriberAdapter;
+    private String selectedPrescriberUuid;
     TextView tvItemTotal, tvServiceTotal;
     Button btnPost, btnNew;
     RadioGroup rgVisitType, rgPatientCondition;
@@ -120,7 +129,7 @@ public class ClaimActivity extends ImisActivity {
         rbReferal = findViewById(R.id.rbReferal);
         etPreAuthorization = findViewById(R.id.etPreAuthorization);
         etReferralCode = findViewById(R.id.etReferralCode);
-
+        etPrescriber = findViewById(R.id.etPrescriber);
 
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
@@ -239,6 +248,7 @@ public class ClaimActivity extends ImisActivity {
             if (global.getOfficerCode() != null) {
                 etClaimAdmin.setText(global.getOfficerCode());
                 etHealthFacility.setText(global.getOfficerHealthFacility());
+                setupPrescribersAdapter(sqlHandler.getHfUuid(global.getOfficerHealthFacility()));
             }
             btnNew.setOnClickListener(v -> {
                 if (TotalItemService > 0) {
@@ -248,6 +258,48 @@ public class ClaimActivity extends ImisActivity {
                 }
             });
         }
+    }
+
+    private void setupPrescribersAdapter(String HFUuid) {
+        new Thread(() -> {
+            try {
+                GetPrescriberGraphQLRequest req = new GetPrescriberGraphQLRequest();
+                List<Prescripteur> prescribers = req.fetchPrescribers(HFUuid, "", 100);
+
+                runOnUiThread(() -> {
+                    try {
+                        prescriberAdapter = new ArrayAdapter<>(ClaimActivity.this, android.R.layout.simple_dropdown_item_1line, prescribers);
+                        etPrescriber.setAdapter(prescriberAdapter);
+                        etPrescriber.setThreshold(1);
+
+                        etPrescriber.setOnItemClickListener((parent, view, position, id) -> {
+                            Prescripteur picked = prescriberAdapter.getItem(position);
+                            if (picked != null) {
+                                etPrescriber.setText(picked.getNin());
+                                selectedPrescriberUuid = picked.getUuid();
+                            }
+                        });
+
+                        etPrescriber.addTextChangedListener(new TextWatcher() {
+                            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+                            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+                                selectedPrescriberUuid = null;
+                            }
+                            @Override public void afterTextChanged(Editable s) {}
+                        });
+
+                        if (prescriberAdapter.getCount() > 0) {
+                            prescriberAdapter.notifyDataSetChanged();
+                            etPrescriber.showDropDown();
+                        }
+                    } catch (Exception e) {
+                        Log.e(LOG_TAG, "Error updating prescribers UI", e);
+                    }
+                });
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "Error fetching prescribers", e);
+            }
+        }).start();
     }
 
     private boolean isIntentReadonly() {
@@ -556,6 +608,9 @@ public class ClaimActivity extends ImisActivity {
                         etDiagnosis4.setText(claimDetails.getString("ICDCode4"));
                         etReferalHF.setText(claimDetails.getString("ReferalHF"));
                         etReferralCode.setText(claimDetails.getString("ReferralCode"));
+                        etPrescriber.setText(claimDetails.getString("PrescriberNIN"));
+
+                        setupPrescribersAdapter(sqlHandler.getHfUuid(global.getOfficerHealthFacility()));
 
                         if(claimDetails.getInt("PreAuthorization") == 1){
                             etPreAuthorization.setChecked(true);
@@ -835,6 +890,8 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("VisitType", visitType);
         claimCV.put("ReferalHF", etReferalHF.getText().toString());
         claimCV.put("ReferralCode", etReferralCode.getText().toString());
+        claimCV.put("PrescriberNIN", etPrescriber.getText().toString());
+        claimCV.put("PrescriberUuid", selectedPrescriberUuid);
         claimCV.put("PatientCondition", patientCondition);
 
         if(etPreAuthorization.isChecked()){
