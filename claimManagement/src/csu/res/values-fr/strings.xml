@@ -75,7 +75,7 @@
   <string name="GuaranteeNo">Numéro de garantie</string>
   <string name="ContentTitle">La nouvelle version de Claim Management est maintenant disponible.</string>
   <string name="ContentText">Cliquez ici pour télécharger.</string>
-  <string name="SomethingWentWrongServer">Une erreur est subvenu sur le serveur, merci de bien vouloir reprendre l\'action.</string>
+  <string name="SomethingWentWrongServer">Une erreur est survenue sur le serveur, merci de bien vouloir reprendre l\'action.</string>
   <string name="app_name_claim">Prestation</string>
   <string name="app_name_enquire">Renseignement</string>
   <string name="ClaimAdmin">Administrateur des prestations</string>
@@ -598,24 +598,4 @@
   <string name="NotFound">L\'entrée n\'existe pas.</string>
   <string name="qtyAlert">La quantité maximale pour ce produit est</string>
   <string name="qtyAlertAsk">La quantité autorisée pour ce produit est</string>
-  <string name="Update">Mise à jour</string>
-  <string name="checkUpdate">Vérifier la mise à jour</string>
-  <string name="Error">Une erreur s\'est produite</string>
-  <string name="downloading">Téléchargement en cours</string>
-  <string name="downloadUpdateFail">Echec de la mise à jour</string>
-  <string name="download">Télécharger</string>
-  <string name="cancel">Annuler</string>
-  <string name="updateAvailable">Mise à jour disponible</string>
-  <string name="haveLastVersion">Vous avez la dernière version </string>
-  <string name="newVersion">Nouvelle version </string>
-  <string name="NoInsureeFound">Le numéro d\'assuré ne correspond a aucun bénéficiaire</string>
-  <string name="ClaimNumberExist">Le numéro de prestation existe déjà</string>
-  <string name="TestNumber">Numéro de test</string>
-  <string name="Tdr">TDR</string>
-  <string name="Positive">Positif</string>
-  <string name="Negative">Négatif</string>
-  <string name="MissingTestNumber">Veuillez entrer le numéro de test</string>
-  <string name="MissingTdr">Veuillez cocher le résultat Tdr</string>
-  <string name="InvalidChequeNumber">Numéro de cheque invalide</string>
-  <string name="NonUsedChequeNumber">Le numéro de cheque ne correspond a aucun patient</string>
 </resources>
