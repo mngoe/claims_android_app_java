@@ -82,3 +82,5 @@ fastlane/readme.md
 *custom-flavours.gradle
 
 .DS_Store
+./.DS_Store
+./git/.DS_Store
