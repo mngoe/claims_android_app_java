@@ -41,6 +41,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+import io.sentry.Sentry;
+
 public class SynchronizeService extends JobIntentService {
     private static final int JOB_ID = 6541259; //Random unique Job id
     private static final String LOG_TAG = "SYNCSERVICE";
@@ -142,7 +144,7 @@ public class SynchronizeService extends JobIntentService {
 
                     if(isValidClaimCode){
                         // Search insuree
-                        try{
+                        try {
                             String insuree = new FetchInsuree().execute(claim.getInsuranceNumber());
                             if(!insuree.isEmpty()){
                                 insureeId = Integer.parseInt(insuree);
@@ -150,7 +152,7 @@ public class SynchronizeService extends JobIntentService {
                                     if(claim.getClaimPrefix() != null){
                                         List<ChequeImport> cheques = new ArrayList<>();
                                         // search cheque number in server
-                                        try{
+                                        try {
                                             cheques = new FetchChequeNumber().execute(claim.getClaimPrefix());
                                             if(cheques.isEmpty()){
                                                 //invalid cheque
@@ -215,6 +217,7 @@ public class SynchronizeService extends JobIntentService {
                     } else {
                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
                     }
+                    Sentry.captureException(e);
                     results.add(result);
                 }
             }
@@ -222,6 +225,7 @@ public class SynchronizeService extends JobIntentService {
             broadcastSyncSuccess(claimStatus);
         } catch (Exception e) {
             e.printStackTrace();
+            Sentry.captureException(e);
             broadcastError(getResources().getString(R.string.ErrorOccurred) + ": " + e.getMessage(), ACTION_UPLOAD_CLAIMS);
         }
     }
@@ -429,6 +433,7 @@ public class SynchronizeService extends JobIntentService {
                         SQLHandler.CLAIM_UPLOAD_STATUS_EXPORTED, null);
             } catch (JSONException e) {
                 Log.e(LOG_TAG, "Exception while exporting claims", e);
+                Sentry.captureException(e);
             }
         }
 
@@ -453,6 +458,7 @@ public class SynchronizeService extends JobIntentService {
             return storageManager.createTempFile("exports/claim/" + filename);
         } catch (JSONException e) {
             Log.e(LOG_TAG, "Parsing claim JSON failed", e);
+            Sentry.captureException(e);
         }
         return null;
     }
@@ -467,6 +473,7 @@ public class SynchronizeService extends JobIntentService {
             serializer.endDocument();
         } catch (IOException e) {
             Log.e(LOG_TAG, "Writing XML file failed", e);
+            Sentry.captureException(e);
         }
     }
 

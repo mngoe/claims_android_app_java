@@ -19,15 +19,15 @@ repositories {
 }
 
 android {
-    compileSdkVersion 32
+    compileSdk = 34
     buildToolsVersion '33.0.0'
 
     defaultConfig {
         applicationId "org.openimis.imisclaims"
         minSdkVersion 26
-        targetSdkVersion 32
+        targetSdkVersion 33
         versionCode 4
-        versionName "2.3.6"
+        versionName "2.3.7"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
@@ -111,6 +111,7 @@ android {
             buildConfigField "String", "API_BASE_URL", '"https://csuapps.minsante.cm/"'
             buildConfigField "String", "RAR_PASSWORD", '"xc3-ed@/dfr;nJ3R"'
             dimension 'std'
+            resValue "string", "sentry_dsn", '"https://54612a80b36c47e78722b9779410e3d1@glitchtip-csuapps.minsante.cm/9"'
         }
         niger {
             applicationIdSuffix ".niger"
@@ -190,6 +191,7 @@ android {
     packagingOptions {
         exclude 'META-INF/DEPENDENCIES'
     }
+    namespace 'org.openimis.imisclaims'
 }
 
 apollo {
@@ -231,5 +233,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
     implementation group: 'com.squareup.picasso', name: 'picasso', version: '2.71828'
     implementation group: 'net.lingala.zip4j', name: 'zip4j', version: '1.2.7'
+    implementation 'io.sentry:sentry-android:8.25.0'
 
 }
