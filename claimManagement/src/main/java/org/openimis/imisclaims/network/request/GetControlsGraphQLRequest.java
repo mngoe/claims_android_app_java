@@ -9,7 +9,7 @@ import java.util.List;
 
 public class GetControlsGraphQLRequest extends BaseGraphQLRequest {
 
-    private static final String uri = "https://csureport.minsante.cm/api/graphql";
+    private static final String uri = "https://test-csuapps.minsante.cm/api/graphql";
 
     @NonNull
     @WorkerThread

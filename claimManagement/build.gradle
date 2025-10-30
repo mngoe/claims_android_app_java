@@ -106,12 +106,12 @@ android {
         }
         csuDev {
             applicationIdSuffix ".csuDev"
-            resValue "string", "app_name_claims", "Claims CSU"
-            resValue "string", "release_tag", "csu"
-            buildConfigField "String", "API_BASE_URL", '"https://csuapps.minsante.cm/"'
+            resValue "string", "app_name_claims", "Claims CSU Test"
+            resValue "string", "release_tag", "csu-test"
+            buildConfigField "String", "API_BASE_URL", '"https://test-csuapps.minsante.cm/"'
             buildConfigField "String", "RAR_PASSWORD", '"xc3-ed@/dfr;nJ3R"'
             dimension 'std'
-            resValue "string", "sentry_dsn", '"https://54612a80b36c47e78722b9779410e3d1@glitchtip-csuapps.minsante.cm/9"'
+            resValue "string", "sentry_dsn", '"https://882dd202826240dba0b1733d079b1191@glitchtip-csuapps.minsante.cm/5"'
         }
         niger {
             applicationIdSuffix ".niger"
