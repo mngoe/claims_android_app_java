@@ -71,6 +71,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
+import io.sentry.Sentry;
+
 public class SynchronizeActivity extends ImisActivity {
     private static final String LOG_TAG = "SYNCACTIVITY";
     private static final int PICK_FILE_REQUEST_CODE = 1;
@@ -165,6 +167,7 @@ public class SynchronizeActivity extends ImisActivity {
                     }
                 } catch (JSONException e) {
                     Log.e(LOG_TAG, "Error while processing claim response", e);
+                    Sentry.captureException(e);
                 }
                 break;
             case SynchronizeService.ACTION_EXPORT_ERROR:
@@ -358,6 +361,7 @@ public class SynchronizeActivity extends ImisActivity {
                     }
                 } catch ( Exception e) {
                     e.printStackTrace();
+                    Sentry.captureException(e);
                 }
             });
             thread.start();
@@ -447,6 +451,7 @@ public class SynchronizeActivity extends ImisActivity {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    Sentry.captureException(e);
                     runOnUiThread(() -> pd.dismiss());
                 }
             });
@@ -510,6 +515,7 @@ public class SynchronizeActivity extends ImisActivity {
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
+                        Sentry.captureException(e);
                         runOnUiThread(() -> {
                             pd.dismiss();
                             Toast.makeText(SynchronizeActivity.this, e.getMessage() + "-" + getResources().getString(R.string.SomethingWentWrongServer), Toast.LENGTH_LONG).show();
@@ -542,6 +548,7 @@ public class SynchronizeActivity extends ImisActivity {
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
+                        Sentry.captureException(e);
                         runOnUiThread(() -> {
                             pd.dismiss();
                             ErrorDialogBox(e.getMessage());
@@ -584,6 +591,7 @@ public class SynchronizeActivity extends ImisActivity {
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    Sentry.captureException(e);
                     runOnUiThread(() -> pd.dismiss());
                 }
             });
@@ -668,6 +676,7 @@ public class SynchronizeActivity extends ImisActivity {
                                 Toast.LENGTH_SHORT).show();
                     });
                 } catch (Exception e) {
+                    Sentry.captureException(e);
                     runOnUiThread(() -> {
                         pd.dismiss();
                         if(!global.isNetworkAvailable()){
@@ -706,6 +715,7 @@ public class SynchronizeActivity extends ImisActivity {
         } catch (Exception e) {
             Toast.makeText(this, getResources().getString(R.string.downloadUpdateFail), Toast.LENGTH_SHORT).show();
             Log.e("DownloadUpdate", "Erreur: ", e);
+            Sentry.captureException(e);
         }
     }
 }
