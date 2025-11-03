@@ -40,15 +40,15 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String CreateTableControls = "CREATE TABLE IF NOT EXISTS tblControls(FieldName TEXT, Adjustability TEXT);";
     private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Code TEXT, HFCode TEXT ,Name TEXT);";
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code TEXT, Name TEXT, Type TEXT, Price TEXT);";
-    private static final String createTableClaimDetails = "CREATE TABLE IF NOT EXISTS tblClaimDetails(ClaimUUID TEXT, ClaimDate TEXT, HFCode TEXT, ClaimAdmin TEXT, ClaimCode TEXT, GuaranteeNumber TEXT, InsureeNumber TEXT, StartDate TEXT, EndDate TEXT, ICDCode TEXT, Comment TEXT, Total TEXT, ICDCode1 TEXT, ICDCode2 TEXT, ICDCode3 TEXT, ICDCode4 TEXT, VisitType TEXT, ReferalHF TEXT, ReferralCode TEXT, PatientCondition TEXT,PreAuthorization Int );";
     private static final String createTableClaimItems = "CREATE TABLE IF NOT EXISTS tblClaimItems(ClaimUUID TEXT, ItemId TEXT, ItemCode TEXT, ItemPrice TEXT, ItemQuantity TEXT);";
+    private static final String createTableClaimDetails = "CREATE TABLE IF NOT EXISTS tblClaimDetails(ClaimUUID TEXT, ClaimDate TEXT, HFCode TEXT, ClaimAdmin TEXT, ClaimCode TEXT, GuaranteeNumber TEXT, InsureeNumber TEXT, StartDate TEXT, EndDate TEXT, ICDCode TEXT, Comment TEXT, Total TEXT, ICDCode1 TEXT, ICDCode2 TEXT, ICDCode3 TEXT, ICDCode4 TEXT, VisitType TEXT, ReferalHF TEXT, ReferralCode TEXT, PatientCondition TEXT,PreAuthorization Int, PrescriberUuid TEXT, PrescriberNIN TEXT  );";
     private static final String createTableClaimServices = "CREATE TABLE IF NOT EXISTS tblClaimServices(ClaimUUID TEXT,ServiceId TEXT, ServiceCode TEXT, ServicePrice TEXT, ServiceQuantity TEXT, ServicePackageType TEXT, SubServicesItems TEXT);";
     private static final String createTableClaimUploadStatus = "CREATE TABLE IF NOT EXISTS tblClaimUploadStatus(ClaimUUID TEXT, UploadDate TEXT, UploadStatus TEXT, UploadMessage TEXT);";
     private static final String CreateTableServices = "CREATE TABLE IF NOT EXISTS tblServices(Id text, Code text, Name text, Type text, Price text, PackageType text, ManualPrice Int);";
     private static final String CreateTableItems = "CREATE TABLE IF NOT EXISTS tblItems(Id text, Code text, Name text, Type text, Price text);";
     private static final String CreateTableSubServices = "CREATE TABLE IF NOT EXISTS tblSubServices(ServiceId text, ServiceLinked text, Quantity text, Price text);";
     private static final String CreateTableSubItems = "CREATE TABLE IF NOT EXISTS tblSubItems(ItemId text, ServiceId text, Quantity text, Price text);";
-    private static final String CreateTableHealthFacilities = "CREATE TABLE IF NOT EXISTS tblHealthFacilities(Id TEXT, Code TEXT, Name TEXT);";
+    private static final String CreateTableHealthFacilities = "CREATE TABLE IF NOT EXISTS tblHealthFacilities(Id TEXT, Uuid TEXT, Code TEXT, Name TEXT);";
 
     public final String REFERENCE_UNKNOWN;
 
@@ -431,7 +431,7 @@ public class SQLHandler extends SQLiteOpenHelper {
 
     public JSONObject getClaim(String claimUUID) {
         JSONArray claimDetails = getQueryResultAsJsonArray("tblClaimDetails",
-                new String[]{"ClaimUUID", "ClaimDate", "HFCode", "ClaimAdmin", "ClaimCode", "GuaranteeNumber", "InsureeNumber", "StartDate", "EndDate", "ICDCode", "Comment", "Total", "ICDCode1", "ICDCode2", "ICDCode3", "ICDCode4", "VisitType", "ReferalHF", "ReferralCode", "PatientCondition", "PreAuthorization"},
+                new String[]{"ClaimUUID", "ClaimDate", "HFCode", "ClaimAdmin", "ClaimCode", "GuaranteeNumber", "InsureeNumber", "StartDate", "EndDate", "ICDCode", "Comment", "Total", "ICDCode1", "ICDCode2", "ICDCode3", "ICDCode4", "VisitType", "ReferalHF", "ReferralCode", "PatientCondition", "PreAuthorization", "PrescriberUuid", "PrescriberNIN" },
                 "LOWER(ClaimUUID) = ?",
                 new String[]{claimUUID.toLowerCase(Locale.ROOT)});
 
@@ -463,7 +463,7 @@ public class SQLHandler extends SQLiteOpenHelper {
         // Rename InsureeNumber to CHFID
         // This is required to support legacy Rest API and Web App
         JSONArray claims = getQueryResultAsJsonArray(
-                "SELECT ClaimUUID, ClaimDate, HFCode, ClaimAdmin, ClaimCode, GuaranteeNumber, InsureeNumber AS CHFID, StartDate, EndDate, ICDCode, Comment, Total, ICDCode1, ICDCode2, ICDCode3, ICDCode4, VisitType, ReferalHF, ReferralCode, PatientCondition, PreAuthorization " +
+                "SELECT ClaimUUID, ClaimDate, HFCode, ClaimAdmin, ClaimCode, GuaranteeNumber, InsureeNumber AS CHFID, StartDate, EndDate, ICDCode, Comment, Total, ICDCode1, ICDCode2, ICDCode3, ICDCode4, VisitType, ReferalHF, ReferralCode, PatientCondition, PreAuthorization, PrescriberUuid, PrescriberNIN " +
                         " FROM tblClaimDetails cd" +
                         " WHERE NOT EXISTS (SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus != ?)",
                 new String[]{CLAIM_UPLOAD_STATUS_ERROR}
@@ -934,10 +934,11 @@ public class SQLHandler extends SQLiteOpenHelper {
         return resultSet;
     }
 
-    public void InsertHealthFacilities(String Id, String Code, String Name) {
+    public void InsertHealthFacilities(String Id, String Uuid, String Code, String Name) {
         try {
             ContentValues cv = new ContentValues();
             cv.put("Id", Id);
+            cv.put("Uuid", Uuid);
             cv.put("Code", Code);
             cv.put("Name", Name);
             db.insert("tblHealthFacilities", null, cv);
@@ -960,5 +961,37 @@ public class SQLHandler extends SQLiteOpenHelper {
             Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
         }
         return id;
+    }
+
+    public String getHfUuid(String code) {
+        String uuid = "";
+        try (Cursor c = db.query("tblHealthFacilities", new String[]{"Uuid"}, "LOWER(Code) = LOWER(?)", new String[]{code}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    uuid = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting price of %s", code), e);
+        }
+        return uuid;
+    }
+
+    public String getPrescriberUuidByNIN(String nin) {
+        String uuid = "";
+        try (Cursor c = db.query("tblClaimDetails", new String[]{"PrescriberUuid"}, "LOWER(PrescriberNIN) = LOWER(?)", new String[]{nin}, null, null, null, "1")) {
+            c.moveToFirst();
+            if (!c.isAfterLast()) {
+                String result = c.getString(0);
+                if (!TextUtils.isEmpty(result)) {
+                    uuid = result;
+                }
+            }
+        } catch (SQLException e) {
+            Log.d("ErrorOnFetchingData", String.format("Error while getting prescriber UUID for NIN %s", nin), e);
+        }
+        return uuid;
     }
 }

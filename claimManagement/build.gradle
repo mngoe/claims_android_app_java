@@ -27,7 +27,7 @@ android {
         minSdkVersion 23
         targetSdkVersion 32
         versionCode 4
-        versionName "1.2.5"
+        versionName "1.2.7"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
@@ -78,28 +78,12 @@ android {
             dimension 'std'
         }
 
-        comoresProd{
-            applicationIdSuffix ".comores"
-            resValue "string", "app_name_claims", "Claims Comores"
-            buildConfigField "String", "API_BASE_URL", '"https://amg.km/"'
-            dimension 'std'
-            resValue "string", "release_tag", "comores"
-        }
-
         comoresDev{
             applicationIdSuffix ".comoresDev"
             resValue "string", "app_name_claims", "Claims Comores Dev"
             buildConfigField "String", "API_BASE_URL", '"https://dev.amg.km/"'
             dimension 'std'
             resValue "string", "release_tag", "comores-dev"
-        }
-
-        comoresTest {
-            applicationIdSuffix ".comoresTest"
-            resValue "string", "app_name_claims", "Claims Comores Test"
-            buildConfigField "String", "API_BASE_URL", '"https://test.amg.km/"'
-            dimension 'std'
-            resValue "string", "release_tag", "comores-test"
         }
 
         chfDev {

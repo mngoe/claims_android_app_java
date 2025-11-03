@@ -79,7 +79,7 @@
   <string name="app_name_claim">Dai</string>
   <string name="app_name_enquire">Utambuzi</string>
   <string name="ClaimAdmin">Msimamizi wa madai</string>
-  <string name="CHFID">Namba ya CHF</string>
+  <string name="CHFID">Code AMG</string>
   <string name="StartDate">Tarehe kutoka</string>
   <string name="EndDate">Tarehe mpaka</string>
   <string name="Diagnosis">Ugonjwa</string>
@@ -103,8 +103,8 @@
   <string name="MissingClaimAdmin">Tafadhali ingiza namba ya Msimamizi wa madai</string>
   <string name="MissingGuaranteeNo">Tafadhali andika namba ya guarantee</string>
   <string name="MissingClaimCode">Tafadhali ingiza namba ya dai</string>
-  <string name="MissingCHFID">Tafadhali ingiza CHFID</string>
-  <string name="InvalidCHFID">Namba ya CHF sio sahihi</string>
+  <string name="MissingCHFID">Tafadhali ingiza Code AMG</string>
+  <string name="InvalidCHFID">Code AMG sio sahihi</string>
   <string name="MissingStartDate">Tafadhali ingiza tarehe ya kuanzia</string>
   <string name="MissingEndDate">Tafadhali ingiza tarehe ya kuishia</string>
   <string name="MissingClaim">Tafadhali chagua angalau bidhaa moja au huduma moja ili kutuma dai.</string>

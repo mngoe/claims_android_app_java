@@ -39,6 +39,7 @@ public class PendingClaimGQL {
                     /* icdCode2 = */ details.getString("ICDCode2"),
                     /* icCode3 = */ details.getString("ICDCode3"),
                     /* icdCode4 = */ details.getString("ICDCode4"),
+                    /* prescriberUuid = */ details.getString("PrescriberUuid"),
                     /* GuaranteeNumber = */ details.getString("GuaranteeNumber"),
                     /* ReferalHF = */ details.getString("ReferalHF"),
                     /* Referral code = */ details.getString("ReferralCode"),
@@ -77,6 +78,8 @@ public class PendingClaimGQL {
     private final String icdCode3;
     @Nullable
     private final String icdCode4;
+    @Nullable
+    private final String prescriberUuid;
     @NonNull
     private final String visitType;
     @Nullable
@@ -106,6 +109,7 @@ public class PendingClaimGQL {
             @Nullable String icdCode2,
             @Nullable String icdCode3,
             @Nullable String icdCode4,
+            @Nullable String prescriberUuid,
             @Nullable String guaranteeNumber,
             @Nullable String referralHf,
             @Nullable String referralCode,
@@ -127,6 +131,7 @@ public class PendingClaimGQL {
         this.icdCode2 = icdCode2;
         this.icdCode3 = icdCode3;
         this.icdCode4 = icdCode4;
+        this.prescriberUuid = prescriberUuid;
         this.visitType = visitType;
         this.services = services;
         this.medications = medications;
@@ -150,6 +155,7 @@ public class PendingClaimGQL {
         icdCode2 = in.readString();
         icdCode3 = in.readString();
         icdCode4 = in.readString();
+        prescriberUuid = in.readString();
         visitType = in.readString();
         referalHF = in.readString();
         referralCode = in.readString();
@@ -173,6 +179,7 @@ public class PendingClaimGQL {
         dest.writeString(icdCode2);
         dest.writeString(icdCode3);
         dest.writeString(icdCode4);
+        dest.writeString(prescriberUuid);
         dest.writeString(visitType);
         dest.writeTypedList(services);
         dest.writeTypedList(medications);
@@ -249,6 +256,11 @@ public class PendingClaimGQL {
     @Nullable
     public String getIcdCode4() {
         return icdCode4;
+    }
+
+    @Nullable
+    public String getPrescriberUuid() {
+        return prescriberUuid;
     }
 
     @NonNull

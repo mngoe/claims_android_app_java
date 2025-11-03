@@ -685,7 +685,7 @@ public class MainActivity extends ImisActivity {
 
                         List<HealthFacility> healthFacilities = new FetchHealthFacilities().execute();
                         for(HealthFacility hf: healthFacilities) {
-                            sqlHandler.InsertHealthFacilities(hf.getId(), hf.getCode(), hf.getName());
+                            sqlHandler.InsertHealthFacilities(hf.getId(), hf.getUuid(), hf.getCode(), hf.getName());
                         }
 
                         runOnUiThread(() -> {

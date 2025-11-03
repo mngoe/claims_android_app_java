@@ -166,6 +166,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
                         + " dateFrom: \"" + DateUtils.toDateString(claim.getStartDate()) + "\""
                         + " dateTo: \"" + DateUtils.toDateString(claim.getEndDate()) + "\""
                         + " icdId: " + diagnosisId
+                        + " prescriberUuid: \"" + claim.getPrescriberUuid() + "\""
                         + icd1
                         + icd2
                         + icd3
