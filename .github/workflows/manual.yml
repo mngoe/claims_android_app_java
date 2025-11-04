@@ -49,7 +49,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: claims-csuTest-${{github.event.inputs.app_version}}.apk
+          name: claims-csuTest-${{github.event.inputs.app_version}}
           path: ./claimManagement/build/outputs/**/*.apk
           overwrite: true
 
