@@ -19,6 +19,10 @@ jobs:
           distribution: 'temurin'
           java-version: 21
 
+      # Run Tests Build
+      - name: Run Unit tests
+        run: ./gradlew testCsuDevDebugUnitTest --stacktrace
+
       - name: Build APK
         run: ./gradlew assembleCsuDevDebug --stacktrace
 
