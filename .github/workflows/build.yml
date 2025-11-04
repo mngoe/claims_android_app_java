@@ -1,33 +1,33 @@
-name: Build APK
-
-on:
-  push:
-    branches: [ "main-csu" ]
-  pull_request:
-    branches: [ "main-csu" ]
-
-jobs:
-  build:
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: 17
-
-      - name: Build APK
-        run: ./gradlew assemblecsuDevDebug --stacktrace
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: claims-csu-test.apk
-          path: claimManagement/build/outputs/apk/csuDev/debug/claimManagement-csuDev-debug.apk
+#name: Build APK
+#
+#on:
+#  push:
+#    branches: [ "main-csu" ]
+#  pull_request:
+#    branches: [ "main-csu" ]
+#
+#jobs:
+#  build:
+#    runs-on: ubuntu-latest
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v5
+#        with:
+#          distribution: 'temurin'
+#          java-version: 17
+#
+#      - name: Build APK
+#        run: ./gradlew assemblecsuDevDebug --stacktrace
+#        env:
+#          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+#          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+#          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+#
+#      - name: Upload APK
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: claims-csu
+#          path: claimManagement/build/outputs/apk/csuDev/debug/claims-csu.apk
