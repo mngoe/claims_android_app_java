@@ -3,10 +3,6 @@ name: manual
 on:
   workflow_dispatch:
     inputs:
-      app_id_suffix:
-        description: Description for app suffix
-        required: true
-        default: .csuDev
       app_version:
         description: Version of application
         required: true
@@ -46,7 +42,6 @@ jobs:
           ./gradlew assembleCsuDevDebug --stacktrace
         env:
           APP_VERSION: "${{ github.event.inputs.app_version }}"
-          APPLICATION_ID_SUFFIX: "${{ github.event.inputs.app_id_suffix }}"
 
       # Run Tests Build
 #      - name: Run gradle tests
