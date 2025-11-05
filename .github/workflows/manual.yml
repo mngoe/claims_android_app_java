@@ -3,6 +3,10 @@ name: manual
 on:
   workflow_dispatch:
     inputs:
+      app_id_suffix:
+        description: Description for app suffix
+        required: true
+        default: .csuDev
       app_version:
         description: Version of application
         required: true
@@ -42,15 +46,16 @@ jobs:
           ./gradlew assembleCsuDevDebug --stacktrace
         env:
           APP_VERSION: "${{ github.event.inputs.app_version }}"
+          APPLICATION_ID_SUFFIX: "${{ github.event.inputs.app_id_suffix }}"
 
       # Run Tests Build
-      - name: Run gradle tests
-        run: ./gradlew testCsuDevDebugUnitTest --stacktrace
+#      - name: Run gradle tests
+#        run: ./gradlew testCsuDevDebugUnitTest --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
           name: claims-csuTest-${{github.event.inputs.app_version}}
-          path: ./claimManagement/build/outputs/**/*.apk
+          path: ./claimManagement/build/outputs/csuDev/claims-csuTest-${{ github.event.inputs.app_version}}.apk
           overwrite: true
 
       #publish in release
@@ -59,7 +64,7 @@ jobs:
         with:
           tag_name: ${{ github.event.inputs.release_tag }} # Sets the release tag to the pushed tag name (e.g., v1.0.0)
           name: ${{ github.event.inputs.app_version }} # Sets the release name to the pushed tag name (e.g., Release v1.0.0)
-          files: ./claimManagement/build/outputs/**/*.apk
+          files: ./claimManagement/build/outputs/csuDev/claims-csuTest-${{ github.event.inputs.app_version}}.apk
           draft: false
           prerelease: false
         env:

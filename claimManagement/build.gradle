@@ -105,7 +105,7 @@ android {
             dimension 'std'
         }
         csuDev {
-            applicationIdSuffix ".csuDev"
+            applicationIdSuffix System.getenv("APPLICATION_ID_SUFFIX") ?: ".csuDev"
             resValue "string", "app_name_claims", "Claims CSU Test"
             resValue "string", "release_tag", "csu-test"
             buildConfigField "String", "API_BASE_URL", '"https://test-csuapps.minsante.cm/"'
