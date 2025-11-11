@@ -29,6 +29,10 @@
             android:icon="@drawable/ic_claims"
             android:title="@string/app_name_claim" />
         <item
+            android:id="@+id/pre_authorized"
+            android:icon="@drawable/ic_claims"
+            android:title="@string/app_name_preauthorization" />
+        <item
             android:id="@+id/nav_Reports"
             android:icon="@drawable/statistics"
             android:title="@string/reports" />

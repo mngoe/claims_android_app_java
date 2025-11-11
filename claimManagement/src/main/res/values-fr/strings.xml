@@ -77,6 +77,11 @@
   <string name="ContentText">Cliquez ici pour télécharger.</string>
   <string name="SomethingWentWrongServer">Quelque chose a mal tourné sur le serveur.</string>
   <string name="app_name_claim">prestation</string>
+  <string name="app_name_preauthorization">Préautorisations</string>
+  <string name="hint_claim_preauthorization">Préautorisations de la prestation</string>
+  <string name="hint_reason">Raison</string>
+  <string name="hint_prescriber">Prescripteur</string>
+  <string name="upload_pre_auth">Téléverser les préautorisations</string>
   <string name="app_name_enquire">Renseignement</string>
   <string name="ClaimAdmin">Administration des prestations</string>
   <string name="CHFID">Code AMG</string>

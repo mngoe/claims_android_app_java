@@ -1456,6 +1456,11 @@ type ClaimGQLType implements Node {
   processStamp: DateTime
   remunerated: Decimal
   guaranteeId: String
+  rejectionPreAuthorizationReason: String
+  claimPreAuthorizationCode: String
+  datePreAuthorization: Date
+  claimPreAuthorizationStatus: String
+  isPreAuthorization: String
   admin: ClaimAdminGQLType
   icd: DiagnosisGQLType!
   icd1: DiagnosisGQLType

@@ -2,8 +2,8 @@ package org.openimis.imisclaims;
 
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
+import android.app.TimePickerDialog;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -18,10 +18,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.ImageButton;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -37,20 +34,19 @@ import org.openimis.imisclaims.domain.entity.Prescripteur;
 import org.openimis.imisclaims.network.request.GetPrescriberGraphQLRequest;
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.util.DateUtils;
-import org.openimis.imisclaims.util.TextViewUtils;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
-public class ClaimActivity extends ImisActivity {
-    private static final String LOG_TAG = "CLAIM";
+public class PreAuthorizationActivity extends ImisActivity {
+    private static final String LOG_TAG = "PREAUTH";
     private static final int REQUEST_SCAN_QR_CODE = 1;
-    static final int StartDate_Dialog_ID = 0;
-    static final int EndDate_Dialog_ID = 1;
 
     final Calendar cal = Calendar.getInstance();
 
@@ -61,36 +57,33 @@ public class ClaimActivity extends ImisActivity {
     public static final String EXTRA_READONLY = "readonly";
 
     public static Intent newIntent(@NonNull Context context, @NonNull Claim claim) {
-        return new Intent(context, ClaimActivity.class).putExtra(EXTRA_CLAIM_DATA, claim);
+        return new Intent(context, PreAuthorizationActivity.class).putExtra(EXTRA_CLAIM_DATA, claim);
     }
 
     public static Intent newIntent(@NonNull Context context, @NonNull String claimUUID, boolean readOnly) {
-        return new Intent(context, ClaimActivity.class)
+        return new Intent(context, PreAuthorizationActivity.class)
                 .putExtra(EXTRA_CLAIM_UUID, claimUUID)
                 .putExtra(EXTRA_READONLY, readOnly);
     }
 
-
     private int year, month, day;
     int TotalItemService;
 
-    EditText etStartDate, etEndDate, etClaimCode, etHealthFacility, etInsureeNumber, etClaimAdmin, etGuaranteeNo, etReferralCode;
+    EditText etClaimCode, etHealthFacility, etInsureeNumber, etClaimAdmin, etGuaranteeNo, etReason, etDatePreAuth, etReferralCode;
     AutoCompleteTextView etDiagnosis, etDiagnosis1, etDiagnosis2, etDiagnosis3, etDiagnosis4, etReferalHF, etPrescriber;
     // Adapter and selected uuid for prescriber autocomplete
     private ArrayAdapter<Prescripteur> prescriberAdapter;
     private String selectedPrescriberUuid;
     TextView tvItemTotal, tvServiceTotal;
     Button btnPost, btnNew;
-    RadioGroup rgVisitType, rgPatientCondition;
-    RadioButton rbEmergency, rbReferral, rbOther, rbHealed, rbDiseased, rbEscaped, rbReferal;
-    ImageButton btnScan;
-    CheckBox etPreAuthorization;
+    RadioGroup rgVisitType;
+    RadioButton rbEmergency, rbReferral, rbOther, rbDiseased;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_claim);
-        actionBar.setTitle(getResources().getString(R.string.app_name_claim));
+        setContentView(R.layout.activity_preauthorized);
+        actionBar.setTitle("PreAuthorization");
 
         if (!global.isNetworkAvailable()) {
             setTitle(getResources().getString(R.string.app_name_claims) + "-" + getResources().getString(R.string.OfflineMode));
@@ -100,15 +93,43 @@ public class ClaimActivity extends ImisActivity {
         lvItemList = new ArrayList<>();
         lvServiceList = new ArrayList<>();
 
-        etStartDate = findViewById(R.id.etStartDate);
-        etEndDate = findViewById(R.id.etEndDate);
         etDiagnosis = findViewById(R.id.etDiagnosis);
         btnNew = findViewById(R.id.btnNew);
         btnPost = findViewById(R.id.btnPost);
-        btnScan = findViewById(R.id.btnScan);
         etHealthFacility = findViewById(R.id.etHealthFacility);
         etClaimAdmin = findViewById(R.id.etClaimAdmin);
         etGuaranteeNo = findViewById(R.id.etGuaranteeNo);
+        etReason = findViewById(R.id.etReason);
+        etDatePreAuth = findViewById(R.id.etDatePreAuth);
+
+        etDatePreAuth.setOnClickListener(v -> {
+            final Calendar calendar = Calendar.getInstance();
+            int year = calendar.get(Calendar.YEAR);
+            int month = calendar.get(Calendar.MONTH);
+            int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+            DatePickerDialog datePickerDialog = new DatePickerDialog(
+                    PreAuthorizationActivity.this,
+                    (view, year1, month1, dayOfMonth) -> {
+                        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+                        int minute = calendar.get(Calendar.MINUTE);
+
+                        TimePickerDialog timePickerDialog = new TimePickerDialog(
+                                PreAuthorizationActivity.this,
+                                (timeView, hourOfDay, minuteOfHour) -> {
+                                    String datetime = String.format("%02d/%02d/%04d %02d:%02d",
+                                            dayOfMonth, (month1 + 1), year1, hourOfDay, minuteOfHour);
+                                    etDatePreAuth.setText(datetime);
+                                },
+                                hour, minute, true
+                        );
+                        timePickerDialog.show();
+                    },
+                    year, month, day
+            );
+            datePickerDialog.show();
+        });
+
         etClaimCode = findViewById(R.id.etClaimCode);
         etInsureeNumber = findViewById(R.id.etCHFID);
         tvItemTotal = findViewById(R.id.tvItemTotal);
@@ -122,19 +143,13 @@ public class ClaimActivity extends ImisActivity {
         rbReferral = findViewById(R.id.rbReferral);
         rbOther = findViewById(R.id.rbOther);
         etReferalHF = findViewById(R.id.etReferalHF);
-        rgPatientCondition = findViewById(R.id.rgPatientCondition);
-        rbDiseased = findViewById(R.id.rbDeceased);
-        rbEscaped = findViewById(R.id.rbEscaped);
-        rbHealed = findViewById(R.id.rbHealed);
-        rbReferal = findViewById(R.id.rbReferal);
-        etPreAuthorization = findViewById(R.id.etPreAuthorization);
         etReferralCode = findViewById(R.id.etReferralCode);
         etPrescriber = findViewById(R.id.etPrescriber);
 
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
 
-        DiseaseAdapter adapter = new DiseaseAdapter(ClaimActivity.this, sqlHandler);
+        DiseaseAdapter adapter = new DiseaseAdapter(PreAuthorizationActivity.this, sqlHandler);
         etDiagnosis.setAdapter(adapter);
         etDiagnosis.setThreshold(1);
         etDiagnosis.setOnItemClickListener(adapter);
@@ -159,45 +174,32 @@ public class ClaimActivity extends ImisActivity {
         etDiagnosis3.setVisibility(View.GONE);
         etDiagnosis4.setVisibility(View.GONE);
 
-        HFAdapter hfAdapter = new HFAdapter(ClaimActivity.this, sqlHandler);
+        HFAdapter hfAdapter = new HFAdapter(PreAuthorizationActivity.this, sqlHandler);
         etReferalHF.setAdapter(hfAdapter);
         etReferalHF.setThreshold(1);
         etReferalHF.setOnItemClickListener(hfAdapter);
 
-        etPreAuthorization.setChecked(false);
         etReferalHF.setVisibility(View.GONE);
-        etPreAuthorization.setVisibility(View.GONE);
         etReferralCode.setVisibility(View.GONE);
 
         rgVisitType.setOnCheckedChangeListener((radioGroup, i) -> {
             if(radioGroup.getCheckedRadioButtonId() == R.id.rbReferral){
+                etDatePreAuth.setVisibility(View.GONE);
                 etReferalHF.setVisibility(View.VISIBLE);
                 etReferralCode.setVisibility(View.VISIBLE);
-            }else{
+            } else if (radioGroup.getCheckedRadioButtonId() == R.id.rbEmergency) {
+                etDatePreAuth.setVisibility(View.VISIBLE);
+                etReferalHF.setVisibility(View.GONE);
+                etReferralCode.setVisibility(View.GONE);
+            } else{
+                etDatePreAuth.setVisibility(View.GONE);
                 etReferalHF.setVisibility(View.GONE);
                 etReferralCode.setVisibility(View.GONE);
             }
         });
 
-        etStartDate.setOnTouchListener((v, event) -> {
-            showDialog(StartDate_Dialog_ID);
-            return false;
-        });
-
-        etEndDate.setOnTouchListener((v, event) -> {
-            showDialog(EndDate_Dialog_ID);
-            return false;
-        });
-
         findViewById(R.id.ivAddItem).setOnClickListener(v -> addItem());
         findViewById(R.id.ivAddService).setOnClickListener(v -> addService());
-
-        btnScan.setOnClickListener(v -> {
-            Intent scanIntent = new Intent(this, com.google.zxing.client.android.CaptureActivity.class);
-            scanIntent.setAction("com.google.zxing.client.android.SCAN");
-            scanIntent.putExtra("SCAN_MODE", "QR_CODE_MODE");
-            startActivityForResult(scanIntent, REQUEST_SCAN_QR_CODE);
-        });
 
         btnPost.setOnClickListener(v -> {
             progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.Processing));
@@ -221,6 +223,9 @@ public class ClaimActivity extends ImisActivity {
         if (sqlHandler.getAdjustability("GuaranteeNo").equals("N")) {
             etGuaranteeNo.setVisibility(View.GONE);
         }
+        if (sqlHandler.getAdjustability("Reason").equals("N")) {
+            etReason.setVisibility(View.GONE);
+        }
         if (sqlHandler.getAdjustability("ClaimAdministrator").equals("N")) {
             etClaimAdmin.setVisibility(View.GONE);
         }
@@ -242,7 +247,7 @@ public class ClaimActivity extends ImisActivity {
                 btnNew.setText(R.string.ArchiveClaim);
                 btnNew.setOnClickListener(v -> confirmArchive());
             } else {
-                btnNew.setText(R.string.DeleteClaim);
+                btnNew.setText("DELETE PREAUTH");
                 btnNew.setOnClickListener(v -> confirmDelete());
             }
         } else {
@@ -269,7 +274,7 @@ public class ClaimActivity extends ImisActivity {
 
                 runOnUiThread(() -> {
                     try {
-                        prescriberAdapter = new ArrayAdapter<>(ClaimActivity.this, android.R.layout.simple_dropdown_item_1line, prescribers);
+                        prescriberAdapter = new ArrayAdapter<>(PreAuthorizationActivity.this, android.R.layout.simple_dropdown_item_1line, prescribers);
                         etPrescriber.setAdapter(prescriberAdapter);
                         etPrescriber.setThreshold(1);
 
@@ -370,13 +375,13 @@ public class ClaimActivity extends ImisActivity {
     }
 
     private void addItem() {
-        Intent addItemsIntent = new Intent(ClaimActivity.this, AddItems.class);
+        Intent addItemsIntent = new Intent(PreAuthorizationActivity.this, AddItemsPreAuth.class);
         addItemsIntent.putExtra(EXTRA_READONLY, isIntentReadonly());
         Cursor c = sqlHandler.getMapping("I");
         if(c != null && c.getCount() == 0){
             showDialog(getResources().getString(R.string.NoItemsPricelist));
         }else {
-            ClaimActivity.this.startActivity(addItemsIntent);
+            PreAuthorizationActivity.this.startActivity(addItemsIntent);
         }
     }
 
@@ -387,60 +392,9 @@ public class ClaimActivity extends ImisActivity {
         if(c != null && c.getCount() == 0){
             showDialog(getResources().getString(R.string.NoServicesPricelist));
         }else {
-            ClaimActivity.this.startActivity(addServicesIntent);
+            PreAuthorizationActivity.this.startActivity(addServicesIntent);
         }
     }
-
-    @Override
-    protected Dialog onCreateDialog(int id) {
-        switch (id) {
-
-            case StartDate_Dialog_ID:
-
-                year = cal.get(Calendar.YEAR);
-                month = cal.get(Calendar.MONTH);
-                day = cal.get(Calendar.DAY_OF_MONTH);
-
-                return new DatePickerDialog(this, StartdatePickerListener, year, month, day);
-
-            case EndDate_Dialog_ID:
-                year = cal.get(Calendar.YEAR);
-                month = cal.get(Calendar.MONTH);
-                day = cal.get(Calendar.DAY_OF_MONTH);
-
-                return new DatePickerDialog(this, EndDatePickerListner, year, month, day);
-        }
-        return null;
-    }
-
-    private final DatePickerDialog.OnDateSetListener StartdatePickerListener = new DatePickerDialog.OnDateSetListener() {
-
-        @Override
-        public void onDateSet(DatePicker view, int Selectedyear, int SelectedMonth, int SelectedDay) {
-            year = Selectedyear;
-            month = SelectedMonth;
-            day = SelectedDay;
-            Date date = new Date(year - 1900, month, day);
-            TextViewUtils.setDate(etStartDate, date);
-
-            if (etEndDate.getText().length() == 0) {
-                etEndDate.setText(etStartDate.getText().toString());
-            }
-        }
-    };
-
-    private final DatePickerDialog.OnDateSetListener EndDatePickerListner = new DatePickerDialog.OnDateSetListener() {
-
-        @Override
-        public void onDateSet(DatePicker view, int SelectedYear, int SelectedMonth, int SelectedDay) {
-            year = SelectedYear;
-            month = SelectedMonth;
-            day = SelectedDay;
-            Date date = new Date(year - 1900, month, day);
-            TextViewUtils.setDate(etEndDate, date);
-        }
-    };
-
 
     @Override
     protected void onResume() {
@@ -457,9 +411,9 @@ public class ClaimActivity extends ImisActivity {
     private void ClearForm() {
         etClaimCode.setText("");
         etGuaranteeNo.setText("");
+        etReason.setText("");
+        etDatePreAuth.setText("");
         etInsureeNumber.setText("");
-        etStartDate.setText("");
-        etEndDate.setText("");
         etDiagnosis.setText("");
         lvItemList.clear();
         lvServiceList.clear();
@@ -470,20 +424,18 @@ public class ClaimActivity extends ImisActivity {
         etDiagnosis2.setText("");
         etDiagnosis3.setText("");
         etDiagnosis4.setText("");
-        etPreAuthorization.setChecked(false);
         etReferalHF.setText("");
         etReferralCode.setText("");
         rgVisitType.clearCheck();
-        rgPatientCondition.clearCheck();
         etClaimCode.requestFocus();
     }
 
     private void disableForm() {
         disableView(etClaimCode);
         disableView(etGuaranteeNo);
+        disableView(etReason);
+        disableView(etDatePreAuth);
         disableView(etInsureeNumber);
-        disableView(etStartDate);
-        disableView(etEndDate);
         disableView(etDiagnosis);
         disableView(etDiagnosis1);
         disableView(etDiagnosis2);
@@ -497,11 +449,7 @@ public class ClaimActivity extends ImisActivity {
         disableView(rbOther);
         disableView(etReferralCode);
         disableView(etReferalHF);
-        disableView(etPreAuthorization);
-        disableView(rbHealed);
         disableView(rbDiseased);
-        disableView(rbEscaped);
-        disableView(rbReferal);
     }
 
     private void fillClaimFromRestore(Claim claim) {
@@ -520,13 +468,12 @@ public class ClaimActivity extends ImisActivity {
             else etGuaranteeNo.setText(guaranteeNumber);
         }
 
+        etReason.setText(claim.getInsuranceNumber());
+
         etInsureeNumber.setText(claim.getInsuranceNumber());
         if (Claim.Status.REJECTED != claim.getStatus()) {
             etInsureeNumber.setText("");
         }
-
-        TextViewUtils.setDate(etStartDate, claim.getVisitDateFrom());
-        TextViewUtils.setDate(etEndDate, claim.getVisitDateTo());
 
         etDiagnosis.setText(sqlHandler.getDiseaseCode(claim.getMainDg()));
         etDiagnosis1.setText(sqlHandler.getDiseaseCode(claim.getSecDg1()));
@@ -580,46 +527,46 @@ public class ClaimActivity extends ImisActivity {
 
     private void fillClaimFromDatabase(String claimUUID) {
         new Thread(() -> {
+
             JSONObject claimObject = sqlHandler.getClaim(claimUUID);
+
             if (claimObject == null) {
-                showDialog(getResources().getString(R.string.ClaimNotFound), (dialog, which) -> finish());
+                // Dialog UI sur le thread principal
+                runOnUiThread(() -> showDialog(
+                        getResources().getString(R.string.ClaimNotFound),
+                        (dialog, which) -> finish()
+                ));
             } else {
                 runOnUiThread(() -> {
                     try {
                         JSONObject claimDetails = claimObject.getJSONObject("details");
 
-                        etClaimCode.setText(claimDetails.getString("ClaimCode"));
+                        etClaimCode.setText(claimDetails.optString("ClaimPreAuthorizationCode", ""));
                         if (etClaimAdmin.getVisibility() != View.GONE) {
-                            etClaimAdmin.setText(claimDetails.getString("ClaimAdmin"));
+                            etClaimAdmin.setText(claimDetails.optString("ClaimAdmin", ""));
                         }
-                        etHealthFacility.setText(claimDetails.getString("HFCode"));
+                        etHealthFacility.setText(claimDetails.optString("HFCode", ""));
 
                         if (etGuaranteeNo.getVisibility() != View.GONE) {
-                            etGuaranteeNo.setText(claimDetails.getString("GuaranteeNumber"));
+                            etGuaranteeNo.setText(claimDetails.optString("GuaranteeNumber", ""));
                         }
 
-                        etInsureeNumber.setText(claimDetails.getString("InsureeNumber"));
-                        etStartDate.setText(claimDetails.getString("StartDate"));
-                        etEndDate.setText(claimDetails.getString("EndDate"));
+                        etReason.setText(claimDetails.optString("RejectionPreAuthorizationReason", ""));
+                        etDatePreAuth.setText(claimDetails.optString("DatePreAuthorization", ""));
+                        etInsureeNumber.setText(claimDetails.optString("InsureeNumber", ""));
 
-                        etDiagnosis.setText(claimDetails.getString("ICDCode"));
-                        etDiagnosis1.setText(claimDetails.getString("ICDCode1"));
-                        etDiagnosis2.setText(claimDetails.getString("ICDCode2"));
-                        etDiagnosis3.setText(claimDetails.getString("ICDCode3"));
-                        etDiagnosis4.setText(claimDetails.getString("ICDCode4"));
-                        etReferalHF.setText(claimDetails.getString("ReferalHF"));
-                        etReferralCode.setText(claimDetails.getString("ReferralCode"));
-                        etPrescriber.setText(claimDetails.getString("PrescriberNIN"));
+                        etDiagnosis.setText(claimDetails.optString("ICDCode", ""));
+                        etDiagnosis1.setText(claimDetails.optString("ICDCode1", ""));
+                        etDiagnosis2.setText(claimDetails.optString("ICDCode2", ""));
+                        etDiagnosis3.setText(claimDetails.optString("ICDCode3", ""));
+                        etDiagnosis4.setText(claimDetails.optString("ICDCode4", ""));
+                        etReferalHF.setText(claimDetails.optString("ReferalHF", ""));
+                        etReferralCode.setText(claimDetails.optString("ReferralCode", ""));
+                        etPrescriber.setText(claimDetails.optString("PrescriberNIN", ""));
 
                         setupPrescribersAdapter(sqlHandler.getHfUuid(global.getOfficerHealthFacility()));
 
-                        if(claimDetails.getInt("PreAuthorization") == 1){
-                            etPreAuthorization.setChecked(true);
-                        }else{
-                            etPreAuthorization.setChecked(false);
-                        }
-
-                        switch (claimDetails.getString("VisitType")) {
+                        switch (claimDetails.optString("VisitType", "")) {
                             case "E":
                                 rgVisitType.check(R.id.rbEmergency);
                                 break;
@@ -633,39 +580,20 @@ public class ClaimActivity extends ImisActivity {
                                 rgVisitType.clearCheck();
                         }
 
-                        switch (claimDetails.getString("PatientCondition")) {
-                            case "H":
-                                rgPatientCondition.check(R.id.rbHealed);
-                                break;
-                            case "D":
-                                rgPatientCondition.check(R.id.rbDeceased);
-                                break;
-                            case "E":
-                                rgPatientCondition.check(R.id.rbEscaped);
-                                break;
-                            case "R":
-                                rgPatientCondition.check(R.id.rbReferal);
-                                break;
-                            case "T":
-                                rgPatientCondition.check(R.id.rbTreatment);
-                                break;
-                            default:
-                                rgPatientCondition.clearCheck();
-                        }
-
-                        if(rgVisitType.getCheckedRadioButtonId() == R.id.rbReferral){
-                            if(isIntentReadonly()){
+                        if (rgVisitType.getCheckedRadioButtonId() == R.id.rbReferral) {
+                            if (isIntentReadonly()) {
                                 disableView(etReferalHF);
                                 disableView(etReferralCode);
-                            }else{
+                            } else {
                                 etReferralCode.setEnabled(true);
                                 etReferalHF.setEnabled(true);
                             }
-                        }else{
+                        } else {
                             disableView(etReferalHF);
                             disableView(etReferralCode);
                         }
 
+                        // Chargement des items
                         lvItemList.clear();
                         if (claimObject.has("items")) {
                             JSONArray items = claimObject.getJSONArray("items");
@@ -683,6 +611,7 @@ public class ClaimActivity extends ImisActivity {
                         }
                         tvItemTotal.setText(String.valueOf(lvItemList.size()));
 
+                        // Chargement des services
                         lvServiceList.clear();
                         if (claimObject.has("services")) {
                             JSONArray services = claimObject.getJSONArray("services");
@@ -695,7 +624,7 @@ public class ClaimActivity extends ImisActivity {
                                 service.put("Price", serviceJson.getString("ServicePrice"));
                                 service.put("Quantity", serviceJson.getString("ServiceQuantity"));
                                 service.put("PackageType", serviceJson.getString("ServicePackageType"));
-                                if(!serviceJson.getString("ServicePackageType").equals("S")){
+                                if (!serviceJson.getString("ServicePackageType").equals("S")) {
                                     service.put("SubServicesItems", serviceJson.getString("SubServicesItems"));
                                 }
 
@@ -705,8 +634,9 @@ public class ClaimActivity extends ImisActivity {
                         tvServiceTotal.setText(String.valueOf(lvServiceList.size()));
 
                         TotalItemService = lvItemList.size() + lvServiceList.size();
+
                     } catch (JSONException e) {
-                        Log.e(LOG_TAG, String.format("Error while parsing claim (%s)", claimUUID));
+                        Log.e(LOG_TAG, "Error while parsing claim (" + claimUUID + ")", e);
                     }
                 });
             }
@@ -761,37 +691,6 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
-        if (etStartDate.getText().length() == 0) {
-            showValidationDialog(etStartDate, getResources().getString(R.string.MissingStartDate));
-            return false;
-        }
-
-        if (etEndDate.getText().length() == 0) {
-            showValidationDialog(etEndDate, getResources().getString(R.string.MissingEndDate));
-            return false;
-        }
-
-        try {
-            String StartDate = etStartDate.getText().toString();
-            String EndDate = etEndDate.getText().toString();
-
-            Date Current_date = new Date();
-            Date Start_date = DateUtils.dateFromString(StartDate);
-            Date End_date = DateUtils.dateFromString(EndDate);
-
-            if (End_date.after(Current_date)) {
-                showValidationDialog(etEndDate, getResources().getString(R.string.AfterCurrentDate));
-                return false;
-            }
-
-            if (Start_date.after(End_date)) {
-                showValidationDialog(etEndDate, getResources().getString(R.string.BiggerDate));
-                return false;
-            }
-        } catch (Exception e) {
-            Log.e(LOG_TAG, "Error while parsing dates", e);
-        }
-
         if (etDiagnosis.getText().length() == 0) {
             showValidationDialog(etDiagnosis, getResources().getString(R.string.MissingDisease));
             return false;
@@ -812,11 +711,6 @@ public class ClaimActivity extends ImisActivity {
                 showValidationDialog(etReferralCode, getResources().getString(R.string.MissingReferralCode));
                 return false;
             }
-        }
-
-        if(rgPatientCondition.getCheckedRadioButtonId() == -1){
-            showValidationDialog(rgVisitType, getResources().getString(R.string.MissingPatientCondition));
-            return false;
         }
 
         if(!etReferalHF.getText().toString().isEmpty() && sqlHandler.getHfId(etReferalHF.getText().toString()).isEmpty()){
@@ -862,25 +756,19 @@ public class ClaimActivity extends ImisActivity {
         selectedTypeButton = findViewById(SelectedId);
         String visitType = selectedTypeButton.getTag().toString();
 
-        String patientCondition = "";
-        int PatientConditionId = rgPatientCondition.getCheckedRadioButtonId();
-        RadioButton selectedPatientCondition;
-        selectedPatientCondition = findViewById(PatientConditionId);
-        if(selectedPatientCondition != null){
-            patientCondition = selectedPatientCondition.getTag().toString();
-        }
-
         ContentValues claimCV = new ContentValues();
 
         claimCV.put("ClaimUUID", claimUUID);
         claimCV.put("ClaimDate", claimDate);
         claimCV.put("HFCode", etHealthFacility.getText().toString());
         claimCV.put("ClaimAdmin", etClaimAdmin.getText().toString());
-        claimCV.put("ClaimCode", etClaimCode.getText().toString());
+        claimCV.put("ClaimPreAuthorizationCode", etClaimCode.getText().toString());
         claimCV.put("GuaranteeNumber", etGuaranteeNo.getText().toString());
+        claimCV.put("RejectionPreAuthorizationReason", etReason.getText().toString());
+        claimCV.put("DatePreAuthorization", new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(new Date()));
+        claimCV.put("DatePreAuthorization", etDatePreAuth.getText().toString());
+        claimCV.put("IsPreAuthorization", "1");
         claimCV.put("InsureeNumber", etInsureeNumber.getText().toString());
-        claimCV.put("StartDate", etStartDate.getText().toString());
-        claimCV.put("EndDate", etEndDate.getText().toString());
         claimCV.put("ICDCode", etDiagnosis.getText().toString());
         claimCV.put("Comment", "");
         claimCV.put("Total", "");
@@ -893,13 +781,6 @@ public class ClaimActivity extends ImisActivity {
         claimCV.put("ReferralCode", etReferralCode.getText().toString());
         claimCV.put("PrescriberNIN", etPrescriber.getText().toString());
         claimCV.put("PrescriberUuid", selectedPrescriberUuid);
-        claimCV.put("PatientCondition", patientCondition);
-
-        if(etPreAuthorization.isChecked()){
-            claimCV.put("PreAuthorization", 1);
-        }else{
-            claimCV.put("PreAuthorization", 0);
-        }
 
         ArrayList<ContentValues> claimItemCVs = new ArrayList<>(lvItemList.size());
         for (int i = 0; i < lvItemList.size(); i++) {

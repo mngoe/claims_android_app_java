@@ -120,6 +120,11 @@ public class FetchClaims {
                 /* explanation = */ node.explanation(),
                 /* adjustment = */ node.adjustment(),
                 /* guaranteeNumber = */ node.guaranteeId(),
+                /* rejectionPreAuthorizationReason = */ node.rejectionPreAuthorizationReason(),
+                /* claimPreAuthorizationCode = */ node.claimPreAuthorizationCode(),
+                /* datePreAuthorization = */ node.datePreAuthorization(),
+                /* claimPreAuthorizationStatus = */ node.claimPreAuthorizationStatus(),
+                /* isPreAuthorization = */ node.isPreAuthorization(),
                 /* services = */ serviceMapper.map(node.services()),
                 /* medications = */ medicationMapper.map(node.items())
         );

@@ -77,6 +77,11 @@
     <string name="ContentText">Click here to download.</string>
     <string name="SomethingWentWrongServer">Something went wrong on the server.</string>
     <string name="app_name_claim">Claim</string>
+    <string name="app_name_preauthorization">PreAuthorization</string>
+    <string name="hint_claim_preauthorization">Claim PreAuthorization</string>
+    <string name="hint_reason">Reason</string>
+    <string name="hint_prescriber">Prescriber</string>
+    <string name="upload_pre_auth">Upload PreAuthorization</string>
     <string name="app_name_enquire">Enquire</string>
     <string name="ClaimAdmin">Claim Admin</string>
     <string name="CHFID">Code AMG</string>

@@ -230,6 +230,9 @@ public class MainActivity extends ImisActivity {
             //Intent intent = new Intent(this, ClaimActivity.class);
             Intent intent = new Intent(this, ClaimListingActivity.class);
             startActivity(intent);
+        } else if (id == R.id.pre_authorized) {
+            Intent intent = new Intent(this, PreAuthorizationList.class);
+            startActivity(intent);
         } else if (id == R.id.nav_Reports) {
             Intent intent = new Intent(getApplicationContext(), Report.class);
             startActivity(intent);

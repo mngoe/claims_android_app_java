@@ -29,10 +29,10 @@ public class PendingClaimGQL {
                     /* hfCode = */ details.getString("HFCode"),
                     /* claimAdmin */ details.getString("ClaimAdmin"),
                     /* insureeNumber = */ Objects.requireNonNull(details.getString("CHFID")),
-                    /* claimNumber = */ Objects.requireNonNull(details.getString("ClaimCode")),
+                    /* claimNumber = */ details.optString("ClaimCode", null),
                     /* dateClaimed = */ DateUtils.dateFromString(details.getString("ClaimDate")),
-                    /* visitDatefrom = */ DateUtils.dateFromString(details.getString("StartDate")),
-                    /* visitDateTo = */ DateUtils.dateFromString(details.getString("EndDate")),
+                    /* visitDateFrom = */ details.optString("StartDate", "").isEmpty() ? null : DateUtils.dateFromString(details.getString("StartDate")),
+                    /* visitDateTo = */ details.optString("EndDate", "").isEmpty() ? null : DateUtils.dateFromString(details.getString("EndDate")),
                     /* visitType = */ details.getString("VisitType"),
                     /* mainDg = */ details.getString("ICDCode"),
                     /* icdCode1 = */ details.getString("ICDCode1"),
@@ -43,8 +43,12 @@ public class PendingClaimGQL {
                     /* GuaranteeNumber = */ details.getString("GuaranteeNumber"),
                     /* ReferalHF = */ details.getString("ReferalHF"),
                     /* Referral code = */ details.getString("ReferralCode"),
-                    /* PatientCondition = */ details.getString("PatientCondition"),
-                    /* PreAuthorization = */ details.getString("PreAuthorization"),
+                    /* PatientCondition = */ details.optString("PatientCondition", null),
+                    /* PreAuthorization = */ details.optString("PreAuthorization", "").isEmpty() ? "" : details.optString("PreAuthorization", ""),
+                    /* ClaimPreAuthorizationCode = */ details.optString("ClaimPreAuthorizationCode", "").isEmpty() ? "" : details.optString("ClaimPreAuthorizationCode", ""),
+                    /* RejectionPreAuthorizationReason = */ details.optString("RejectionPreAuthorizationReason", "").isEmpty() ? "" : details.optString("RejectionPreAuthorizationReason", ""),
+                    /* IsPreAuthorization = */ details.optString("IsPreAuthorization", "").isEmpty() ? "" : details.optString("IsPreAuthorization", ""),
+                    /* DatePreAuthorizationEmergency = */ details.optString("DatePreAuthorization", "").isEmpty() ? "" : details.optString("DatePreAuthorization", ""),
                     /* services = */ Service.fromJson(arrayServices),
                     /* items = */ Medication.fromJson(arrayItems)
             ));
@@ -90,6 +94,14 @@ public class PendingClaimGQL {
     private  final String patientCondition;
     @Nullable
     private  final String preAuthorization;
+    @Nullable
+    private  final String claimPreAuthorizationCode;
+    @Nullable
+    private  final String isPreAuthorization;
+    @Nullable
+    private  final String rejectionPreAuthorizationReason;
+    @Nullable
+    private  final String datePreAuthorizationEmergency;
     @NonNull
     private final List<PendingClaimGQL.Service> services;
     @NonNull
@@ -115,6 +127,10 @@ public class PendingClaimGQL {
             @Nullable String referralCode,
             @Nullable String patientCondition,
             @Nullable String preAuthorisation,
+            @Nullable String claimPreAuthorizationCode,
+            @Nullable String rejectionPreAuthorizationReason,
+            @Nullable String isPreAuthorization,
+            @Nullable String datePreAuthorizationEmergency,
             @NonNull List<PendingClaimGQL.Service> services,
             @NonNull List<PendingClaimGQL.Medication> medications
     ) {
@@ -139,6 +155,10 @@ public class PendingClaimGQL {
         this.referralCode = referralCode;
         this.patientCondition = patientCondition;
         this.preAuthorization = preAuthorisation;
+        this.claimPreAuthorizationCode = claimPreAuthorizationCode;
+        this.rejectionPreAuthorizationReason = rejectionPreAuthorizationReason;
+        this.isPreAuthorization = isPreAuthorization;
+        this.datePreAuthorizationEmergency = datePreAuthorizationEmergency;
     }
 
     protected PendingClaimGQL(Parcel in) {
@@ -161,6 +181,10 @@ public class PendingClaimGQL {
         referralCode = in.readString();
         patientCondition = in.readString();
         preAuthorization = in.readString();
+        claimPreAuthorizationCode = in.readString();
+        rejectionPreAuthorizationReason = in.readString();
+        isPreAuthorization = in.readString();
+        datePreAuthorizationEmergency = in.readString();
         services = in.createTypedArrayList(PendingClaimGQL.Service.CREATOR);
         medications = in.createTypedArrayList(PendingClaimGQL.Medication.CREATOR);
     }
@@ -187,6 +211,10 @@ public class PendingClaimGQL {
         dest.writeString(referralCode);
         dest.writeString(patientCondition);
         dest.writeString(preAuthorization);
+        dest.writeString(claimPreAuthorizationCode);
+        dest.writeString(rejectionPreAuthorizationReason);
+        dest.writeString(isPreAuthorization);
+        dest.writeString(datePreAuthorizationEmergency);
     }
 
     public int describeContents() {
@@ -262,6 +290,17 @@ public class PendingClaimGQL {
     public String getPrescriberUuid() {
         return prescriberUuid;
     }
+
+    @Nullable
+    public String getClaimPreAuthorizationCode() { return claimPreAuthorizationCode; }
+
+    @Nullable
+    public String getRejectionPreAuthorizationReason() { return rejectionPreAuthorizationReason; }
+    @Nullable
+    public String getIsPreAuthorization() { return isPreAuthorization; }
+
+    @Nullable
+    public String getDatePreAuthorizationEmergency() { return datePreAuthorizationEmergency; }
 
     @NonNull
     public String getVisitType() {
