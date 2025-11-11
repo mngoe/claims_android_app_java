@@ -135,15 +135,14 @@ public class SynchronizeService extends JobIntentService {
 
     private void handleUploadPreAuth() {
         if (!global.isNetworkAvailable()) {
-            broadcastError("Veuillez vérifier votre connexion Internet", ACTION_UPLOAD_PREAUTH);
+            broadcastError(getResources().getString(R.string.InternetRequired), ACTION_UPLOAD_PREAUTH);
             return;
         }
 
         JSONArray claims = sqlHandler.getAllPendingPreAuth();
-        Log.d("HOHO", String.valueOf(claims));
 
         if (claims.length() < 1) {
-            broadcastError("Aucune pré-autorisation trouvée à synchroniser", ACTION_UPLOAD_PREAUTH);
+            broadcastError(getResources().getString(R.string.no_pre_auth_to_sync), ACTION_UPLOAD_PREAUTH);
             return;
         }
 
@@ -159,16 +158,15 @@ public class SynchronizeService extends JobIntentService {
                         String claimUUID = details.getString("ClaimUUID");
                         if (claimUUID != null && !claimUUID.isEmpty()) {
                             sqlHandler.deleteClaim(claimUUID);
-                            Log.d("DELETE_PREAUTH", "Supprimé: " + claimUUID);
                         }
                     }
                 } catch (Exception e) {
-                    Log.e("DELETE_PREAUTH", "Erreur lors de la suppression du PreAuth", e);
+                    Log.e(LOG_TAG, getResources().getString(R.string.error_delete_pre_auth), e);
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
-            broadcastError("Une erreur est survenue : " + e.getMessage(), ACTION_UPLOAD_PREAUTH);
+            broadcastError(getResources().getString(R.string.Error) + e.getMessage(), ACTION_UPLOAD_PREAUTH);
         }
     }
 
