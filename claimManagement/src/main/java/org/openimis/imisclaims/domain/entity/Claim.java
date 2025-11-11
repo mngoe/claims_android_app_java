@@ -72,6 +72,16 @@ public class Claim implements Parcelable {
 
     @Nullable
     private final String guaranteeNumber;
+    @Nullable
+    private final String rejectionPreAuthorizationReason;
+    @Nullable
+    private final String claimPreAuthorizationCode;
+    @Nullable
+    private final Date datePreAuthorization;
+    @Nullable
+    private final String claimPreAuthorizationStatus;
+    @Nullable
+    private final String isPreAuthorization;
 
     @NonNull
     private final List<Service> services;
@@ -102,6 +112,11 @@ public class Claim implements Parcelable {
             @Nullable String explanation,
             @Nullable String adjustment,
             @Nullable String guaranteeNumber,
+            @Nullable String rejectionPreAuthorizationReason,
+            @Nullable String claimPreAuthorizationCode,
+            @Nullable Date datePreAuthorization,
+            @Nullable String claimPreAuthorizationStatus,
+            @Nullable String isPreAuthorization,
             @NonNull List<Service> services,
             @NonNull List<Medication> medications
     ) {
@@ -126,6 +141,11 @@ public class Claim implements Parcelable {
         this.explanation = explanation;
         this.adjustment = adjustment;
         this.guaranteeNumber = guaranteeNumber;
+        this.rejectionPreAuthorizationReason = rejectionPreAuthorizationReason;
+        this.claimPreAuthorizationCode = claimPreAuthorizationCode;
+        this.datePreAuthorization = datePreAuthorization;
+        this.claimPreAuthorizationStatus = claimPreAuthorizationStatus;
+        this.isPreAuthorization = isPreAuthorization;
         this.services = services;
         this.medications = medications;
     }
@@ -156,6 +176,16 @@ public class Claim implements Parcelable {
         explanation = in.readString();
         adjustment = in.readString();
         guaranteeNumber = in.readString();
+        rejectionPreAuthorizationReason = in.readString();
+        claimPreAuthorizationCode = in.readString();
+        if (in.readByte() == 0) {
+            datePreAuthorization = null;
+        } else {
+            datePreAuthorization = new Date(in.readLong());
+        }
+        claimPreAuthorizationStatus = in.readString();
+        isPreAuthorization = in.readString();
+
         services = in.createTypedArrayList(Service.CREATOR);
         medications = in.createTypedArrayList(Medication.CREATOR);
         if (in.readByte() == 0) {
@@ -210,6 +240,17 @@ public class Claim implements Parcelable {
         dest.writeString(explanation);
         dest.writeString(adjustment);
         dest.writeString(guaranteeNumber);
+        dest.writeString(rejectionPreAuthorizationReason);
+        dest.writeString(claimPreAuthorizationCode);
+        if (datePreAuthorization == null) {
+            dest.writeByte((byte) 0);
+        } else {
+            dest.writeByte((byte) 1);
+            dest.writeLong(datePreAuthorization.getTime());
+        }
+        dest.writeString(claimPreAuthorizationStatus);
+        dest.writeString(isPreAuthorization);
+
         dest.writeTypedList(services);
         dest.writeTypedList(medications);
         if (dateClaimed == null) {
@@ -380,6 +421,22 @@ public class Claim implements Parcelable {
     @Nullable
     public String getGuaranteeNumber() {
         return guaranteeNumber;
+    }
+    @Nullable
+    public String getRejectionPreAuthorizationReason() {
+        return rejectionPreAuthorizationReason;
+    }
+    @Nullable
+    public Date getDatePreAuthorization() {
+        return datePreAuthorization;
+    }
+    @Nullable
+    public String getClaimPreAuthorizationStatus() {
+        return claimPreAuthorizationStatus;
+    }
+    @Nullable
+    public String getIsPreAuthorization() {
+        return isPreAuthorization;
     }
 
     @NonNull

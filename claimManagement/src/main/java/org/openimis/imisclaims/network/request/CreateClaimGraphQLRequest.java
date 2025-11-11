@@ -14,6 +14,9 @@ import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.usecase.PostNewClaims;
 import org.openimis.imisclaims.util.DateUtils;
 import java.security.cert.CertificateException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
 import java.util.UUID;
 
 import javax.net.ssl.HostnameVerifier;
@@ -125,11 +128,6 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
             claimItems = claimItems + "]";
         }
 
-        boolean preAuthorization = false;
-        if(claim.getPreAuthorization() != null && claim.getPreAuthorization().equals("1")){
-            preAuthorization = true;
-        }
-
         String referFrom = "";
         if(referFromId != 0){
             referFrom = " referFromId: " + referFromId;
@@ -155,31 +153,48 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
             icd4 = "icd4Id: "+ icd4Id;
         }
 
+        String formattedDateTime = null;
+        if (claim.getDatePreAuthorizationEmergency() != null && !claim.getDatePreAuthorizationEmergency().isEmpty()) {
+            try {
+                // Convertir de "dd/MM/yyyy HH:mm" vers "yyyy-MM-dd'T'HH:mm:ss"
+                SimpleDateFormat inputFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
+                SimpleDateFormat outputFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault());
+
+                Date date = inputFormat.parse(claim.getDatePreAuthorizationEmergency());
+                formattedDateTime = outputFormat.format(date);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
         String QUERY_DOCUMENT = QueryDocumentMinifier.minify(
                 "mutation {"
                         + "  createClaim(input: {"
-                        + " clientMutationId: \"" + clientMutationId + "\""
-                        + " clientMutationLabel: \"" + clientMutationLabel + "\""
-                        + " code: \"" + claim.getClaimCode() + "\""
-                        + " insureeId: " + insureeId
-                        + " adminId: " + adminId
-                        + " dateFrom: \"" + DateUtils.toDateString(claim.getStartDate()) + "\""
-                        + " dateTo: \"" + DateUtils.toDateString(claim.getEndDate()) + "\""
-                        + " icdId: " + diagnosisId
-                        + " prescriberUuid: \"" + claim.getPrescriberUuid() + "\""
-                        + icd1
+                        + " clientMutationId: \"" + clientMutationId + "\","
+                        + " clientMutationLabel: \"" + clientMutationLabel + "\","
+                        + (claim.getClaimCode() != null ? " code: \"" + claim.getClaimCode() + "\"," : "")
+                        + " insureeId: " + insureeId + ","
+                        + " adminId: " + adminId + ","
+                        + " dateFrom: \"" + (claim.getStartDate() != null ? DateUtils.toDateString(claim.getStartDate()) : DateUtils.toDateString(new Date())) + "\","
+                        + " dateTo: \"" + (claim.getEndDate() != null ? DateUtils.toDateString(claim.getEndDate()) : DateUtils.toDateString(new Date())) + "\","
+                        + " icdId: " + diagnosisId + ","
+                        + " prescriberUuid: \"" + claim.getPrescriberUuid() + "\","
+                        + " codePreAuthorization: \"" + claim.getClaimPreAuthorizationCode() + "\","
+                        + " explanation: \"" + claim.getRejectionPreAuthorizationReason() + "\","
+                        + ((claim.getClaimPreAuthorizationCode() != null && !claim.getClaimPreAuthorizationCode().isEmpty()) ? " isPreAuthorization: true," : " isPreAuthorization: false,")
+                        + (formattedDateTime != null ? " datePreAuthorizationEmergency: \"" + formattedDateTime + "\"," : "")
                         + icd2
                         + icd3
                         + icd4
-                        + " guaranteeId: \"" + claim.getGuaranteeNumber() + "\""
-                        + " dateClaimed: \"" + DateUtils.toDateString(claim.getClaimDate()) + "\""
+                        + " guaranteeId: \"" + claim.getGuaranteeNumber() + "\","
+                        + " dateClaimed: \"" + DateUtils.toDateString(claim.getClaimDate()) + "\","
                         + referFrom
-                        + " referralCode: \"" + claim.getReferralCode() + "\""
-                        + " patientCondition: \"" + claim.getPatientCondition() + "\""
-                        + " preAuthorization: " + preAuthorization
-                        + " healthFacilityId: " + hfId
-                        + " visitType: \"" + claim.getVisitType() +"\""
-                        + " services: " + claimServices
+                        + " referralCode: \"" + claim.getReferralCode() + "\","
+                        + " patientCondition: \"" + (claim.getPatientCondition() != null ? claim.getPatientCondition().substring(0, Math.min(2, claim.getPatientCondition().length())) : "") + "\","
+                        + ((claim.getClaimPreAuthorizationCode() != null && !claim.getClaimPreAuthorizationCode().isEmpty()) ? " preAuthorization: true," : " preAuthorization: false,")
+                        + " healthFacilityId: " + hfId + ","
+                        + " visitType: \"" + claim.getVisitType() + "\","
+                        + " services: " + claimServices + ","
                         + " items: " + claimItems
                         + "}){"
                         + "    clientMutationId"

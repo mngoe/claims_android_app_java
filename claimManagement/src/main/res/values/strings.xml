@@ -77,6 +77,13 @@
     <string name="ContentText">Click here to download.</string>
     <string name="SomethingWentWrongServer">Something went wrong on the server.</string>
     <string name="app_name_claim">Claim</string>
+    <string name="app_name_preauthorization">PreAuthorization</string>
+    <string name="hint_claim_preauthorization">Claim PreAuthorization</string>
+    <string name="no_pre_auth_to_sync">No pre-authorization found to synchronize</string>
+    <string name="error_delete_pre_auth">Error while deleting the PreAuth</string>
+    <string name="hint_reason">Reason</string>
+    <string name="hint_prescriber">Prescriber</string>
+    <string name="upload_pre_auth">Upload PreAuthorization</string>
     <string name="app_name_enquire">Enquire</string>
     <string name="ClaimAdmin">Claim Admin</string>
     <string name="CHFID">Code AMG</string>

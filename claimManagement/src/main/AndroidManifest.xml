@@ -78,11 +78,25 @@
             android:name=".ClaimActivity"
             android:windowSoftInputMode="stateHidden" />
         <activity
+            android:name=".PreAuthorizationActivity"
+            android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name=".PreAuthorizationList"
+            android:windowSoftInputMode="stateHidden" />
+        <activity
             android:name=".AddItems"
             android:label="@string/AddItems"
             android:windowSoftInputMode="stateHidden" />
         <activity
+            android:name=".AddItemsPreAuth"
+            android:label="@string/AddItems"
+            android:windowSoftInputMode="stateHidden" />
+        <activity
             android:name=".AddServices"
+            android:label="@string/AddServices"
+            android:windowSoftInputMode="stateHidden" />
+        <activity
+            android:name=".AddServicesPreAuth"
             android:label="@string/AddServices"
             android:windowSoftInputMode="stateHidden" />
         <activity

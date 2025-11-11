@@ -42,16 +42,20 @@ public class SynchronizeActivity extends ImisActivity {
     private static final int REQUEST_EXPORT_XML_FILE = 2;
     ArrayList<String> broadcastList;
 
-    TextView tvUploadClaims, tvZipClaims;
-    RelativeLayout uploadClaims, zipClaims, importMasterData, downloadMasterData, checkUpdate;
+    TextView tvUploadClaims, tvUploadPreAuth, tvZipClaims;
+    RelativeLayout uploadClaims, uploadPreAuth, zipClaims, importMasterData, downloadMasterData, checkUpdate;
 
     ProgressDialog pd;
     Uri exportUri;
+
+    private SQLHandler sqlHandler;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_synchronize);
+
+        sqlHandler = new SQLHandler(this);
 
         if (actionBar != null) {
             actionBar.setDisplayHomeAsUpEnabled(true);
@@ -78,7 +82,11 @@ public class SynchronizeActivity extends ImisActivity {
         downloadMasterData = findViewById(R.id.downloadMasterData);
         checkUpdate = findViewById(R.id.checkUpdate);
 
+        uploadPreAuth = findViewById(R.id.upload_preauth);
+        tvUploadPreAuth = findViewById(R.id.tvUploadPreAuth);
+
         uploadClaims.setOnClickListener(view -> doLoggedIn(this::confirmUploadClaims));
+        uploadPreAuth.setOnClickListener(view -> doLoggedIn(this::confirmUploadPreAuth));
         zipClaims.setOnClickListener(view -> confirmXMLCreation());
 
         importMasterData.setOnClickListener(view -> requestPickDatabase());
@@ -103,6 +111,7 @@ public class SynchronizeActivity extends ImisActivity {
         switch (action) {
             case SynchronizeService.ACTION_CLAIM_COUNT_RESULT:
                 tvUploadClaims.setText(String.valueOf(intent.getIntExtra(SynchronizeService.EXTRA_CLAIM_COUNT_ENTERED, 0)));
+                tvUploadPreAuth.setText(String.valueOf(sqlHandler.getAllPreAuth().length()));
                 tvZipClaims.setText(String.valueOf(intent.getIntExtra(SynchronizeService.EXTRA_CLAIM_COUNT_ENTERED, 0)));
                 break;
             case SynchronizeService.ACTION_EXPORT_SUCCESS:
@@ -193,6 +202,14 @@ public class SynchronizeActivity extends ImisActivity {
         showDialog(getResources().getString(R.string.AreYouSure), (dialogInterface, i) -> uploadClaims(), (dialog, id) -> dialog.cancel());
     }
 
+    public void confirmUploadPreAuth() {
+        showDialog(
+                getResources().getString(R.string.AreYouSure),
+                (dialogInterface, i) -> uploadPreAuth(),
+                (dialog, id) -> dialog.cancel()
+        );
+    }
+
     public void requestPickDatabase() {
         Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
@@ -214,6 +231,12 @@ public class SynchronizeActivity extends ImisActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         pd = ProgressDialog.show(this, "", getResources().getString(R.string.Processing));
         SynchronizeService.uploadClaims(this);
+    }
+
+    public void uploadPreAuth() {
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        pd = ProgressDialog.show(this, "", getResources().getString(R.string.Processing));
+        SynchronizeService.uploadPreAuth(this);
     }
 
     public void exportClaims() {

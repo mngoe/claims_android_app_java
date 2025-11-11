@@ -41,7 +41,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String CreateTableClaimAdmins = "CREATE TABLE IF NOT EXISTS tblClaimAdmins(Code TEXT, HFCode TEXT ,Name TEXT);";
     private static final String CreateTableReferences = "CREATE TABLE IF NOT EXISTS tblReferences(Code TEXT, Name TEXT, Type TEXT, Price TEXT);";
     private static final String createTableClaimItems = "CREATE TABLE IF NOT EXISTS tblClaimItems(ClaimUUID TEXT, ItemId TEXT, ItemCode TEXT, ItemPrice TEXT, ItemQuantity TEXT);";
-    private static final String createTableClaimDetails = "CREATE TABLE IF NOT EXISTS tblClaimDetails(ClaimUUID TEXT, ClaimDate TEXT, HFCode TEXT, ClaimAdmin TEXT, ClaimCode TEXT, GuaranteeNumber TEXT, InsureeNumber TEXT, StartDate TEXT, EndDate TEXT, ICDCode TEXT, Comment TEXT, Total TEXT, ICDCode1 TEXT, ICDCode2 TEXT, ICDCode3 TEXT, ICDCode4 TEXT, VisitType TEXT, ReferalHF TEXT, ReferralCode TEXT, PatientCondition TEXT,PreAuthorization Int, PrescriberUuid TEXT, PrescriberNIN TEXT  );";
+    private static final String createTableClaimDetails = "CREATE TABLE IF NOT EXISTS tblClaimDetails(ClaimUUID TEXT, ClaimDate TEXT, HFCode TEXT, ClaimAdmin TEXT, ClaimCode TEXT, GuaranteeNumber TEXT, InsureeNumber TEXT, StartDate TEXT, EndDate TEXT, ICDCode TEXT, Comment TEXT, Total TEXT, ICDCode1 TEXT, ICDCode2 TEXT, ICDCode3 TEXT, ICDCode4 TEXT, VisitType TEXT, ReferalHF TEXT, ReferralCode TEXT, PatientCondition TEXT, PreAuthorization Int, PrescriberUuid TEXT, PrescriberNIN TEXT, ClaimPreAuthorizationCode TEXT, DatePreAuthorization TEXT, ClaimPreAuthorizationStatus INTEGER, RejectionPreAuthorizationReason TEXT, IsPreAuthorization INTEGER DEFAULT 0);";
     private static final String createTableClaimServices = "CREATE TABLE IF NOT EXISTS tblClaimServices(ClaimUUID TEXT,ServiceId TEXT, ServiceCode TEXT, ServicePrice TEXT, ServiceQuantity TEXT, ServicePackageType TEXT, SubServicesItems TEXT);";
     private static final String createTableClaimUploadStatus = "CREATE TABLE IF NOT EXISTS tblClaimUploadStatus(ClaimUUID TEXT, UploadDate TEXT, UploadStatus TEXT, UploadMessage TEXT);";
     private static final String CreateTableServices = "CREATE TABLE IF NOT EXISTS tblServices(Id text, Code text, Name text, Type text, Price text, PackageType text, ManualPrice Int);";
@@ -431,7 +431,7 @@ public class SQLHandler extends SQLiteOpenHelper {
 
     public JSONObject getClaim(String claimUUID) {
         JSONArray claimDetails = getQueryResultAsJsonArray("tblClaimDetails",
-                new String[]{"ClaimUUID", "ClaimDate", "HFCode", "ClaimAdmin", "ClaimCode", "GuaranteeNumber", "InsureeNumber", "StartDate", "EndDate", "ICDCode", "Comment", "Total", "ICDCode1", "ICDCode2", "ICDCode3", "ICDCode4", "VisitType", "ReferalHF", "ReferralCode", "PatientCondition", "PreAuthorization", "PrescriberUuid", "PrescriberNIN" },
+                new String[]{"ClaimUUID", "ClaimDate", "HFCode", "ClaimAdmin", "ClaimCode", "GuaranteeNumber", "InsureeNumber", "StartDate", "EndDate", "ICDCode", "Comment", "Total", "ICDCode1", "ICDCode2", "ICDCode3", "ICDCode4", "VisitType", "ReferalHF", "ReferralCode", "PatientCondition", "PreAuthorization", "PrescriberUuid", "PrescriberNIN", "ClaimPreAuthorizationCode", "DatePreAuthorization", "ClaimPreAuthorizationStatus", "RejectionPreAuthorizationReason", "IsPreAuthorization" },
                 "LOWER(ClaimUUID) = ?",
                 new String[]{claimUUID.toLowerCase(Locale.ROOT)});
 
@@ -463,9 +463,16 @@ public class SQLHandler extends SQLiteOpenHelper {
         // Rename InsureeNumber to CHFID
         // This is required to support legacy Rest API and Web App
         JSONArray claims = getQueryResultAsJsonArray(
-                "SELECT ClaimUUID, ClaimDate, HFCode, ClaimAdmin, ClaimCode, GuaranteeNumber, InsureeNumber AS CHFID, StartDate, EndDate, ICDCode, Comment, Total, ICDCode1, ICDCode2, ICDCode3, ICDCode4, VisitType, ReferalHF, ReferralCode, PatientCondition, PreAuthorization, PrescriberUuid, PrescriberNIN " +
-                        " FROM tblClaimDetails cd" +
-                        " WHERE NOT EXISTS (SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus != ?)",
+                "SELECT ClaimUUID, ClaimDate, HFCode, ClaimAdmin, ClaimCode, GuaranteeNumber, " +
+                        "InsureeNumber AS CHFID, StartDate, EndDate, ICDCode, Comment, Total, " +
+                        "ICDCode1, ICDCode2, ICDCode3, ICDCode4, VisitType, ReferalHF, ReferralCode, " +
+                        "PatientCondition, PreAuthorization, PrescriberUuid, PrescriberNIN " +
+                        "FROM tblClaimDetails cd " +
+                        "WHERE IsPreAuthorization = 0 " +
+                        "AND NOT EXISTS ( " +
+                        "    SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus " +
+                        "    WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus != ? " +
+                        ")",
                 new String[]{CLAIM_UPLOAD_STATUS_ERROR}
         );
 
@@ -474,6 +481,95 @@ public class SQLHandler extends SQLiteOpenHelper {
             for (int i = 0; i < claims.length(); i++) {
                 JSONObject claim = claims.getJSONObject(i);
                 String ClaimUUID = (String) claim.remove("ClaimUUID");
+
+                JSONObject resultClaim = new JSONObject();
+                resultClaim.put("details", claim);
+                resultClaim.put("items", getClaimItems(ClaimUUID));
+                JSONArray claimServices = getClaimServices(ClaimUUID);
+                for(int j = 0; j<claimServices.length(); j++){
+                    JSONObject service = claimServices.getJSONObject(j);
+                    if(service.has("SubServicesItems")){
+                        String subServices = service.getString("SubServicesItems");
+                        JSONArray subServicesItems = new JSONArray(subServices);
+                        service.put("SubServicesItems",subServicesItems);
+                    }
+                }
+                resultClaim.put("services", claimServices);
+                result.put(resultClaim);
+            }
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Error while getting pending claims", e);
+        }
+        return result;
+    }
+
+    @NonNull
+    public JSONArray getAllPendingPreAuth() {
+        // Rename InsureeNumber to CHFID
+        // This is required to support legacy Rest API and Web App
+        JSONArray claims = getQueryResultAsJsonArray(
+                "SELECT ClaimUUID, ClaimDate, HFCode, ClaimAdmin, ClaimCode, GuaranteeNumber, " +
+                        "InsureeNumber AS CHFID, StartDate, EndDate, ICDCode, Comment, Total, " +
+                        "ICDCode1, ICDCode2, ICDCode3, ICDCode4, VisitType, ReferalHF, ReferralCode, " +
+                        "PatientCondition, PreAuthorization, PrescriberUuid, PrescriberNIN, ClaimPreAuthorizationCode, DatePreAuthorization, ClaimPreAuthorizationStatus, RejectionPreAuthorizationReason, IsPreAuthorization " +
+                        "FROM tblClaimDetails cd " +
+                        "WHERE IsPreAuthorization = 1 " +
+                        "AND NOT EXISTS ( " +
+                        "    SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus " +
+                        "    WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus != ? " +
+                        ")",
+                new String[]{CLAIM_UPLOAD_STATUS_ERROR}
+        );
+
+        JSONArray result = new JSONArray();
+        try {
+            for (int i = 0; i < claims.length(); i++) {
+                JSONObject claim = claims.getJSONObject(i);
+                String ClaimUUID = claim.optString("ClaimUUID", "");
+
+                JSONObject resultClaim = new JSONObject();
+                resultClaim.put("details", claim);
+                resultClaim.put("items", getClaimItems(ClaimUUID));
+                JSONArray claimServices = getClaimServices(ClaimUUID);
+                for(int j = 0; j<claimServices.length(); j++){
+                    JSONObject service = claimServices.getJSONObject(j);
+                    if(service.has("SubServicesItems")){
+                        String subServices = service.getString("SubServicesItems");
+                        JSONArray subServicesItems = new JSONArray(subServices);
+                        service.put("SubServicesItems",subServicesItems);
+                    }
+                }
+                resultClaim.put("services", claimServices);
+                result.put(resultClaim);
+            }
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Error while getting pending claims", e);
+        }
+        return result;
+    }
+
+    @NonNull
+    public JSONArray getAllPreAuth() {
+
+        JSONArray claims = getQueryResultAsJsonArray(
+                "SELECT ClaimUUID, ClaimDate, HFCode, ClaimAdmin, ClaimCode, GuaranteeNumber, " +
+                        "InsureeNumber AS CHFID, StartDate, EndDate, ICDCode, Comment, Total, " +
+                        "ICDCode1, ICDCode2, ICDCode3, ICDCode4, VisitType, ReferalHF, ReferralCode, " +
+                        "PatientCondition, PreAuthorization, PrescriberUuid, PrescriberNIN, ClaimPreAuthorizationCode, DatePreAuthorization, ClaimPreAuthorizationStatus, RejectionPreAuthorizationReason " +
+                        "FROM tblClaimDetails cd " +
+                        "WHERE IsPreAuthorization = 1 " +
+                        "AND NOT EXISTS ( " +
+                        "    SELECT cus.ClaimUUID FROM tblClaimUploadStatus cus " +
+                        "    WHERE cus.ClaimUUID = cd.ClaimUUID AND cus.UploadStatus != ? " +
+                        ")",
+                new String[]{CLAIM_UPLOAD_STATUS_ERROR}
+        );
+
+        JSONArray result = new JSONArray();
+        try {
+            for (int i = 0; i < claims.length(); i++) {
+                JSONObject claim = claims.getJSONObject(i);
+                String ClaimUUID = claim.optString("ClaimUUID", "");
 
                 JSONObject resultClaim = new JSONObject();
                 resultClaim.put("details", claim);
@@ -593,14 +689,18 @@ public class SQLHandler extends SQLiteOpenHelper {
     public JSONObject getClaimCounts() {
         JSONArray claimCounts = getQueryResultAsJsonArray(
                 "WITH LatestStatus AS (\n" +
-                        "    SELECT ClaimUUID, UploadStatus, MAX(cus.UploadDate) from tblClaimUploadStatus cus GROUP BY cus.ClaimUUID\n" +
+                        "    SELECT ClaimUUID, UploadStatus, MAX(cus.UploadDate)\n" +
+                        "    FROM tblClaimUploadStatus cus\n" +
+                        "    GROUP BY cus.ClaimUUID\n" +
                         ")\n" +
                         "SELECT \n" +
                         "    CASE WHEN ls.UploadStatus IS NULL OR ls.UploadStatus = ? THEN ? ELSE ls.UploadStatus END AS Status, \n" +
-                        "    count(*) AS Amount\n" +
+                        "    COUNT(*) AS Amount\n" +
                         "FROM \n" +
                         "    tblClaimDetails cd \n" +
-                        "    LEFT JOIN LatestStatus ls on cd.ClaimUUID=ls.ClaimUUID\n" +
+                        "    LEFT JOIN LatestStatus ls ON cd.ClaimUUID = ls.ClaimUUID\n" +
+                        "WHERE \n" +
+                        "    IFNULL(cd.IsPreAuthorization, 0) = 0\n" +
                         "GROUP BY Status;",
                 new String[]{CLAIM_UPLOAD_STATUS_ERROR, CLAIM_UPLOAD_STATUS_ENTERED}
         );
@@ -615,6 +715,7 @@ public class SQLHandler extends SQLiteOpenHelper {
             Log.e(LOG_TAG, "Error while parsing claim counts", e);
         }
 
+        Log.d("AKO ", String.valueOf(result));
         return result;
     }
 
@@ -622,12 +723,13 @@ public class SQLHandler extends SQLiteOpenHelper {
     public JSONArray getClaimInfo(String selection, String[] selectionArgs) {
         String query = "SELECT " +
                 "ClaimUUID, ClaimCode, ClaimDate, InsureeNumber, " +
-                "COALESCE((SELECT SUM(ItemPrice*ItemQuantity) FROM tblClaimItems ci WHERE ci.ClaimUUID = cd.ClaimUUID GROUP BY ci.ClaimUUID), 0) " +
-                "+ COALESCE((SELECT SUM(ServicePrice*ServiceQuantity) FROM tblClaimServices cs WHERE cs.ClaimUUID = cd.ClaimUUID GROUP BY cs.ClaimUUID), 0) AS TotalClaimed " +
-                "FROM tblClaimDetails cd";
+                "COALESCE((SELECT SUM(ItemPrice * ItemQuantity) FROM tblClaimItems ci WHERE ci.ClaimUUID = cd.ClaimUUID GROUP BY ci.ClaimUUID), 0) " +
+                "+ COALESCE((SELECT SUM(ServicePrice * ServiceQuantity) FROM tblClaimServices cs WHERE cs.ClaimUUID = cd.ClaimUUID GROUP BY cs.ClaimUUID), 0) AS TotalClaimed " +
+                "FROM tblClaimDetails cd " +
+                "WHERE cd.IsPreAuthorization = 0";
 
-        if (selection != null) {
-            query = query + " WHERE " + selection;
+        if (selection != null && !selection.trim().isEmpty()) {
+            query = query + " AND " + selection;
         }
 
         return getQueryResultAsJsonArray(query, selectionArgs);

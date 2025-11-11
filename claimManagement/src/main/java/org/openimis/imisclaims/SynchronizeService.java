@@ -41,6 +41,7 @@ public class SynchronizeService extends JobIntentService {
     private static final String LOG_TAG = "SYNCSERVICE";
 
     private static final String ACTION_UPLOAD_CLAIMS = "SynchronizeService.ACTION_UPLOAD_CLAIMS";
+    private static final String ACTION_UPLOAD_PREAUTH = "SynchronizeService.ACTION_UPLOAD_PREAUTH";
     private static final String ACTION_EXPORT_CLAIMS = "SynchronizeService.ACTION_EXPORT_CLAIMS";
     private static final String ACTION_CLAIM_COUNT = "SynchronizeService.ACTION_CLAIM_COUNT";
 
@@ -77,6 +78,12 @@ public class SynchronizeService extends JobIntentService {
         enqueueWork(context, SynchronizeService.class, JOB_ID, intent);
     }
 
+    public static void uploadPreAuth(Context context) {
+        Intent intent = new Intent();
+        intent.setAction(ACTION_UPLOAD_PREAUTH);
+        enqueueWork(context, SynchronizeService.class, JOB_ID, intent);
+    }
+
     public static void exportClaims(Context context) {
         Intent intent = new Intent();
         intent.setAction(ACTION_EXPORT_CLAIMS);
@@ -96,6 +103,8 @@ public class SynchronizeService extends JobIntentService {
             handleUploadClaims();
         } else if (ACTION_EXPORT_CLAIMS.equals(action)) {
             handleExportClaims();
+        } else if (ACTION_UPLOAD_PREAUTH.equals(action)) {
+            handleUploadPreAuth();
         } else if (ACTION_CLAIM_COUNT.equals(action)) {
             handleGetClaimCount();
         }
@@ -121,6 +130,43 @@ public class SynchronizeService extends JobIntentService {
         } catch (Exception e) {
             e.printStackTrace();
             broadcastError(getResources().getString(R.string.ErrorOccurred) + ": " + e.getMessage(), ACTION_UPLOAD_CLAIMS);
+        }
+    }
+
+    private void handleUploadPreAuth() {
+        if (!global.isNetworkAvailable()) {
+            broadcastError(getResources().getString(R.string.InternetRequired), ACTION_UPLOAD_PREAUTH);
+            return;
+        }
+
+        JSONArray claims = sqlHandler.getAllPendingPreAuth();
+
+        if (claims.length() < 1) {
+            broadcastError(getResources().getString(R.string.no_pre_auth_to_sync), ACTION_UPLOAD_PREAUTH);
+            return;
+        }
+
+        try {
+            List<PostNewClaims.Result> results = new CreateClaims().execute(PendingClaimGQL.fromJson(claims), this);
+            JSONArray claimStatus = processClaimResponse(results);
+            broadcastSyncSuccess(claimStatus);
+            for (int i = 0; i < claims.length(); i++) {
+                try {
+                    JSONObject preAuth = claims.getJSONObject(i);
+                    JSONObject details = preAuth.optJSONObject("details");
+                    if (details != null && details.has("ClaimUUID")) {
+                        String claimUUID = details.getString("ClaimUUID");
+                        if (claimUUID != null && !claimUUID.isEmpty()) {
+                            sqlHandler.deleteClaim(claimUUID);
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(LOG_TAG, getResources().getString(R.string.error_delete_pre_auth), e);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            broadcastError(getResources().getString(R.string.Error) + e.getMessage(), ACTION_UPLOAD_PREAUTH);
         }
     }
 
