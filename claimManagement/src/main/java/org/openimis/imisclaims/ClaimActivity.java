@@ -22,6 +22,7 @@ import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -85,6 +86,7 @@ public class ClaimActivity extends ImisActivity {
     RadioButton rbEmergency, rbReferral, rbOther, rbHealed, rbDiseased, rbEscaped, rbReferal;
     ImageButton btnScan;
     CheckBox etPreAuthorization;
+    LinearLayout llDiagnosis;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -130,6 +132,7 @@ public class ClaimActivity extends ImisActivity {
         etPreAuthorization = findViewById(R.id.etPreAuthorization);
         etReferralCode = findViewById(R.id.etReferralCode);
         etPrescriber = findViewById(R.id.etPrescriber);
+        llDiagnosis = findViewById(R.id.ll_diagnosis);
 
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
@@ -168,6 +171,8 @@ public class ClaimActivity extends ImisActivity {
         etReferalHF.setVisibility(View.GONE);
         etPreAuthorization.setVisibility(View.GONE);
         etReferralCode.setVisibility(View.GONE);
+        etDiagnosis.setVisibility(View.GONE);
+        llDiagnosis.setVisibility(View.GONE);
 
         rgVisitType.setOnCheckedChangeListener((radioGroup, i) -> {
             if(radioGroup.getCheckedRadioButtonId() == R.id.rbReferral){
@@ -792,10 +797,10 @@ public class ClaimActivity extends ImisActivity {
             Log.e(LOG_TAG, "Error while parsing dates", e);
         }
 
-        if (etDiagnosis.getText().length() == 0) {
-            showValidationDialog(etDiagnosis, getResources().getString(R.string.MissingDisease));
-            return false;
-        }
+//        if (etDiagnosis.getText().length() == 0) {
+//            showValidationDialog(etDiagnosis, getResources().getString(R.string.MissingDisease));
+//            return false;
+//        }
 
         if (rgVisitType.getCheckedRadioButtonId() == -1) {
             showValidationDialog(rgVisitType, getResources().getString(R.string.MissingVisitType));
