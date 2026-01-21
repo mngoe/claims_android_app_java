@@ -139,6 +139,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
                         + " healthFacilityId: " + hfId
                         + " program: " + programId
                         + " visitType: \"" + claim.getVisitType() +"\""
+                        + " source: \"MOB\" "
                         + fagepFields
                         + " services: " + claimServices
                         + " items: " + claimItems
