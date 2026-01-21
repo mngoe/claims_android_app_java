@@ -138,6 +138,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
                         + " dateClaimed: \"" + DateUtils.toDateString(claim.getDateClaimed()) + "\""
                         + " healthFacilityId: " + hfId
                         + " program: " + programId
+                        + " source: \"MOB\" "
                         + " visitType: \"" + claim.getVisitType() +"\""
                         + fagepFields
                         + " services: " + claimServices

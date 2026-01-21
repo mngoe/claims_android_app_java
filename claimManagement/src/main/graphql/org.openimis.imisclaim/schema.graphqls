@@ -5943,6 +5943,7 @@ input CreateClaimMutationInput {
   items: [ClaimItemInputType]
   services: [ClaimServiceInputType]
   attachments: [ClaimAttachmentInputType]
+  source: String
   clientMutationId: String
 }
 
