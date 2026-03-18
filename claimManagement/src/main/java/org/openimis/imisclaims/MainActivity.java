@@ -70,6 +70,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
+import io.sentry.Sentry;
+
 public class MainActivity extends ImisActivity {
     private static final int REQUEST_PERMISSIONS_CODE = 1;
     private static final int REQUEST_ALL_FILES_ACCESS_CODE = 2;
@@ -295,6 +297,7 @@ public class MainActivity extends ImisActivity {
                         }
                     } catch (Exception e) {
                         Log.e(LOG_TAG, "Error while copying master data.", e);
+                        Sentry.captureException(e);
                     }
                 }
             }
@@ -314,6 +317,7 @@ public class MainActivity extends ImisActivity {
                             try {
                                 startActivityForResult(intent, REQUEST_PICK_MD_FILE);
                             } catch (ActivityNotFoundException e) {
+                                Sentry.captureException(e);
                                 Toast.makeText(getApplicationContext(), getResources().getString(R.string.NoFileExporerInstalled), Toast.LENGTH_SHORT).show();
                             }
                         }).setNegativeButton(getResources().getString(R.string.No),
@@ -331,6 +335,7 @@ public class MainActivity extends ImisActivity {
                         doLoggedIn(() -> DownLoadDiagnosesServicesItems(global.getOfficerCode()));
                     } catch (Exception e) {
                         e.printStackTrace();
+                        Sentry.captureException(e);
                     }
                 },
                 (dialog, i) -> dialog.cancel());
@@ -420,6 +425,7 @@ public class MainActivity extends ImisActivity {
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
+                            Sentry.captureException(e);
                             DownloadMasterDialog();
                         }
                     } else {
@@ -454,6 +460,7 @@ public class MainActivity extends ImisActivity {
                     mNotificationManager.notify(SIMPLE_NOTIFICATION_ID, builder.build());
                 } catch (Exception e) {
                     e.printStackTrace();
+                    Sentry.captureException(e);
                 }
 
                 vibrator = (Vibrator) getSystemService(VIBRATOR_SERVICE);
@@ -490,6 +497,7 @@ public class MainActivity extends ImisActivity {
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
+                        Sentry.captureException(e);
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             if(!global.isNetworkAvailable()){
@@ -539,6 +547,7 @@ public class MainActivity extends ImisActivity {
 
                 } catch (Exception e) {
                     e.printStackTrace();
+                    Sentry.captureException(e);
                     runOnUiThread(() -> {
                         progressDialog.dismiss();
                         if(!global.isNetworkAvailable()){
@@ -628,6 +637,7 @@ public class MainActivity extends ImisActivity {
                     }
                 } catch ( Exception e) {
                     e.printStackTrace();
+                    Sentry.captureException(e);
                     if(!global.isNetworkAvailable()){
                         Toast.makeText(MainActivity.this, getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
                     } else {
@@ -675,6 +685,7 @@ public class MainActivity extends ImisActivity {
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
+                    Sentry.captureException(e);
                     if(!global.isNetworkAvailable()){
                         Toast.makeText(MainActivity.this, getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
                     } else {
@@ -716,6 +727,7 @@ public class MainActivity extends ImisActivity {
                             doLoggedIn(() -> DownLoadDiagnosesServicesItems(claimAdminCode));
                         } catch (Exception e) {
                             e.printStackTrace();
+                            Sentry.captureException(e);
                         }
                     }
                     c.close();
@@ -778,6 +790,7 @@ public class MainActivity extends ImisActivity {
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
+                        Sentry.captureException(e);
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             if(!global.isNetworkAvailable()){
@@ -837,6 +850,7 @@ public class MainActivity extends ImisActivity {
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
+                        Sentry.captureException(e);
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             if(!global.isNetworkAvailable()){
