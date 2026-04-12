@@ -26,10 +26,14 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import io.sentry.Sentry;
+import io.sentry.SentryLevel;
+import io.sentry.Scope;
 
 public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
 
     private static final String URI = BuildConfig.API_BASE_URL + "api/graphql";
+    private static final String TRACE_TAG = "SYNC_TRACE";
     public static final MediaType JSON = MediaType.get("application/json; charset=utf-8");
     protected Global global;
     private final Token token = Global.getGlobal().getJWTToken();
@@ -44,29 +48,29 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
             @NonNull int programId,
             @NonNull int diagnosisId,
             @NonNull String programCode
-    ) throws Exception{
+    ) throws Exception {
 
         String clientMutationId = UUID.randomUUID().toString();
         String fagepFields = "";
-        if(programCode.equals("PAL")){
+        if (programCode.equals("PAL")) {
             fagepFields = " testNumber: \"" + claim.getTestNumber() + "\""
                     + " tdr: " + claim.getTdr();
         }
 
         String claimServices = "";
-        if(claim.getServices().size() == 0){
+        if (claim.getServices().size() == 0) {
             claimServices = "[]";
-        }else{
+        } else {
             claimServices = "[";
-            for(Claim.Service service: claim.getServices()){
+            for (Claim.Service service : claim.getServices()) {
                 String subServices = "";
                 String subItems = "";
 
-                if(service.getSubServices().size() == 0){
+                if (service.getSubServices().size() == 0) {
                     subServices = "[]";
-                }else{
+                } else {
                     subServices = "[";
-                    for (SubServiceItem subService: service.getSubServices()){
+                    for (SubServiceItem subService : service.getSubServices()) {
                         String subObj = "{"
                                 + " subServiceCode: \"" + subService.getCode() + "\""
                                 + " qtyAsked: \"" + subService.getQty() + "\""
@@ -78,11 +82,11 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
                     subServices = subServices + "]";
                 }
 
-                if(service.getSubItems().size() == 0){
+                if (service.getSubItems().size() == 0) {
                     subItems = "[]";
-                }else{
+                } else {
                     subItems = "[";
-                    for(SubServiceItem subItem: service.getSubItems()){
+                    for (SubServiceItem subItem : service.getSubItems()) {
                         String subObj = "{"
                                 + " subItemCode: \"" + subItem.getCode() + "\""
                                 + " qtyAsked: \"" + subItem.getQty() + "\""
@@ -108,11 +112,11 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
         }
 
         String claimItems = "";
-        if(claim.getMedications().size() == 0){
+        if (claim.getMedications().size() == 0) {
             claimItems = "[]";
-        }else{
+        } else {
             claimItems = "[";
-            for(Claim.Medication item: claim.getMedications()){
+            for (Claim.Medication item : claim.getMedications()) {
                 String obj = "{"
                         + " itemId: " + Integer.valueOf(item.getId())
                         + " priceAsked: \"" + item.getPrice() + "\""
@@ -139,7 +143,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
                         + " healthFacilityId: " + hfId
                         + " program: " + programId
                         + " source: \"MOB\" "
-                        + " visitType: \"" + claim.getVisitType() +"\""
+                        + " visitType: \"" + claim.getVisitType() + "\""
                         + fagepFields
                         + " services: " + claimServices
                         + " items: " + claimItems
@@ -154,7 +158,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
         json.put("query", QUERY_DOCUMENT);
 
 
-        final TrustManager[] trustAllCerts = new TrustManager[] {
+        final TrustManager[] trustAllCerts = new TrustManager[]{
                 new X509TrustManager() {
                     @Override
                     public void checkClientTrusted(java.security.cert.X509Certificate[] chain, String authType) throws CertificateException {
@@ -178,7 +182,7 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
         final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        builder.sslSocketFactory(sslSocketFactory, (X509TrustManager)trustAllCerts[0]);
+        builder.sslSocketFactory(sslSocketFactory, (X509TrustManager) trustAllCerts[0]);
         builder.hostnameVerifier(new HostnameVerifier() {
             @Override
             public boolean verify(String hostname, SSLSession session) {
@@ -192,20 +196,102 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
 
         Request request = new Request.Builder()
                 .url(URI)
-                .addHeader("Authorization","bearer " + token.getTokenText().trim())
+                .addHeader("Authorization", "bearer " + token.getTokenText().trim())
                 .post(body)
                 .build();
 
+        long httpStart = System.currentTimeMillis();
+        String thread = Thread.currentThread().getName() + ":" + Thread.currentThread().getId();
+
+        String beforeHttpMessage = String.format(
+                "SYNC_TRACE session=- event=CREATECLAIM_BEFORE_HTTP ts=%d thread=%s claimCode=%s cmid=%s",
+                httpStart,
+                thread,
+                claim.getClaimNumber(),
+                clientMutationId
+        );
+
+        Log.i(TRACE_TAG, beforeHttpMessage);
+
+        // Capture Sentry BEFORE HTTP
+        Sentry.configureScope(scope -> {
+            scope.setTag("sync_event", "CREATECLAIM_BEFORE_HTTP");
+            scope.setExtra("claimCode", claim.getClaimNumber());
+            scope.setExtra("clientMutationId", clientMutationId);
+            scope.setExtra("thread", thread);
+            scope.setExtra("timestamp", String.valueOf(httpStart));
+            scope.setExtra("uri", URI);
+        });
+
+        Sentry.captureMessage(beforeHttpMessage, SentryLevel.INFO);
+
+        try {
 
             Response response = httpClient.newCall(request).execute();
+
             int responseCode = response.code();
+            long httpEnd = System.currentTimeMillis();
 
             Log.i("HTTP_POST", URI + " - " + responseCode);
             Log.i("Claim", QUERY_DOCUMENT);
 
+            String afterHttpMessage = String.format(
+                    "SYNC_TRACE session=- event=CREATECLAIM_AFTER_HTTP ts=%d thread=%s claimCode=%s cmid=%s httpCode=%d durationMs=%d",
+                    httpEnd,
+                    thread,
+                    claim.getClaimNumber(),
+                    clientMutationId,
+                    responseCode,
+                    httpEnd - httpStart
+            );
+
+            Log.i(TRACE_TAG, afterHttpMessage);
+
+            // Capture Sentry AFTER HTTP
+            Sentry.configureScope(scope -> {
+                scope.setTag("sync_event", "CREATECLAIM_AFTER_HTTP");
+                scope.setExtra("claimCode", claim.getClaimNumber());
+                scope.setExtra("clientMutationId", clientMutationId);
+                scope.setExtra("thread", thread);
+                scope.setExtra("timestamp", String.valueOf(httpEnd));
+                scope.setExtra("httpCode", String.valueOf(responseCode));
+                scope.setExtra("durationMs", String.valueOf(httpEnd - httpStart));
+            });
+
+            Sentry.captureMessage(afterHttpMessage, SentryLevel.INFO);
+
             String responsePhrase = response.body().string();
+
             Log.i("RESPONSE", String.format("response: %d %s", responseCode, responsePhrase));
 
             return clientMutationId;
+
+        } catch (Exception e) {
+
+            long errorTs = System.currentTimeMillis();
+
+            String errorMessage = String.format(
+                    "SYNC_TRACE session=- event=CREATECLAIM_HTTP_EXCEPTION ts=%d thread=%s claimCode=%s cmid=%s error=%s",
+                    errorTs,
+                    thread,
+                    claim.getClaimNumber(),
+                    clientMutationId,
+                    e.getMessage()
+            );
+
+            Log.e(TRACE_TAG, errorMessage);
+
+            Sentry.configureScope(scope -> {
+                scope.setTag("sync_event", "CREATECLAIM_HTTP_EXCEPTION");
+                scope.setExtra("claimCode", claim.getClaimNumber());
+                scope.setExtra("clientMutationId", clientMutationId);
+                scope.setExtra("thread", thread);
+                scope.setExtra("timestamp", String.valueOf(errorTs));
+            });
+
+            Sentry.captureException(e);
+
+            throw e;
+        }
     }
 }
