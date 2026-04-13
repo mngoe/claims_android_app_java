@@ -258,7 +258,7 @@ public class MainActivity extends ImisActivity {
         // } else if (id == R.id.nav_settings) {
         //     Intent intent = new Intent(this, SettingsActivity.class);
         //     startActivity(intent);
-        // }
+        }
 
         drawer.closeDrawer(GravityCompat.START);
         return true;
