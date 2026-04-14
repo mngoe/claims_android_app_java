@@ -27,7 +27,7 @@ android {
         minSdkVersion 26
         targetSdkVersion 32
         versionCode 4
-        versionName System.getenv("APP_VERSION") ?: "2.3.8"
+        versionName System.getenv("APP_VERSION") ?: "2.3.9"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
