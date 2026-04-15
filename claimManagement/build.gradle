@@ -24,10 +24,10 @@ android {
 
     defaultConfig {
         applicationId "org.openimis.imisclaims"
-        minSdkVersion 26
+        minSdkVersion 21
         targetSdkVersion 32
         versionCode 4
-        versionName System.getenv("APP_VERSION") ?: "2.3.9"
+        versionName System.getenv("APP_VERSION") ?: "2.4.0"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
