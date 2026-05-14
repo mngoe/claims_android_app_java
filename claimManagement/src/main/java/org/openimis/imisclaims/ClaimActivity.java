@@ -10,7 +10,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.inputmethodservice.Keyboard;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -93,7 +95,32 @@ public class ClaimActivity extends ImisActivity {
     RadioButton rbEmergency, rbReferral, rbOther, rbPositive, rbNegative;
     ImageButton btnScan;
     LinearLayout llFagepFields;
-    TextInputLayout ettClaimPrefix, ettGuaranteeNo;
+    TextInputLayout ettClaimPrefix, ettGuaranteeNo, ettClaimCode;
+    private volatile ValidationResult latestValidationResult;
+
+    private static class LocalClaimCodeValidationResult {
+        private final boolean valid;
+        private final String errorMessage;
+
+        private LocalClaimCodeValidationResult(boolean valid, String errorMessage) {
+            this.valid = valid;
+            this.errorMessage = errorMessage;
+        }
+    }
+
+    private static class ValidationResult {
+        private final boolean valid;
+        private final View errorView;
+        private final String errorMessage;
+        private final LocalClaimCodeValidationResult localClaimCodeValidationResult;
+
+        private ValidationResult(boolean valid, View errorView, String errorMessage, LocalClaimCodeValidationResult localClaimCodeValidationResult) {
+            this.valid = valid;
+            this.errorView = errorView;
+            this.errorMessage = errorMessage;
+            this.localClaimCodeValidationResult = localClaimCodeValidationResult;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,6 +167,10 @@ public class ClaimActivity extends ImisActivity {
         etVisitType = findViewById(R.id.etVisitType);
         ettClaimPrefix = findViewById(R.id.ettClaimPrefix);
         ettGuaranteeNo = findViewById(R.id.ettGuaranteeNo);
+        View claimCodeParent = (View) etClaimCode.getParent();
+        if (claimCodeParent instanceof TextInputLayout) {
+            ettClaimCode = (TextInputLayout) claimCodeParent;
+        }
 
         String[] visitTypes = getResources().getStringArray(R.array.visitType);
         ArrayAdapter<String> visitTypeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, visitTypes);
@@ -169,6 +200,25 @@ public class ClaimActivity extends ImisActivity {
 
         rgVisitType.setVisibility(View.GONE);
         ettGuaranteeNo.setVisibility(View.GONE);
+
+        TextWatcher claimCodeUniquenessWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // no-op
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // no-op
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                validateLocalClaimCodeUniqueness();
+            }
+        };
+        etClaimCode.addTextChangedListener(claimCodeUniquenessWatcher);
+        etClaimPrefix.addTextChangedListener(claimCodeUniquenessWatcher);
 
         tvItemTotal.setText("0");
         tvServiceTotal.setText("0");
@@ -267,7 +317,14 @@ public class ClaimActivity extends ImisActivity {
         btnPost.setOnClickListener(v -> {
             progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.Processing));
             runOnNewThread(
-                    () -> isValidData() && saveClaim(),
+                    () -> {
+                        ValidationResult validationResult = validateDataForSubmission();
+                        latestValidationResult = validationResult;
+                        if (!validationResult.valid) {
+                            return false;
+                        }
+                        return saveClaim();
+                    },
                     () -> runOnUiThread(() -> {
                         ClearForm();
                         progressDialog.dismiss();
@@ -278,7 +335,12 @@ public class ClaimActivity extends ImisActivity {
                             }
                         }));
                     }),
-                    () -> progressDialog.dismiss(),
+                    () -> runOnUiThread(() -> {
+                        if (latestValidationResult != null) {
+                            renderValidationResult(latestValidationResult);
+                        }
+                        progressDialog.dismiss();
+                    }),
                     500
             );
         });
@@ -756,26 +818,23 @@ public class ClaimActivity extends ImisActivity {
         }
     }
 
-    private boolean isValidData() {
+    private ValidationResult validateDataForSubmission() {
+        LocalClaimCodeValidationResult localClaimCodeValidationResult = checkLocalClaimCodeUniqueness();
 
         if (etHealthFacility.getText().length() == 0) {
-            showValidationDialog(etHealthFacility, getResources().getString(R.string.MissingHealthFacility));
-            return false;
+            return invalidValidationResult(etHealthFacility, getResources().getString(R.string.MissingHealthFacility), localClaimCodeValidationResult);
         }
 
         if (sqlHandler.getAdjustability("ClaimAdministrator").equals("M") && etClaimAdmin.getText().length() == 0) {
-            showValidationDialog(etClaimAdmin, getResources().getString(R.string.MissingClaimAdmin));
-            return false;
+            return invalidValidationResult(etClaimAdmin, getResources().getString(R.string.MissingClaimAdmin), localClaimCodeValidationResult);
         }
 
         if (etClaimCode.getText().length() == 0) {
-            showValidationDialog(etClaimCode, getResources().getString(R.string.MissingClaimCode));
-            return false;
+            return invalidValidationResult(etClaimCode, getResources().getString(R.string.MissingClaimCode), localClaimCodeValidationResult);
         }
 
         if (etInsureeNumber.getText().length() == 0) {
-            showValidationDialog(etInsureeNumber, getResources().getString(R.string.MissingCHFID));
-            return false;
+            return invalidValidationResult(etInsureeNumber, getResources().getString(R.string.MissingCHFID), localClaimCodeValidationResult);
         }
 
         /*if (!etProgram.getText().toString().equals("VIH")) {
@@ -787,18 +846,15 @@ public class ClaimActivity extends ImisActivity {
         }*/
 
         if (!isValidInsureeNumber()) {
-            showValidationDialog(etInsureeNumber, getResources().getString(R.string.InvalidCHFID));
-            return false;
+            return invalidValidationResult(etInsureeNumber, getResources().getString(R.string.InvalidCHFID), localClaimCodeValidationResult);
         }
 
         if (etStartDate.getText().length() == 0) {
-            showValidationDialog(etStartDate, getResources().getString(R.string.MissingStartDate));
-            return false;
+            return invalidValidationResult(etStartDate, getResources().getString(R.string.MissingStartDate), localClaimCodeValidationResult);
         }
 
         if (etEndDate.getText().length() == 0) {
-            showValidationDialog(etEndDate, getResources().getString(R.string.MissingEndDate));
-            return false;
+            return invalidValidationResult(etEndDate, getResources().getString(R.string.MissingEndDate), localClaimCodeValidationResult);
         }
 
         try {
@@ -810,36 +866,34 @@ public class ClaimActivity extends ImisActivity {
             Date End_date = DateUtils.dateFromString(EndDate);
 
             if (End_date.after(Current_date)) {
-                showValidationDialog(etEndDate, getResources().getString(R.string.AfterCurrentDate));
-                return false;
+                return invalidValidationResult(etEndDate, getResources().getString(R.string.AfterCurrentDate), localClaimCodeValidationResult);
             }
 
             if (Start_date.after(End_date)) {
-                showValidationDialog(etEndDate, getResources().getString(R.string.BiggerDate));
-                return false;
+                return invalidValidationResult(etEndDate, getResources().getString(R.string.BiggerDate), localClaimCodeValidationResult);
             }
         } catch (Exception e) {
             Log.e(LOG_TAG, "Error while parsing dates", e);
         }
 
         if (etDiagnosis.getText().length() == 0) {
-            showValidationDialog(etDiagnosis, getResources().getString(R.string.MissingDisease));
-            return false;
+            return invalidValidationResult(etDiagnosis, getResources().getString(R.string.MissingDisease), localClaimCodeValidationResult);
         }
 
         if (etProgram.getText().length() == 0) {
-            showValidationDialog(etProgram, getResources().getString(R.string.MissingProgram));
-            return false;
+            return invalidValidationResult(etProgram, getResources().getString(R.string.MissingProgram), localClaimCodeValidationResult);
         }
 
         if(etClaimPrefix.getText().length() == 0){
-            showValidationDialog(etClaimPrefix, getResources().getString(R.string.MissingChequeNumber));
-            return false;
+            return invalidValidationResult(etClaimPrefix, getResources().getString(R.string.MissingChequeNumber), localClaimCodeValidationResult);
         }
 
         if(etClaimCode.getText().length() > 7){
-            showValidationDialog(etClaimPrefix, getResources().getString(R.string.InvalidClaimCode));
-            return false;
+            return invalidValidationResult(etClaimPrefix, getResources().getString(R.string.InvalidClaimCode), localClaimCodeValidationResult);
+        }
+
+        if (!localClaimCodeValidationResult.valid) {
+            return invalidValidationResult(etClaimCode, localClaimCodeValidationResult.errorMessage, localClaimCodeValidationResult);
         }
 
 //        if (rgVisitType.getCheckedRadioButtonId() == -1) {
@@ -848,26 +902,22 @@ public class ClaimActivity extends ImisActivity {
 //        }
 
         if(etVisitType.getText().toString().isEmpty()){
-            showValidationDialog(rgVisitType, getResources().getString(R.string.MissingVisitType));
-            return false;
+            return invalidValidationResult(rgVisitType, getResources().getString(R.string.MissingVisitType), localClaimCodeValidationResult);
         }
 
         if (Float.parseFloat(tvItemTotal.getText().toString()) + Float.parseFloat(tvServiceTotal.getText().toString()) == 0) {
-            showValidationDialog(tvItemTotal, getResources().getString(R.string.MissingClaim));
-            return false;
+            return invalidValidationResult(tvItemTotal, getResources().getString(R.string.MissingClaim), localClaimCodeValidationResult);
         }
 
         if(prefixProgramCode.equals("PAL")){
             if(etTestNumber.getText().length() == 0){
-                showValidationDialog(etClaimPrefix, getResources().getString(R.string.MissingTestNumber));
-                return false;
+                return invalidValidationResult(etClaimPrefix, getResources().getString(R.string.MissingTestNumber), localClaimCodeValidationResult);
             }
             if(rgTdr.getCheckedRadioButtonId() == -1){
-                showValidationDialog(etClaimPrefix, getResources().getString(R.string.MissingTdr));
-                return false;
+                return invalidValidationResult(etClaimPrefix, getResources().getString(R.string.MissingTdr), localClaimCodeValidationResult);
             }
         }
-        return true;
+        return new ValidationResult(true, null, null, localClaimCodeValidationResult);
     }
 
     private boolean isValidInsureeNumber() {
@@ -968,6 +1018,64 @@ public class ClaimActivity extends ImisActivity {
         }
         sqlHandler.saveClaim(claimCV, claimItemCVs, claimServiceCVs);
         return true;
+    }
+
+    private LocalClaimCodeValidationResult checkLocalClaimCodeUniqueness() {
+        if (getIntent().hasExtra(EXTRA_CLAIM_UUID)) {
+            return new LocalClaimCodeValidationResult(true, null);
+        }
+        String finalCode = etClaimPrefix.getText().toString() + etClaimCode.getText().toString();
+        if (finalCode.trim().isEmpty()) {
+            return new LocalClaimCodeValidationResult(true, null);
+        }
+
+        boolean exists = sqlHandler.existsClaimCode(finalCode);
+        if (exists) {
+            String errorMessage = getResources().getString(R.string.ClaimNumberExist);
+            return new LocalClaimCodeValidationResult(false, errorMessage);
+        }
+        return new LocalClaimCodeValidationResult(true, null);
+    }
+
+    private void renderLocalClaimCodeError(@NonNull LocalClaimCodeValidationResult result) {
+        if (ettClaimCode != null) {
+            if (result.valid) {
+                ettClaimCode.setError(null);
+                ettClaimCode.setErrorEnabled(false);
+            } else {
+                ettClaimCode.setErrorEnabled(true);
+                ettClaimCode.setError(result.errorMessage);
+            }
+            return;
+        }
+        if (result.valid) {
+            etClaimCode.setError(null);
+        } else {
+            etClaimCode.setError(result.errorMessage);
+        }
+    }
+
+    private boolean validateLocalClaimCodeUniqueness() {
+        LocalClaimCodeValidationResult result = checkLocalClaimCodeUniqueness();
+        renderLocalClaimCodeError(result);
+        return result.valid;
+    }
+
+    private ValidationResult invalidValidationResult(@NonNull View errorView, @NonNull String errorMessage, @NonNull LocalClaimCodeValidationResult localClaimCodeValidationResult) {
+        return new ValidationResult(false, errorView, errorMessage, localClaimCodeValidationResult);
+    }
+
+    private void renderValidationResult(@NonNull ValidationResult result) {
+        renderLocalClaimCodeError(result.localClaimCodeValidationResult);
+        if (result.valid) {
+            return;
+        }
+        showDialog(result.errorMessage, (dialog, which) -> {
+            if (result.errorView instanceof EditText) {
+                EditText editText = (EditText) result.errorView;
+                editText.requestFocus();
+            }
+        });
     }
 
 }

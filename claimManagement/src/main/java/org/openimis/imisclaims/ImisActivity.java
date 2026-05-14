@@ -344,6 +344,8 @@ public abstract class ImisActivity extends AppCompatActivity {
                 }
             }
 
+            // Callbacks are executed on this worker thread.
+            // Any UI updates inside callbacks must be wrapped in runOnUiThread(...).
             if (result) {
                 onTaskSucceed.run();
             } else {

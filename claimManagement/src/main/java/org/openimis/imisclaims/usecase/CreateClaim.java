@@ -37,6 +37,6 @@ public class CreateClaim {
     ) throws Exception {
         return checkMutation.execute(
                 createClaimGraphQLRequest.create(claim,hfId ,adminId, insureeId, programId, diagnosisId, programCode),
-                "Error while creating policy for beneficiary '" + claim.getClaimNumber() + "'");
+                "Error while creating claim No '" + claim.getClaimNumber() + "'");
     }
 }

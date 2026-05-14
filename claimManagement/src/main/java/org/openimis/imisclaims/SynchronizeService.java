@@ -40,12 +40,15 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.UUID;
 
 import io.sentry.Sentry;
+import io.sentry.SentryLevel;
 
 public class SynchronizeService extends JobIntentService {
     private static final int JOB_ID = 6541259; //Random unique Job id
     private static final String LOG_TAG = "SYNCSERVICE";
+    private static final String TRACE_TAG = "SYNC_TRACE";
 
     private static final String ACTION_UPLOAD_CLAIMS = "SynchronizeService.ACTION_UPLOAD_CLAIMS";
     private static final String ACTION_EXPORT_CLAIMS = "SynchronizeService.ACTION_EXPORT_CLAIMS";
@@ -112,13 +115,37 @@ public class SynchronizeService extends JobIntentService {
     }
 
     private void handleUploadClaims() {
+        String syncSessionId = UUID.randomUUID().toString();
+        long uploadStartTs = System.currentTimeMillis();
+        String uploadThread = Thread.currentThread().getName() + ":" + Thread.currentThread().getId();
         if (!global.isNetworkAvailable()) {
+            String message = String.format(
+                    Locale.US,
+                    "SYNC_TRACE session=%s event=UPLOAD_ABORT_NO_NETWORK ts=%d thread=%s",
+                    syncSessionId, uploadStartTs, uploadThread
+            );
+            Log.i(TRACE_TAG, message);
+            Sentry.captureMessage(message, SentryLevel.INFO);
             broadcastError(getResources().getString(R.string.CheckInternet), ACTION_UPLOAD_CLAIMS);
             return;
         }
 
         JSONArray claimsArray = sqlHandler.getAllPendingClaims();
+        String message = String.format(
+                Locale.US,
+                "SYNC_TRACE session=%s event=UPLOAD_START ts=%d thread=%s pendingClaims=%d",
+                syncSessionId, uploadStartTs, uploadThread, claimsArray.length()
+        );
+        Log.i(TRACE_TAG, message);
+        Sentry.captureMessage(message, SentryLevel.INFO);
         if (claimsArray.length() < 1) {
+            message = String.format(
+                    Locale.US,
+                    "SYNC_TRACE session=%s event=UPLOAD_ABORT_NO_CLAIM ts=%d thread=%s",
+                    syncSessionId, System.currentTimeMillis(), uploadThread
+            );
+            Log.i(TRACE_TAG, message);
+            Sentry.captureMessage(message, SentryLevel.INFO);
             broadcastError(getResources().getString(R.string.NoClaim), ACTION_UPLOAD_CLAIMS);
             return;
         }
@@ -165,13 +192,48 @@ public class SynchronizeService extends JobIntentService {
                                             } else {
                                                 //upload claim
                                                 try {
+                                                    String claimUUID = sqlHandler.getClaimUUIDForCode(claim.getClaimNumber());
+                                                    long createStartTs = System.currentTimeMillis();
+                                                    String createMessage = String.format(
+                                                            Locale.US,
+                                                            "SYNC_TRACE session=%s event=CREATECLAIM_EXECUTE_START ts=%d thread=%s claimCode=%s claimUUID=%s insureeId=%d programId=%d",
+                                                            syncSessionId, createStartTs, uploadThread, claim.getClaimNumber(), claimUUID, insureeId, programId
+                                                    );
+                                                    Log.i(TRACE_TAG, createMessage);
+                                                    Sentry.captureMessage(createMessage, SentryLevel.INFO);
+                                                    
                                                     Integer status = new CreateClaim().execute(claim, Integer.parseInt(adminId),Integer.parseInt(hfId),insureeId,programId, diagnosisId, programCode);
+                                                    String createEndMessage = String.format(
+                                                            Locale.US,
+                                                            "SYNC_TRACE session=%s event=CREATECLAIM_EXECUTE_END ts=%d thread=%s claimCode=%s claimUUID=%s status=%s durationMs=%d",
+                                                            syncSessionId, System.currentTimeMillis(), uploadThread, claim.getClaimNumber(), claimUUID,
+                                                            status == STATUS_ERROR ? "ERROR" : "SUCCESS",
+                                                            System.currentTimeMillis() - createStartTs
+                                                    );
+                                                    Log.i(TRACE_TAG, createEndMessage);
+                                                    Sentry.captureMessage(createEndMessage, SentryLevel.INFO);
+                                                    String createFinalMessage = String.format(
+                                                            Locale.US,
+                                                            "SYNC_TRACE session=%s event=CREATECLAIM_EXECUTE_END ts=%d thread=%s claimCode=%s claimUUID=%s status=%s durationMs=%d",
+                                                            syncSessionId, System.currentTimeMillis(), uploadThread, claim.getClaimNumber(), claimUUID,
+                                                            status == STATUS_ERROR ? "ERROR" : "SUCCESS",
+                                                            System.currentTimeMillis() - createStartTs
+                                                    );
+                                                    Log.i(TRACE_TAG, createFinalMessage);
+                                                    Sentry.captureMessage(createFinalMessage, SentryLevel.INFO);
                                                     if(status == STATUS_ERROR){
                                                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.FailedToCreateClaim));
                                                     }else{
                                                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS, null);
                                                     }
                                                 } catch (HttpException e){
+                                                    String errorMessage = String.format(
+                                                            Locale.US,
+                                                            "SYNC_TRACE session=%s event=CREATECLAIM_EXECUTE_ERROR ts=%d thread=%s claimCode=%s errorClass=%s",
+                                                            syncSessionId, System.currentTimeMillis(), uploadThread, claim.getClaimNumber(), e.getClass().getSimpleName()
+                                                    );
+                                                    Log.i(TRACE_TAG, errorMessage);
+                                                    Sentry.captureMessage(errorMessage, SentryLevel.ERROR);
                                                     result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
                                                 }
                                                 results.add(result);
@@ -184,13 +246,38 @@ public class SynchronizeService extends JobIntentService {
                                 } else {
                                     //upload claim
                                     try {
+                                        String claimUUID = sqlHandler.getClaimUUIDForCode(claim.getClaimNumber());
+                                        long createStartTs = System.currentTimeMillis();
+                                        String createMessage = String.format(
+                                                Locale.US,
+                                                "SYNC_TRACE session=%s event=CREATECLAIM_EXECUTE_START ts=%d thread=%s claimCode=%s claimUUID=%s insureeId=%d programId=%d",
+                                                syncSessionId, createStartTs, uploadThread, claim.getClaimNumber(), claimUUID, insureeId, programId
+                                        );
+                                        Log.i(TRACE_TAG, createMessage);
+                                        Sentry.captureMessage(createMessage, SentryLevel.INFO);
                                         Integer status = new CreateClaim().execute(claim, Integer.parseInt(adminId),Integer.parseInt(hfId),insureeId,programId, diagnosisId, programCode);
+                                        String endMessage = String.format(
+                                                Locale.US,
+                                                "SYNC_TRACE session=%s event=CREATECLAIM_EXECUTE_END ts=%d thread=%s claimCode=%s claimUUID=%s status=%s durationMs=%d",
+                                                syncSessionId, System.currentTimeMillis(), uploadThread, claim.getClaimNumber(), claimUUID,
+                                                status == STATUS_ERROR ? "ERROR" : "SUCCESS",
+                                                System.currentTimeMillis() - createStartTs
+                                        );
+                                        Log.i(TRACE_TAG, endMessage);
+                                        Sentry.captureMessage(endMessage, SentryLevel.INFO);
                                         if(status == STATUS_ERROR){
                                             result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.FailedToCreateClaim));
                                         }else{
                                             result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.SUCCESS, null);
                                         }
                                     } catch (HttpException e){
+                                        String errorMessage = String.format(
+                                                Locale.US,
+                                                "SYNC_TRACE session=%s event=CREATECLAIM_EXECUTE_ERROR ts=%d thread=%s claimCode=%s errorClass=%s",
+                                                syncSessionId, System.currentTimeMillis(), uploadThread, claim.getClaimNumber(), e.getClass().getSimpleName()
+                                        );
+                                        Log.i(TRACE_TAG, errorMessage);
+                                        Sentry.captureMessage(errorMessage, SentryLevel.ERROR);
                                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR, getResources().getString(R.string.SomethingWentWrongServer));
                                     }
                                     results.add(result);
@@ -222,10 +309,24 @@ public class SynchronizeService extends JobIntentService {
                 }
             }
             JSONArray claimStatus = processClaimResponse(results);
+            String uploadEndMessage = String.format(
+                    Locale.US,
+                    "SYNC_TRACE session=%s event=UPLOAD_END ts=%d thread=%s durationMs=%d messagesCount=%d",
+                    syncSessionId, System.currentTimeMillis(), uploadThread, System.currentTimeMillis() - uploadStartTs, claimStatus.length()
+            );
+            Log.i(TRACE_TAG, uploadEndMessage);
+            Sentry.captureMessage(uploadEndMessage, SentryLevel.INFO);
             broadcastSyncSuccess(claimStatus);
         } catch (Exception e) {
             e.printStackTrace();
             Sentry.captureException(e);
+            String uploadErrorMessage = String.format(
+                    Locale.US,
+                    "SYNC_TRACE session=%s event=UPLOAD_ERROR ts=%d thread=%s durationMs=%d errorClass=%s",
+                    syncSessionId, System.currentTimeMillis(), uploadThread, System.currentTimeMillis() - uploadStartTs, e.getClass().getSimpleName()
+            );
+            Log.i(TRACE_TAG, uploadErrorMessage);
+            Sentry.captureMessage(uploadErrorMessage, SentryLevel.ERROR);
             broadcastError(getResources().getString(R.string.ErrorOccurred) + ": " + e.getMessage(), ACTION_UPLOAD_CLAIMS);
         }
     }

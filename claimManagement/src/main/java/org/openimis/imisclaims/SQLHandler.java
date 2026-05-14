@@ -1194,6 +1194,18 @@ public class SQLHandler extends SQLiteOpenHelper {
         return null;
     }
 
+    public boolean existsClaimCode(@NonNull String claimCode) {
+        try (Cursor cursor = db.rawQuery(
+                "SELECT 1 FROM tblClaimDetails WHERE LOWER(ClaimCode) = LOWER(?) LIMIT 1",
+                new String[]{claimCode}
+        )) {
+            return cursor != null && cursor.moveToFirst();
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Error while checking claim code uniqueness", e);
+            return false;
+        }
+    }
+
     @NonNull
     public JSONObject getClaimCounts() {
         JSONArray claimCounts = getQueryResultAsJsonArray(
