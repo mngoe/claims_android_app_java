@@ -267,7 +267,7 @@ public class ClaimActivity extends ImisActivity {
         btnPost.setOnClickListener(v -> {
             progressDialog = ProgressDialog.show(this, "", getResources().getString(R.string.Processing));
             runOnNewThread(
-                    () -> isValidData() && saveClaim(),
+                    () -> isValidData() && isValidDiagnosis() && saveClaim(),
                     () -> runOnUiThread(() -> {
                         ClearForm();
                         progressDialog.dismiss();
@@ -832,6 +832,11 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
+        if(!isValidProgram()){
+            showValidationDialog(etProgram, getResources().getString(R.string.InvalidProgram));
+            return false;
+        }
+
         if(etClaimPrefix.getText().length() == 0){
             showValidationDialog(etClaimPrefix, getResources().getString(R.string.MissingChequeNumber));
             return false;
@@ -873,6 +878,31 @@ public class ClaimActivity extends ImisActivity {
     private boolean isValidInsureeNumber() {
         Escape escape = new Escape();
         return escape.CheckCHFID(etInsureeNumber.getText().toString());
+    }
+
+    private boolean isValidDiagnosis(){
+        List<AutoCompleteTextView> diagnosisList = new ArrayList<>();
+        diagnosisList.add(etDiagnosis);
+        diagnosisList.add(etDiagnosis1);
+        diagnosisList.add(etDiagnosis2);
+        diagnosisList.add(etDiagnosis3);
+        diagnosisList.add(etDiagnosis4);
+
+        for(AutoCompleteTextView diagnosis : diagnosisList){
+            if(!diagnosis.getText().toString().isEmpty()){
+                int diagnosisId = sqlHandler.getDiagnosisId(diagnosis.getText().toString());
+                if(diagnosisId == 0){
+                    showValidationDialog(diagnosis, getResources().getString(R.string.invalidDisease));
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean isValidProgram(){
+        int programId = sqlHandler.getProgamId(etProgram.getText().toString());
+        return programId != 0;
     }
 
     protected void showValidationDialog(View view, String msg) {

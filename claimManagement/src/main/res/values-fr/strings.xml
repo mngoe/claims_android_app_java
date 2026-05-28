@@ -565,4 +565,6 @@
   <string name="updateAvailable">Mise à jour disponible</string>
   <string name="haveLastVersion">Vous avez la dernière version </string>
   <string name="newVersion">Nouvelle version </string>
+  <string name="invalidDisease">Code de diagnostic invalide</string>
+  <string name="InvalidProgram">Le programme saisi est invalide</string>
 </resources>
