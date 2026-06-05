@@ -109,7 +109,7 @@ android {
             resValue "string", "app_name_claims", "Claims CSU"
             resValue "string", "release_tag", "csu"
             buildConfigField "String", "API_BASE_URL", '"https://csuapps.minsante.cm/"'
-            buildConfigField "String", "RAR_PASSWORD", '"xc3-ed@/dfr;nJ3R"'
+            buildConfigField "String", "ZIP_PASSWORD", '"xc3-ed@/dfr;nJ3R"'
             dimension 'std'
             resValue "string", "sentry_dsn", '"https://54612a80b36c47e78722b9779410e3d1@glitchtip-csuapps.minsante.cm/9"'
         }
