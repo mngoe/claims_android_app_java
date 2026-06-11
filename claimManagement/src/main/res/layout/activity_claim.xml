@@ -75,11 +75,13 @@
                 android:orientation="horizontal">
 
                 <com.google.android.material.textfield.TextInputLayout
-                    android:layout_width="250dp"
+                    android:id="@+id/tilCHFID"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:hint="@string/CHFID"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-                    <EditText
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    app:errorEnabled="true">
+                    <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etCHFID"
                         android:layout_width="match_parent"
                         android:layout_height="55dp"
@@ -87,9 +89,8 @@
                         android:ems="10"
                         android:fontFamily="sans-serif-light"
                         android:inputType="text"
-                        android:maxLength="20">
+                        android:maxLength="20"/>
                         <requestFocus/>
-                    </EditText>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <ImageButton
@@ -195,7 +196,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
                 android:hint="@string/Prefix"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:errorEnabled="true">
                 <EditText
                     android:id="@+id/etClaimPrefix"
                     android:layout_width="match_parent"

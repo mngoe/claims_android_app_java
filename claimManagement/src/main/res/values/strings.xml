@@ -249,4 +249,6 @@
     <string name="updateAvailable">Update available</string>
     <string name="haveLastVersion">You have the last version </string>
     <string name="newVersion">New version </string>
+    <string name="minChfIdRequired">The insuree number must contain at least 12 characters</string>
+    <string name="minChequeNumberRequired">The cheque number must contain at least 6 characters</string>
 </resources>

@@ -565,4 +565,6 @@
   <string name="updateAvailable">Mise à jour disponible</string>
   <string name="haveLastVersion">Vous avez la dernière version </string>
   <string name="newVersion">Nouvelle version </string>
+  <string name="minChfIdRequired">Le numéro d\'assuré doit contenir minimum 12 caractères</string>
+  <string name="minChequeNumberRequired">Le numéro de chèque doit contenir minimum 6 caractères</string>
 </resources>
