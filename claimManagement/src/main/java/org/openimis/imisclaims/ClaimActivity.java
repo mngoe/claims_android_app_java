@@ -10,7 +10,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.inputmethodservice.Keyboard;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -93,7 +95,7 @@ public class ClaimActivity extends ImisActivity {
     RadioButton rbEmergency, rbReferral, rbOther, rbPositive, rbNegative;
     ImageButton btnScan;
     LinearLayout llFagepFields;
-    TextInputLayout ettClaimPrefix, ettGuaranteeNo;
+    TextInputLayout ettClaimPrefix, ettGuaranteeNo, tilCHFID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,6 +142,7 @@ public class ClaimActivity extends ImisActivity {
         etVisitType = findViewById(R.id.etVisitType);
         ettClaimPrefix = findViewById(R.id.ettClaimPrefix);
         ettGuaranteeNo = findViewById(R.id.ettGuaranteeNo);
+        tilCHFID = findViewById(R.id.tilCHFID);
 
         String[] visitTypes = getResources().getStringArray(R.array.visitType);
         ArrayAdapter<String> visitTypeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, visitTypes);
@@ -340,6 +343,24 @@ public class ClaimActivity extends ImisActivity {
                 }
             });
         }
+
+        etInsureeNumber.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                int length = s != null ? s.length() : 0;
+                if (length > 0 && length < 12) {
+                    tilCHFID.setError(getResources().getString(R.string.minChfIdRequired));
+                } else {
+                    tilCHFID.setError(null);
+                }
+            }
+        });
     }
 
     private boolean isIntentReadonly() {
@@ -775,6 +796,9 @@ public class ClaimActivity extends ImisActivity {
 
         if (etInsureeNumber.getText().length() == 0) {
             showValidationDialog(etInsureeNumber, getResources().getString(R.string.MissingCHFID));
+            return false;
+        } else if(etInsureeNumber.getText().length() < 12){
+            showValidationDialog(etInsureeNumber, getResources().getString(R.string.minChfIdRequired));
             return false;
         }
 

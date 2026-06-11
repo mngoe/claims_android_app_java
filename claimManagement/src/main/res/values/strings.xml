@@ -251,4 +251,5 @@
     <string name="newVersion">New version </string>
     <string name="invalidDisease">Invalid disease code</string>
     <string name="InvalidProgram">Invalid program</string>
+    <string name="minChfIdRequired">The insuree number must contain at least 12 characters</string>
 </resources>
