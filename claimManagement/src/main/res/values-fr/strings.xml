@@ -16,9 +16,9 @@
   <string name="InvalidChequeNumber">Numéro de cheque invalide</string>
   <string name="NonUsedChequeNumber">Le numéro de cheque ne correspond a aucun patient</string>
   <string name="settings">Réglages</string>
-  <string name="RarPassword">Mot de passe RAR</string>
-  <string name="DefaultRarPassword">Définir le mot de passe RAR par défaut</string>
-  <string name="SaveRarPassword">Sauvegarder</string>
+  <string name="ZipPassword">Mot de passe ZIP</string>
+  <string name="DefaultZipPassword">Définir le mot de passe ZIP par défaut</string>
+  <string name="SaveZipPassword">Sauvegarder</string>
   <string name="InsuranceNumber">Numéro d\'assurance</string>
   <string name="ErrorOccurred">Une erreur s\'est produite lors du traitement des données.</string>
   <string name="SomethingWrongServer">Il y a eu un problème sur le serveur.</string>
@@ -565,4 +565,6 @@
   <string name="updateAvailable">Mise à jour disponible</string>
   <string name="haveLastVersion">Vous avez la dernière version </string>
   <string name="newVersion">Nouvelle version </string>
+  <string name="invalidDisease">Code de diagnostic invalide</string>
+  <string name="InvalidProgram">Le programme saisi est invalide</string>
 </resources>

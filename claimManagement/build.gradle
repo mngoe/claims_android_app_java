@@ -27,7 +27,7 @@ android {
         minSdkVersion 26
         targetSdkVersion 32
         versionCode 4
-        versionName System.getenv("APP_VERSION") ?: "2.4.0"
+        versionName System.getenv("APP_VERSION") ?: "2.4.1"
         testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
     buildTypes {
@@ -59,7 +59,7 @@ android {
         resValue "string", "ReleaseDateValue", getDate()
         buildConfigField "String", "API_BASE_URL", '"http://demo.openimis.org/"'
         buildConfigField "String", "REST_API_PREFIX", '"rest"'
-        buildConfigField "String", "RAR_PASSWORD", '")(#$1HsD"'
+        buildConfigField "String", "ZIP_PASSWORD", '")(#$1HsD"'
         buildConfigField "String", "API_VERSION", '"3"'
     }
 

@@ -40,10 +40,10 @@
             android:id="@+id/nav_Retrieve"
             android:icon="@drawable/mapservices"
             android:title="@string/retrieve" />
-        <item
+        <!-- <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/settings"
-            android:title="@string/settings" />
+            android:title="@string/settings" /> -->
         <item
             android:id="@+id/nav_about"
             android:icon="@drawable/ic_about1"
