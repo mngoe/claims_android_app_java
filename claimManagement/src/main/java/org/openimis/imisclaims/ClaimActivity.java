@@ -361,6 +361,27 @@ public class ClaimActivity extends ImisActivity {
                 }
             }
         });
+
+        etClaimPrefix.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String program = etProgram.getText().toString();
+                if(program.equals("Cheque Santé") || program.equals("Chèque Santé")){
+                    int length = s != null ? s.length() : 0;
+                    if (length > 0 && length < 6) {
+                        ettClaimPrefix.setError(getResources().getString(R.string.minChequeNumberRequired));
+                    } else {
+                        ettClaimPrefix.setError(null);
+                    }
+                }
+            }
+        });
     }
 
     private boolean isIntentReadonly() {
@@ -861,8 +882,12 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
+        String program = etProgram.getText().toString();
         if(etClaimPrefix.getText().length() == 0){
             showValidationDialog(etClaimPrefix, getResources().getString(R.string.MissingChequeNumber));
+            return false;
+        } else if((program.equals("Cheque Santé") || program.equals("Chèque Santé")) && etClaimPrefix.length() < 6){
+            showValidationDialog(etClaimPrefix, getResources().getString(R.string.minChequeNumberRequired));
             return false;
         }
 

@@ -568,4 +568,5 @@
   <string name="invalidDisease">Code de diagnostic invalide</string>
   <string name="InvalidProgram">Le programme saisi est invalide</string>
   <string name="minChfIdRequired">Le numéro d\'assuré doit contenir minimum 12 caractères</string>
+  <string name="minChequeNumberRequired">Le numéro de chèque doit contenir minimum 6 caractères</string>
 </resources>
