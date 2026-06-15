@@ -5,11 +5,12 @@ import androidx.annotation.WorkerThread;
 
 import com.apollographql.apollo.api.Input;
 
+import org.openimis.imisclaims.BuildConfig;
 import org.openimis.imisclaims.GetClaimAdminsQuery;
 
 public class GetPractitionersGraphQLRequest extends BaseGraphQLRequest {
 
-    private static final String URI = "https://test-csuapps.minsante.cm/api/graphql";
+    private static final String URI = BuildConfig.MASTER_DATA_URL + "api/graphql";
 
     @NonNull
     @WorkerThread
