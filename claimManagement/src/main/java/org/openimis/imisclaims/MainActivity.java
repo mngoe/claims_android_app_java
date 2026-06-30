@@ -847,6 +847,7 @@ public class MainActivity extends ImisActivity {
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
                             Toast.makeText(MainActivity.this, getResources().getString(R.string.MapSuccessful), Toast.LENGTH_LONG).show();
+                            downloadConfigs();
                         });
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -868,6 +869,45 @@ public class MainActivity extends ImisActivity {
             ErrorDialogBox(getResources().getString(R.string.CheckInternet));
         }
 
+    }
+
+    public void downloadConfigs (){
+        if (global.isNetworkAvailable()){
+            String progress_message = getResources().getString(R.string.getConfig) + "...";
+            progressDialog = ProgressDialog.show(this, getResources().getString(R.string.download), progress_message);
+            Thread thread = new Thread() {
+                public void run() {
+                    try {
+                        List<ModuleConfig> configs = new FetchConfigs().execute();
+                        if(!configs.isEmpty()){
+                            sqlHandler.ClearAll("tblConfig");
+                            for (int i = 0; i < configs.size(); i++) {
+                                sqlHandler.InsertConfig(i+1,configs.get(i).getModule(), configs.get(i).getConfig());
+                            }
+                        }
+                        runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            Toast.makeText(MainActivity.this, getResources().getString(R.string.downloaded_config), Toast.LENGTH_LONG).show();
+                        });
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        Sentry.captureException(e);
+                        runOnUiThread(() -> {
+                            progressDialog.dismiss();
+                            if(!global.isNetworkAvailable()){
+                                Toast.makeText(MainActivity.this,  getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
+                            }else {
+                                Toast.makeText(MainActivity.this, e.getMessage() + "-" + getResources().getString(R.string.AccessDenied), Toast.LENGTH_LONG).show();
+                            }
+                        });
+                    }
+                };
+            };
+            thread.start();
+        } else {
+            runOnUiThread(() -> progressDialog.dismiss());
+            ErrorDialogBox(getResources().getString(R.string.CheckInternet));
+        }
     }
 
     public void saveLastUpdateDate(String lastUpdateDate) {
@@ -927,6 +967,8 @@ public class MainActivity extends ImisActivity {
             }
 
             return false;
+        } else {
+            sqlHandler.updateTables();
         }
 
         return true;
