@@ -253,4 +253,6 @@
     <string name="InvalidProgram">Invalid program</string>
     <string name="minChfIdRequired">The insuree number must contain at least 12 characters</string>
     <string name="minChequeNumberRequired">The cheque number must contain at least 6 characters</string>
+    <string name="getConfig">Modules configurations</string>
+    <string name="downloaded_config">Configurations downloaded successfully</string>
 </resources>
