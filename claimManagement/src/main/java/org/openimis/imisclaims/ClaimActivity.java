@@ -99,7 +99,7 @@ public class ClaimActivity extends ImisActivity {
     JSONObject insureeConfig;
     JSONObject policyConfig;
     JSONObject claimConfig;
-    int minChequeNumber = 0, minChfId = 0, maxChfId = 30, codeMaxLength = 0;
+    int minChequeNumber = 6, minChfId = 12, maxChfId = 20, codeMaxLength = 6;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
