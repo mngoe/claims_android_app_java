@@ -87,8 +87,7 @@
                         android:layout_height="55dp"
                         android:ems="10"
                         android:fontFamily="sans-serif-light"
-                        android:inputType="text"
-                        android:maxLength="20"/>
+                        android:inputType="text"/>
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <ImageButton
@@ -215,8 +214,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="50dp"
                     android:ems="10"
-                    android:fontFamily="sans-serif-light"
-                    android:maxLength="8"/>
+                    android:fontFamily="sans-serif-light"/>
             </com.google.android.material.textfield.TextInputLayout>
 
 

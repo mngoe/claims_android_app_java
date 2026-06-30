@@ -1293,4 +1293,21 @@ public class SQLHandler extends SQLiteOpenHelper {
             e.printStackTrace();
         }
     }
+
+    public JSONObject getModuleConfig(String module){
+        JSONObject config = new JSONObject();
+        try {
+            String query = "SELECT Config FROM tblConfig WHERE Module = \"" + module + "\"";
+            Cursor cursor1 = db.rawQuery(query, null);
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    config = new JSONObject(cursor1.getString(0));
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return config;
+    }
 }

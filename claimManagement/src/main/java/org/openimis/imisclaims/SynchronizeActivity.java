@@ -282,9 +282,7 @@ public class SynchronizeActivity extends ImisActivity {
                 try {
                     String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"HFId");
                     List<Service> services = new FetchServices().execute(hfId);
-                    if (services.size() != 0) {
-                        //get list of all services in database
-
+                    if (!services.isEmpty()) {
                         //get pricelist service for health facility and user
                         PaymentList paymentList = new FetchPaymentList().execute(global.getOfficerCode());
                         List<Service> servicesPricelist = paymentList.getServices();
@@ -293,7 +291,6 @@ public class SynchronizeActivity extends ImisActivity {
                         sqlHandler.ClearAll("tblSubServices");
                         sqlHandler.ClearAll("tblSubItems");
                         sqlHandler.ClearMapping("S");
-                        sqlHandler.ClearAll("tblReferences");
 
 
                         for (Service service: services) {
@@ -303,6 +300,8 @@ public class SynchronizeActivity extends ImisActivity {
                             for(Service serv : servicesPricelist){
                                 if(serv.getCode().equals(service.getCode())){
                                     priceService = String.valueOf(serv.getPrice());
+                                } else {
+                                    priceService = String.valueOf(service.getPrice());
                                 }
                             }
 
@@ -311,17 +310,15 @@ public class SynchronizeActivity extends ImisActivity {
                             sqlHandler.InsertReferences(service.getCode(), service.getName(), "S", String.valueOf(service.getPrice()));
 
                             //insert service in database
-                            if( priceService != "" ){
-                                sqlHandler.InsertService(service.getId(),
-                                        service.getCode(),
-                                        service.getName(), "S",
-                                        priceService,
-                                        service.getPackageType(),
-                                        service.getProgram());
-                            }
+                            sqlHandler.InsertService(service.getId(),
+                                    service.getCode(),
+                                    service.getName(), "S",
+                                    priceService,
+                                    service.getPackageType(),
+                                    service.getProgram());
 
                             //insert subservices
-                            if (service.getSubServices().size() != 0) {
+                            if (service.getSubServices() != null && !service.getSubServices().isEmpty()) {
                                 List<SubServiceItem> subservices = service.getSubServices();
                                 for (SubServiceItem subService: subservices) {
                                     sqlHandler.InsertSubServices(subService.getId(),
@@ -330,7 +327,7 @@ public class SynchronizeActivity extends ImisActivity {
                             }
 
                             //insert subItems
-                            if (service.getSubItems().size() != 0) {
+                            if (service.getSubItems() != null && !service.getSubItems().isEmpty()) {
                                 List<SubServiceItem> subItems = service.getSubItems();
                                 for (SubServiceItem subItem: subItems) {
                                     sqlHandler.InsertSubItems(subItem.getId(),
