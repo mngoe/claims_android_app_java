@@ -84,3 +84,4 @@ fastlane/readme.md
 .DS_Store
 ./.DS_Store
 ./git/.DS_Store
+*.hprof
