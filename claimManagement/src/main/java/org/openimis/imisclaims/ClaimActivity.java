@@ -148,17 +148,7 @@ public class ClaimActivity extends ImisActivity {
         ettGuaranteeNo = findViewById(R.id.ettGuaranteeNo);
         tilCHFID = findViewById(R.id.tilCHFID);
 
-        try {
-            insureeConfig = sqlHandler.getModuleConfig("fe-insuree");
-            policyConfig = sqlHandler.getModuleConfig("fe-policy");
-            claimConfig = sqlHandler.getModuleConfig("fe-claim");
-            minChequeNumber = policyConfig.getInt("minChequeNumberRequired");
-            minChfId = insureeConfig.getInt("insureeForm.chfIdMinLength");
-            maxChfId = insureeConfig.getInt("insureeForm.chfIdMaxLength");
-            codeMaxLength = claimConfig.getInt("claimForm.codeMaxLength");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        initConfigurations();
 
         String[] visitTypes = getResources().getStringArray(R.array.visitType);
         ArrayAdapter<String> visitTypeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, visitTypes);
@@ -197,12 +187,14 @@ public class ClaimActivity extends ImisActivity {
             String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(), "HFId");
             String hfPrograms = sqlHandler.getHealthFacilityPrograms(hfId);
             String userPrograms = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"Programs");
-            JSONArray arrayHfPrograms = new JSONArray(hfPrograms);
-            JSONArray arrayAdminPrograms = new JSONArray(userPrograms);
-            for (int i = 0 ; i< arrayHfPrograms.length(); i++){
-                for (int j = 0 ; j < arrayAdminPrograms.length() ; j++){
-                    if(arrayHfPrograms.get(i).toString().equals(arrayAdminPrograms.get(j).toString())){
-                        filterPrograms.add(arrayHfPrograms.get(i).toString());
+            if(hfPrograms != null){
+                JSONArray arrayHfPrograms = new JSONArray(hfPrograms);
+                JSONArray arrayAdminPrograms = new JSONArray(userPrograms);
+                for (int i = 0 ; i< arrayHfPrograms.length(); i++){
+                    for (int j = 0 ; j < arrayAdminPrograms.length() ; j++){
+                        if(arrayHfPrograms.get(i).toString().equals(arrayAdminPrograms.get(j).toString())){
+                            filterPrograms.add(arrayHfPrograms.get(i).toString());
+                        }
                     }
                 }
             }
@@ -400,6 +392,25 @@ public class ClaimActivity extends ImisActivity {
                 }
             }
         });
+    }
+
+    private void initConfigurations(){
+        try {
+            insureeConfig = sqlHandler.getModuleConfig("fe-insuree");
+            policyConfig = sqlHandler.getModuleConfig("fe-policy");
+            claimConfig = sqlHandler.getModuleConfig("fe-claim");
+            if(policyConfig.has("minChequeNumberRequired")){
+                minChequeNumber = policyConfig.getInt("minChequeNumberRequired");
+            }
+            if(insureeConfig.has("insureeForm.chfIdMinLength")){
+                minChfId = insureeConfig.getInt("insureeForm.chfIdMinLength");
+            }
+            if(insureeConfig.has("insureeForm.chfIdMaxLength")){
+                codeMaxLength = claimConfig.getInt("claimForm.codeMaxLength");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
     }
 
     private boolean isIntentReadonly() {
@@ -816,7 +827,7 @@ public class ClaimActivity extends ImisActivity {
         }
     }
 
-    private boolean isValidData() {
+    protected boolean isValidData() {
 
         if (etHealthFacility.getText().length() == 0) {
             showValidationDialog(etHealthFacility, getResources().getString(R.string.MissingHealthFacility));
@@ -958,7 +969,7 @@ public class ClaimActivity extends ImisActivity {
         runOnUiThread(() -> showDialog(msg, (dialog, which) -> ClearForm(), (dialog, which) -> dialog.dismiss()));
     }
 
-    private boolean saveClaim() {
+    protected boolean saveClaim() {
         Intent intent = getIntent();
         String claimUUID;
         if (intent.hasExtra(EXTRA_CLAIM_UUID)) {
