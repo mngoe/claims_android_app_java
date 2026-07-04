@@ -364,9 +364,11 @@ public class ClaimActivity extends ImisActivity {
                 int length = s != null ? s.length() : 0;
                 if (length > 0 && length < minChfId) {
                     tilCHFID.setError(getResources().getString(R.string.minCharactersRequired, minChfId));
-                } else if(length > maxChfId){
+                }
+                if(length > maxChfId){
                     tilCHFID.setError(getResources().getString(R.string.maxCharactersRequired, maxChfId));
-                } else {
+                }
+                if (length == 0 || (length >= minChfId && length <= maxChfId)) {
                     tilCHFID.setError(null);
                 }
             }
@@ -386,7 +388,8 @@ public class ClaimActivity extends ImisActivity {
                     int length = s != null ? s.length() : 0;
                     if (length > 0 && length < minChequeNumber) {
                         ettClaimPrefix.setError(getResources().getString(R.string.minCharactersRequired, minChequeNumber));
-                    } else {
+                    }
+                    if (length == 0 || length >= minChequeNumber) {
                         ettClaimPrefix.setError(null);
                     }
                 }
@@ -847,10 +850,14 @@ public class ClaimActivity extends ImisActivity {
         if (etInsureeNumber.getText().length() == 0) {
             showValidationDialog(etInsureeNumber, getResources().getString(R.string.MissingCHFID));
             return false;
-        } else if(etInsureeNumber.getText().length() < minChfId){
+        }
+
+        if(etInsureeNumber.getText().length() > 0 && etInsureeNumber.getText().length() < minChfId){
             showValidationDialog(etInsureeNumber, getResources().getString(R.string.minCharactersRequired, minChfId));
             return false;
-        } else if(etInsureeNumber.getText().length() > maxChfId) {
+        }
+
+        if(etInsureeNumber.getText().length() > 0 && etInsureeNumber.getText().length() > maxChfId) {
             showValidationDialog(etInsureeNumber, getResources().getString(R.string.maxCharactersRequired, maxChfId));
             return false;
         }
@@ -913,7 +920,9 @@ public class ClaimActivity extends ImisActivity {
         if(etClaimPrefix.getText().length() == 0){
             showValidationDialog(etClaimPrefix, getResources().getString(R.string.MissingChequeNumber));
             return false;
-        } else if((program.equals("Cheque Santé") || program.equals("Chèque Santé")) && etClaimPrefix.length() < minChequeNumber){
+        }
+
+        if(etClaimPrefix.getText().length() > 0 && (program.equals("Cheque Santé") || program.equals("Chèque Santé")) && etClaimPrefix.length() < minChequeNumber){
             showValidationDialog(etClaimPrefix, getResources().getString(R.string.minCharactersRequired, minChequeNumber));
             return false;
         }
