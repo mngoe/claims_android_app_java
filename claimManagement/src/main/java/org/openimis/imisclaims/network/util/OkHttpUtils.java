@@ -19,6 +19,12 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 public class OkHttpUtils {
 
+    // Keep those timeouts short enough for a request made without mobile data to fail instead of
+    // hanging, so the user is told about the connection problem instead of waiting forever.
+    private static final long CONNECT_TIMEOUT_SECONDS = 15;
+    private static final long READ_TIMEOUT_SECONDS = 30;
+    private static final long WRITE_TIMEOUT_SECONDS = 30;
+
     private static volatile OkHttpClient client = null;
 
     private OkHttpUtils() {
@@ -31,9 +37,9 @@ public class OkHttpUtils {
             synchronized (OkHttpUtils.class) {
                 if (client == null) {
                     OkHttpClient.Builder builder = new OkHttpClient.Builder();
-                    builder.connectTimeout(2000, TimeUnit.SECONDS)
-                            .writeTimeout(2000,TimeUnit.SECONDS)
-                            .readTimeout(2000,TimeUnit.SECONDS);
+                    builder.connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                            .writeTimeout(WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                            .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                     HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
                     interceptor.setLevel(BuildConfig.DEBUG ? HttpLoggingInterceptor.Level.BODY : HttpLoggingInterceptor.Level.BASIC);
                     builder.addInterceptor(interceptor);
