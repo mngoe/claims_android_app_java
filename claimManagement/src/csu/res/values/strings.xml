@@ -9,6 +9,7 @@
   <string name="InvalidChequeNumber">Invalid cheque number</string>
   <string name="NonUsedChequeNumber">Unknow cheque number</string>
   <string name="CheckConnection">Check your internet connection</string>
+  <string name="ConnectionProblem">Connection problem. Please try again</string>
   <string name="FailedToCreateClaim">Failed to create claim</string>
   <string name="NoInsureeFound">Insuree not found</string>
   <string name="ClaimNumberExist">Claim number already exist</string>
