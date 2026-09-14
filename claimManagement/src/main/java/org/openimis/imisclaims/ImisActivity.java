@@ -19,6 +19,7 @@ import android.widget.Toast;
 
 import org.openimis.imisclaims.tools.Log;
 import org.openimis.imisclaims.usecase.Login;
+import org.openimis.imisclaims.util.NetworkUtils;
 
 import java.util.ArrayList;
 
@@ -201,8 +202,9 @@ public abstract class ImisActivity extends AppCompatActivity {
                             if (!(username.getText().length() == 0) && !(password.getText().length() == 0)) {
                                 progressDialog = ProgressDialog.show(this, getResources().getString(R.string.Login), getResources().getString(R.string.InProgress));
 
+                                final Login.Result[] loginResult = new Login.Result[1];
                                 runOnNewThread(
-                                        () -> new Login().execute(username.getText().toString(), password.getText().toString()),
+                                        () -> loginResult[0] = new Login().execute(username.getText().toString(), password.getText().toString()),
                                         () -> {
                                             progressDialog.dismiss();
                                             if (global.isLoggedIn()) {
@@ -213,7 +215,9 @@ public abstract class ImisActivity extends AppCompatActivity {
                                                 });
                                             } else {
                                                 runOnUiThread(() -> {
-                                                    showToast(R.string.LoginFail);
+                                                    showToast(loginResult[0] == Login.Result.CONNECTION_ERROR
+                                                            ? R.string.ConnectionProblem
+                                                            : R.string.LoginFail);
                                                     showLoginDialogBox(onLoggedIn, onCancel);
                                                 });
                                             }
@@ -293,6 +297,26 @@ public abstract class ImisActivity extends AppCompatActivity {
     protected void doInOnlineMode(Runnable task) {
         doInOnlineMode(task, () -> {
         });
+    }
+
+    /**
+     * Message to display when a request to the server failed. The connection of the user is
+     * reported first, so a server message is never shown when the failure comes from the device
+     * connection (no network at all, or mobile data exhausted while the request was running).
+     *
+     * @param error         exception thrown by the failed task, may be null
+     * @param serverMessage message to display when the server really is the source of the failure,
+     *                      may be null to fall back on the generic server error
+     */
+    @NonNull
+    protected String getNetworkFailureMessage(@Nullable Throwable error, @Nullable String serverMessage) {
+        if (!global.isNetworkAvailable()) {
+            return getString(R.string.CheckConnection);
+        }
+        if (NetworkUtils.isConnectionError(error)) {
+            return getString(R.string.ConnectionProblem);
+        }
+        return serverMessage != null ? serverMessage : getString(R.string.SomethingWentWrongServer);
     }
 
     protected void showToast(String message) {
