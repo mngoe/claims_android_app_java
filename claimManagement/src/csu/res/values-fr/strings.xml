@@ -590,7 +590,7 @@
   <string name="entered">Entrée</string>
   <string name="ClaimNotFound">Données de la prestation non trouvées</string>
   <string name="Unknown">Inconnu</string>
-  <string name="ArchiveClaim">Prestation archivée</string>
+  <string name="ArchiveClaim">Prestation archivée.</string>
   <string name="DeleteClaim">Supprimer la prestation</string>
   <string name="ConfirmDeleteClaim">Souhaitez-vous supprimer cette prestation ?</string>
   <string name="Unauthorized">L\'autorisation a échoué.</string>
