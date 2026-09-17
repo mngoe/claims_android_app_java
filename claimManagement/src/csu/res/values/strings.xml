@@ -608,7 +608,6 @@
   <string name="Tdr">TDR</string>
   <string name="Negative">Negative</string>
   <string name="Positive">Positive</string>
-  <string name="Negative">Négative</string>
   <string name="MissingTestNumber">Enter the test number</string>
   <string name="MissingTdr">Check the TDR result</string>
   <string name="InvalidChequeNumber">Invalid cheque number</string>
