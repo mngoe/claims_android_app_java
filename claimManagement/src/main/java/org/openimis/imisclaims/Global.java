@@ -43,6 +43,7 @@ import android.util.Base64;
 import android.util.DisplayMetrics;
 
 import org.openimis.imisclaims.tools.Log;
+import org.openimis.imisclaims.util.ConnectionMonitor;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -81,6 +82,7 @@ public class Global extends Application {
         super.onCreate();
         instance = this;
         permissions = new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.VIBRATE, Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.INTERNET, Manifest.permission.CAMERA, Manifest.permission.ACCESS_NETWORK_STATE, Manifest.permission.ACCESS_WIFI_STATE, Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CHANGE_WIFI_STATE};
+        ConnectionMonitor.install(this);
     }
 
     public static Global getGlobal() {
