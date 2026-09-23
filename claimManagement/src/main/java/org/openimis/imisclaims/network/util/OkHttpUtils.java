@@ -19,11 +19,13 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 public class OkHttpUtils {
 
-    // Keep those timeouts short enough for a request made without mobile data to fail instead of
-    // hanging, so the user is told about the connection problem instead of waiting forever.
-    private static final long CONNECT_TIMEOUT_SECONDS = 15;
-    private static final long READ_TIMEOUT_SECONDS = 30;
-    private static final long WRITE_TIMEOUT_SECONDS = 30;
+    // Do not shorten those timeouts: a slow transfer is normal on the mobile networks the app runs
+    // on, and cutting a running transfer would fail valid requests (upload of a claim, download of
+    // the master data). A connection that breaks is reported by ConnectionMonitor, which cancels the
+    // requests in flight instead of leaving them waiting for those timeouts.
+    private static final long CONNECT_TIMEOUT_SECONDS = 2000;
+    private static final long READ_TIMEOUT_SECONDS = 2000;
+    private static final long WRITE_TIMEOUT_SECONDS = 2000;
 
     private static volatile OkHttpClient client = null;
 

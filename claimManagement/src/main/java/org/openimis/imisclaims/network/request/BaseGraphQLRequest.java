@@ -29,11 +29,11 @@ import java.util.concurrent.TimeoutException;
 public abstract class BaseGraphQLRequest {
 
     /**
-     * Safety net for calls that never complete. The connection timeouts of OkHttpUtils are expected
-     * to report a broken connection first, this cap only makes sure a request made without mobile
-     * data fails instead of waiting forever.
+     * Safety net for calls that never complete, kept from the previous behaviour. The connection
+     * timeouts of OkHttpUtils are deliberately long and ConnectionMonitor cancels the requests as
+     * soon as the connection of the user breaks, this cap only makes sure a call cannot wait forever.
      */
-    private static final long TIME_OUT_IN_MS = 60_000;
+    private static final long TIME_OUT_IN_MS = 600_000;
     private static final String URI = BuildConfig.API_BASE_URL + "api/graphql";
 
     private static final ApolloClient apolloClient = ApolloClient.builder()
