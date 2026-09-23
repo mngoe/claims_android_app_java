@@ -643,8 +643,7 @@ public class SynchronizeActivity extends ImisActivity {
                     URL url = new URL("https://api.github.com/repos/mngoe/claims_android_app_java/releases");
                     HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                     connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
-                    connection.setConnectTimeout(15_000);
-                    connection.setReadTimeout(30_000);
+                    connection.setReadTimeout(60_000);
                     BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
                     StringBuilder response = new StringBuilder();
                     String line;
