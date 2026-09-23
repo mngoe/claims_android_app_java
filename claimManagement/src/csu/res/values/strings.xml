@@ -614,6 +614,7 @@
   <string name="NonUsedChequeNumber">Unknown cheque number</string>
   <string name="MissingLengthCHFID">The insuree number must contain only numeric characters.</string>
   <string name="CheckConnection">Check your internet connection</string>
+  <string name="ConnectionProblem">Connection problem. Please try again</string>
   <string name="FailedToCreateClaim">Failed to create claim</string>
   <string name="Update">Update</string>
   <string name="checkUpdate">Check update</string>

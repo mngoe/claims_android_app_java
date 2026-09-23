@@ -43,6 +43,7 @@ import android.util.Base64;
 import android.util.DisplayMetrics;
 
 import org.openimis.imisclaims.tools.Log;
+import org.openimis.imisclaims.util.ConnectionMonitor;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -94,6 +95,7 @@ public class Global extends Application {
                 Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.CHANGE_WIFI_STATE
         };
+        ConnectionMonitor.install(this);
     }
 
     public static Global getGlobal() {
