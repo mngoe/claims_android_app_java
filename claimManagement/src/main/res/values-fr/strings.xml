@@ -4,7 +4,7 @@
   <string name="Prefix">Préfixe</string>
   <string name="ChequeNumber">Numéro de chèque</string>
   <string name="MissingChequeNumber">Veuillez entrer le numéro de chèque</string>
-  <string name="InvalidClaimCode">Le code de la prestation doit contenir maximum 7 caractères</string>
+  <string name="InvalidClaimCode">Le code de la prestation doit contenir maximum %d caractères</string>
   <string name="NoInsureeFound">Le numéro d\'assuré ne correspond a aucun bénéficiaire</string>
   <string name="ClaimNumberExist">Le numéro de prestation existe déjà</string>
   <string name="TestNumber">Numéro de test</string>
@@ -567,4 +567,8 @@
   <string name="newVersion">Nouvelle version </string>
   <string name="invalidDisease">Code de diagnostic invalide</string>
   <string name="InvalidProgram">Le programme saisi est invalide</string>
+  <string name="minCharactersRequired">Minimum %d caractères</string>
+  <string name="maxCharactersRequired">Maximum %d caractères</string>
+  <string name="getConfig">Configurations des modules</string>
+  <string name="downloaded_config">Configurations téléchargées avec succès</string>
 </resources>
