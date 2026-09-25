@@ -257,9 +257,9 @@ public class MainActivity extends ImisActivity {
                 Intent intent = new Intent(this, SearchClaimsActivity.class);
                 startActivity(intent);
             });
-        } else if (id == R.id.nav_settings) {
-            Intent intent = new Intent(this, SettingsActivity.class);
-            startActivity(intent);
+        // } else if (id == R.id.nav_settings) {
+        //     Intent intent = new Intent(this, SettingsActivity.class);
+        //     startActivity(intent);
         }
 
         drawer.closeDrawer(GravityCompat.START);
@@ -591,7 +591,8 @@ public class MainActivity extends ImisActivity {
                             for(Service serv : servicesPricelist){
                                 if(serv.getCode().equals(service.getCode())){
                                     price = String.valueOf(serv.getPrice());
-
+                                } else {
+                                    price = String.valueOf(service.getPrice());
                                 }
                             }
 

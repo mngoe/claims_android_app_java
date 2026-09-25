@@ -26,6 +26,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import io.sentry.Sentry;
 
 public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
 
@@ -47,6 +48,10 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
     ) throws Exception{
 
         String clientMutationId = UUID.randomUUID().toString();
+
+        Sentry.captureMessage(
+            "CreateClaimGraphQLRequest - clientMutationId generated: " + clientMutationId
+        );
         String fagepFields = "";
         if(programCode.equals("PAL")){
             fagepFields = " testNumber: \"" + claim.getTestNumber() + "\""
@@ -196,7 +201,9 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
                 .post(body)
                 .build();
 
-
+            Sentry.captureMessage(
+                "CreateClaimGraphQLRequest - HTTP request prepared: " + URI + " - " + clientMutationId + " - " + json.toString()
+            );
             Response response = httpClient.newCall(request).execute();
             int responseCode = response.code();
 
@@ -205,6 +212,9 @@ public class CreateClaimGraphQLRequest extends BaseGraphQLRequest{
 
             String responsePhrase = response.body().string();
             Log.i("RESPONSE", String.format("response: %d %s", responseCode, responsePhrase));
+            Sentry.captureMessage(
+                "CreateClaimGraphQLRequest - HTTP response received: " + responseCode + " - " + clientMutationId + " - " + responsePhrase
+            );
 
             return clientMutationId;
     }
