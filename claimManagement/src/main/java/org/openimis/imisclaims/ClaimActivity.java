@@ -10,7 +10,9 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.inputmethodservice.Keyboard;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -93,7 +95,11 @@ public class ClaimActivity extends ImisActivity {
     RadioButton rbEmergency, rbReferral, rbOther, rbPositive, rbNegative;
     ImageButton btnScan;
     LinearLayout llFagepFields;
-    TextInputLayout ettClaimPrefix, ettGuaranteeNo;
+    TextInputLayout ettClaimPrefix, ettGuaranteeNo, tilCHFID;
+    JSONObject insureeConfig;
+    JSONObject policyConfig;
+    JSONObject claimConfig;
+    int minChequeNumber = 6, minChfId = 12, maxChfId = 20, codeMaxLength = 6;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -140,6 +146,9 @@ public class ClaimActivity extends ImisActivity {
         etVisitType = findViewById(R.id.etVisitType);
         ettClaimPrefix = findViewById(R.id.ettClaimPrefix);
         ettGuaranteeNo = findViewById(R.id.ettGuaranteeNo);
+        tilCHFID = findViewById(R.id.tilCHFID);
+
+        initConfigurations();
 
         String[] visitTypes = getResources().getStringArray(R.array.visitType);
         ArrayAdapter<String> visitTypeAdapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, visitTypes);
@@ -178,12 +187,14 @@ public class ClaimActivity extends ImisActivity {
             String hfId = sqlHandler.getClaimAdminInfo(global.getOfficerCode(), "HFId");
             String hfPrograms = sqlHandler.getHealthFacilityPrograms(hfId);
             String userPrograms = sqlHandler.getClaimAdminInfo(global.getOfficerCode(),"Programs");
-            JSONArray arrayHfPrograms = new JSONArray(hfPrograms);
-            JSONArray arrayAdminPrograms = new JSONArray(userPrograms);
-            for (int i = 0 ; i< arrayHfPrograms.length(); i++){
-                for (int j = 0 ; j < arrayAdminPrograms.length() ; j++){
-                    if(arrayHfPrograms.get(i).toString().equals(arrayAdminPrograms.get(j).toString())){
-                        filterPrograms.add(arrayHfPrograms.get(i).toString());
+            if(hfPrograms != null){
+                JSONArray arrayHfPrograms = new JSONArray(hfPrograms);
+                JSONArray arrayAdminPrograms = new JSONArray(userPrograms);
+                for (int i = 0 ; i< arrayHfPrograms.length(); i++){
+                    for (int j = 0 ; j < arrayAdminPrograms.length() ; j++){
+                        if(arrayHfPrograms.get(i).toString().equals(arrayAdminPrograms.get(j).toString())){
+                            filterPrograms.add(arrayHfPrograms.get(i).toString());
+                        }
                     }
                 }
             }
@@ -339,6 +350,69 @@ public class ClaimActivity extends ImisActivity {
                     ClearForm();
                 }
             });
+        }
+
+        etInsureeNumber.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                int length = s != null ? s.length() : 0;
+                if (length > 0 && length < minChfId) {
+                    tilCHFID.setError(getResources().getString(R.string.minCharactersRequired, minChfId));
+                }
+                if(length > maxChfId){
+                    tilCHFID.setError(getResources().getString(R.string.maxCharactersRequired, maxChfId));
+                }
+                if (length == 0 || (length >= minChfId && length <= maxChfId)) {
+                    tilCHFID.setError(null);
+                }
+            }
+        });
+
+        etClaimPrefix.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                String program = etProgram.getText().toString();
+                if(program.equals("Cheque Santé") || program.equals("Chèque Santé")){
+                    int length = s != null ? s.length() : 0;
+                    if (length > 0 && length < minChequeNumber) {
+                        ettClaimPrefix.setError(getResources().getString(R.string.minCharactersRequired, minChequeNumber));
+                    }
+                    if (length == 0 || length >= minChequeNumber) {
+                        ettClaimPrefix.setError(null);
+                    }
+                }
+            }
+        });
+    }
+
+    private void initConfigurations(){
+        try {
+            insureeConfig = sqlHandler.getModuleConfig("fe-insuree");
+            policyConfig = sqlHandler.getModuleConfig("fe-policy");
+            claimConfig = sqlHandler.getModuleConfig("fe-claim");
+            if(policyConfig.has("minChequeNumberRequired")){
+                minChequeNumber = policyConfig.getInt("minChequeNumberRequired");
+            }
+            if(insureeConfig.has("insureeForm.chfIdMinLength")){
+                minChfId = insureeConfig.getInt("insureeForm.chfIdMinLength");
+            }
+            if(insureeConfig.has("insureeForm.chfIdMaxLength")){
+                codeMaxLength = claimConfig.getInt("claimForm.codeMaxLength");
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
     }
 
@@ -756,7 +830,7 @@ public class ClaimActivity extends ImisActivity {
         }
     }
 
-    private boolean isValidData() {
+    protected boolean isValidData() {
 
         if (etHealthFacility.getText().length() == 0) {
             showValidationDialog(etHealthFacility, getResources().getString(R.string.MissingHealthFacility));
@@ -775,6 +849,16 @@ public class ClaimActivity extends ImisActivity {
 
         if (etInsureeNumber.getText().length() == 0) {
             showValidationDialog(etInsureeNumber, getResources().getString(R.string.MissingCHFID));
+            return false;
+        }
+
+        if(etInsureeNumber.getText().length() > 0 && etInsureeNumber.getText().length() < minChfId){
+            showValidationDialog(etInsureeNumber, getResources().getString(R.string.minCharactersRequired, minChfId));
+            return false;
+        }
+
+        if(etInsureeNumber.getText().length() > 0 && etInsureeNumber.getText().length() > maxChfId) {
+            showValidationDialog(etInsureeNumber, getResources().getString(R.string.maxCharactersRequired, maxChfId));
             return false;
         }
 
@@ -832,6 +916,7 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
+        String program = etProgram.getText().toString();
         if(!isValidProgram()){
             showValidationDialog(etProgram, getResources().getString(R.string.InvalidProgram));
             return false;
@@ -842,8 +927,13 @@ public class ClaimActivity extends ImisActivity {
             return false;
         }
 
-        if(etClaimCode.getText().length() > 7){
-            showValidationDialog(etClaimPrefix, getResources().getString(R.string.InvalidClaimCode));
+        if(etClaimPrefix.getText().length() > 0 && (program.equals("Cheque Santé") || program.equals("Chèque Santé")) && etClaimPrefix.length() < minChequeNumber){
+            showValidationDialog(etClaimPrefix, getResources().getString(R.string.minCharactersRequired, minChequeNumber));
+            return false;
+        }
+
+        if(etClaimCode.getText().length() > codeMaxLength){
+            showValidationDialog(etClaimPrefix, getResources().getString(R.string.InvalidClaimCode, codeMaxLength));
             return false;
         }
 
@@ -918,7 +1008,7 @@ public class ClaimActivity extends ImisActivity {
         runOnUiThread(() -> showDialog(msg, (dialog, which) -> ClearForm(), (dialog, which) -> dialog.dismiss()));
     }
 
-    private boolean saveClaim() {
+    protected boolean saveClaim() {
         Intent intent = getIntent();
         String claimUUID;
         if (intent.hasExtra(EXTRA_CLAIM_UUID)) {

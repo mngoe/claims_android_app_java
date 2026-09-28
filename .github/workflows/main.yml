@@ -32,6 +32,14 @@ jobs:
       - name: run gradle tests
         run: ./gradlew testCsuDevDebugUnitTest --stacktrace
 
+      - name: Publish test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Unit Test Results
+          path: claimManagement/build/test-results/testCsuDevDebugUnitTest/*.xml
+          reporter: java-junit
+
 #      - name: build
 #        run: |
 #          ./gradlew assembleCsuDevDebug --stacktrace

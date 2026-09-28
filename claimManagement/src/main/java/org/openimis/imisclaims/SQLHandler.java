@@ -56,6 +56,7 @@ public class SQLHandler extends SQLiteOpenHelper {
     private static final String createTableClaimItems = "CREATE TABLE IF NOT EXISTS tblClaimItems(ClaimUUID TEXT, ItemCode TEXT, ItemPrice TEXT, ItemQuantity TEXT);";
     private static final String createTableClaimServices = "CREATE TABLE IF NOT EXISTS tblClaimServices(ClaimUUID TEXT, ServiceCode TEXT, ServicePrice TEXT, ServiceQuantity TEXT, ServicePackageType TEXT, SubServicesItems TEXT);";
     private static final String createTableClaimUploadStatus = "CREATE TABLE IF NOT EXISTS tblClaimUploadStatus(ClaimUUID TEXT, UploadDate TEXT, UploadStatus TEXT, UploadMessage TEXT);";
+    private static final String createTableModuleConfig = "CREATE TABLE IF NOT EXISTS tblConfig(Id INTEGER, Module TEXT, Config TEXT);";
 
     public final String REFERENCE_UNKNOWN;
 
@@ -893,7 +894,8 @@ public class SQLHandler extends SQLiteOpenHelper {
     public void createTables() {
         String[] commands = {CreateTableControls, CreateTableReferences, CreateTableClaimAdmins,CreateTablePrograms,CreateTableDiagnosis,
                 createTablePolicyInquiry, createTableClaimDetails, createTableClaimItems, createTableClaimServices,CreateTableSubItems,
-                CreateTableSubServices,CreateTableItems,CreateTableServices, createTableClaimUploadStatus, CreateTableHealthFacilities};
+                CreateTableSubServices,CreateTableItems,CreateTableServices, createTableClaimUploadStatus, CreateTableHealthFacilities,
+                createTableModuleConfig};
         for (String command : commands) {
             try {
                 db.execSQL(command);
@@ -901,6 +903,10 @@ public class SQLHandler extends SQLiteOpenHelper {
                 Log.e("SQL", "Error while excecutiong executing command: " + command, e);
             }
         }
+    }
+
+    public void updateTables(){
+        db.execSQL(createTableModuleConfig);
     }
 
     public void createMappingTables() {
@@ -1273,5 +1279,35 @@ public class SQLHandler extends SQLiteOpenHelper {
             Log.e(LOG_TAG, "Error while parsing reference name result", e);
             return REFERENCE_UNKNOWN;
         }
+    }
+
+    public void InsertConfig(int id, String module, String config) {
+        try {
+            ContentValues cv = new ContentValues();
+            cv.put("Id", id);
+            cv.put("Module", module);
+            cv.put("Config", config);
+
+            db.insert("tblConfig", null, cv);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public JSONObject getModuleConfig(String module){
+        JSONObject config = new JSONObject();
+        try {
+            String query = "SELECT Config FROM tblConfig WHERE Module = \"" + module + "\"";
+            Cursor cursor1 = db.rawQuery(query, null);
+            // looping through all rows
+            if (cursor1.moveToFirst()) {
+                do {
+                    config = new JSONObject(cursor1.getString(0));
+                } while (cursor1.moveToNext());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return config;
     }
 }
