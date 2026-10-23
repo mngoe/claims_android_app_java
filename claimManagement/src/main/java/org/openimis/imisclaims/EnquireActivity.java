@@ -287,7 +287,7 @@ public class EnquireActivity extends ImisActivity {
                 }
             } catch (Exception e) {
                 Log.e(LOG_TAG, "Fetching online enquire failed", e);
-                runOnUiThread(() -> showDialog(getResources().getString(R.string.UnknownError)));
+                runOnUiThread(() -> showDialog(getNetworkFailureMessage(e, getResources().getString(R.string.UnknownError))));
             }
         } else {
             //TODO: yet to be done

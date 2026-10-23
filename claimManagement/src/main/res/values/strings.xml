@@ -228,6 +228,7 @@
     <string name="NoFileExporerInstalled">There are no file explorer clients installed.</string>
     <string name="DoImportClaimsMasterData">Do you want to import master data as file?</string>
     <string name="NoInternetTitle">NO INTERNET CONNECTION</string>
+    <string name="ConnectionProblem">Connection problem. Please try again</string>
     <string name="ImportMasterDataFailed">Failed to read master data from file.</string>
     <string name="HttpResponse">HTTP response: %1$d — %2$s</string>
     <string name="program">Program</string>

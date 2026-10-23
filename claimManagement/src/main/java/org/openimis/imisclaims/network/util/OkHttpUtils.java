@@ -19,6 +19,14 @@ import okhttp3.logging.HttpLoggingInterceptor;
 
 public class OkHttpUtils {
 
+    // Do not shorten those timeouts: a slow transfer is normal on the mobile networks the app runs
+    // on, and cutting a running transfer would fail valid requests (upload of a claim, download of
+    // the master data). A connection that breaks is reported by ConnectionMonitor, which cancels the
+    // requests in flight instead of leaving them waiting for those timeouts.
+    private static final long CONNECT_TIMEOUT_SECONDS = 2000;
+    private static final long READ_TIMEOUT_SECONDS = 2000;
+    private static final long WRITE_TIMEOUT_SECONDS = 2000;
+
     private static volatile OkHttpClient client = null;
 
     private OkHttpUtils() {
@@ -31,9 +39,9 @@ public class OkHttpUtils {
             synchronized (OkHttpUtils.class) {
                 if (client == null) {
                     OkHttpClient.Builder builder = new OkHttpClient.Builder();
-                    builder.connectTimeout(2000, TimeUnit.SECONDS)
-                            .writeTimeout(2000,TimeUnit.SECONDS)
-                            .readTimeout(2000,TimeUnit.SECONDS);
+                    builder.connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                            .writeTimeout(WRITE_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                            .readTimeout(READ_TIMEOUT_SECONDS, TimeUnit.SECONDS);
                     HttpLoggingInterceptor interceptor = new HttpLoggingInterceptor();
                     interceptor.setLevel(BuildConfig.DEBUG ? HttpLoggingInterceptor.Level.BODY : HttpLoggingInterceptor.Level.BASIC);
                     builder.addInterceptor(interceptor);

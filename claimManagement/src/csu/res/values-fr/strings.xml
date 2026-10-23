@@ -354,6 +354,7 @@
   <string name="GetingCummulativeReport">Obtention d\'un rapport cumulatif...</string>
   <string name="NoRenewalFound">Aucun renouvellement trouvé</string>
   <string name="NoInternet">Veuillez vérifier votre connexion Internet.</string>
+  <string name="ConnectionProblem">Problème de connexion. Veuillez réessayer.</string>
   <string name="FileDoesntBelongHere">!Le process a échoué: mauvais fichier ou mauvais code agent.</string>
   <string name="DiscontinuePolicy">Annuler la police</string>
   <string name="DiscontinuePolicyQ">Voulez-vous mettre fin à ce police ?</string>
