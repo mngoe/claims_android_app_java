@@ -169,7 +169,8 @@ public class SearchClaimsActivity extends ImisActivity {
             } catch (Exception e) {
                 pd.dismiss();
                 Log.e(LOG_TAG, "Error while fetching claims", e);
-                runOnUiThread(() -> Toast.makeText(getContext(), getResources().getString(R.string.ErrorOccurred) + ": " + e.getMessage(), Toast.LENGTH_LONG).show());
+                String message = getNetworkFailureMessage(e, getResources().getString(R.string.ErrorOccurred) + ": " + e.getMessage());
+                runOnUiThread(() -> Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show());
             }
         }).start();
     }

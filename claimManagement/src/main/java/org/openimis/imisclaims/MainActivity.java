@@ -500,11 +500,7 @@ public class MainActivity extends ImisActivity {
                         Sentry.captureException(e);
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
-                            if(!global.isNetworkAvailable()){
-                                ErrorDialogBox(getResources().getString(R.string.CheckConnection));
-                            }else{
-                                ErrorDialogBox(e.getMessage());
-                            }
+                            ErrorDialogBox(getNetworkFailureMessage(e, e.getMessage()));
                         });
                     }
                 }
@@ -550,11 +546,9 @@ public class MainActivity extends ImisActivity {
                     Sentry.captureException(e);
                     runOnUiThread(() -> {
                         progressDialog.dismiss();
-                        if(!global.isNetworkAvailable()){
-                            Toast.makeText(MainActivity.this, getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
-                        }else {
-                            Toast.makeText(MainActivity.this, getResources().getString(R.string.downloadFail), Toast.LENGTH_LONG).show();
-                        }
+                        Toast.makeText(MainActivity.this,
+                                getNetworkFailureMessage(e, getResources().getString(R.string.downloadFail)),
+                                Toast.LENGTH_LONG).show();
                     });
                 }
             });
@@ -639,12 +633,12 @@ public class MainActivity extends ImisActivity {
                 } catch ( Exception e) {
                     e.printStackTrace();
                     Sentry.captureException(e);
-                    if(!global.isNetworkAvailable()){
-                        Toast.makeText(MainActivity.this, getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(MainActivity.this, getResources().getString(R.string.downloadFail), Toast.LENGTH_LONG).show();
-                    }
-                    runOnUiThread(() -> progressDialog.dismiss());
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(MainActivity.this,
+                                getNetworkFailureMessage(e, getResources().getString(R.string.downloadFail)),
+                                Toast.LENGTH_LONG).show();
+                    });
                 }
             });
             thread.start();
@@ -687,12 +681,12 @@ public class MainActivity extends ImisActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                     Sentry.captureException(e);
-                    if(!global.isNetworkAvailable()){
-                        Toast.makeText(MainActivity.this, getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
-                    } else {
-                        Toast.makeText(MainActivity.this, getResources().getString(R.string.downloadFail), Toast.LENGTH_LONG).show();
-                    }
-                    runOnUiThread(() -> progressDialog.dismiss());
+                    runOnUiThread(() -> {
+                        progressDialog.dismiss();
+                        Toast.makeText(MainActivity.this,
+                                getNetworkFailureMessage(e, getResources().getString(R.string.downloadFail)),
+                                Toast.LENGTH_LONG).show();
+                    });
                 }
             });
             thread.start();
@@ -794,11 +788,9 @@ public class MainActivity extends ImisActivity {
                         Sentry.captureException(e);
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
-                            if(!global.isNetworkAvailable()){
-                                Toast.makeText(MainActivity.this, getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
-                            } else {
-                                Toast.makeText(MainActivity.this, e.getMessage() + "-" + getResources().getString(R.string.SomethingWentWrongServer), Toast.LENGTH_LONG).show();
-                            }
+                            Toast.makeText(MainActivity.this,
+                                    getNetworkFailureMessage(e, e.getMessage() + "-" + getResources().getString(R.string.SomethingWentWrongServer)),
+                                    Toast.LENGTH_LONG).show();
                             ClaimAdminDialogBox();
                         });
                     }
@@ -854,11 +846,9 @@ public class MainActivity extends ImisActivity {
                         Sentry.captureException(e);
                         runOnUiThread(() -> {
                             progressDialog.dismiss();
-                            if(!global.isNetworkAvailable()){
-                                Toast.makeText(MainActivity.this,  getResources().getString(R.string.CheckConnection), Toast.LENGTH_LONG).show();
-                            }else {
-                                Toast.makeText(MainActivity.this, e.getMessage() + "-" + getResources().getString(R.string.AccessDenied), Toast.LENGTH_LONG).show();
-                            }
+                            Toast.makeText(MainActivity.this,
+                                    getNetworkFailureMessage(e, e.getMessage() + "-" + getResources().getString(R.string.AccessDenied)),
+                                    Toast.LENGTH_LONG).show();
                         });
                     }
                 }

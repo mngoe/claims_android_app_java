@@ -37,7 +37,7 @@ public abstract class BaseFHIRGetRequest<T> extends BaseFHIRRequest {
                 if (bodyString == null) {
                     throw new RuntimeException("Call was successful but body was null");
                 }
-                return fromJson(new JSONObject(bodyString));
+                return fromJson(readJsonBody(bodyString));
             } else {
                 throw new HttpException(response.code(), response.message(), bodyString, null);
             }

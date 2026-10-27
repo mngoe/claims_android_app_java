@@ -26,6 +26,7 @@ import org.openimis.imisclaims.usecase.ValidateClaimCode;
 import org.openimis.imisclaims.util.DateUtils;
 import org.openimis.imisclaims.util.FileUtils;
 import org.openimis.imisclaims.util.JsonUtils;
+import org.openimis.imisclaims.util.NetworkUtils;
 import org.openimis.imisclaims.util.XmlUtils;
 import org.openimis.imisclaims.util.ZipUtils;
 import org.xmlpull.v1.XmlSerializer;
@@ -212,13 +213,21 @@ public class SynchronizeService extends JobIntentService {
                     result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,e.getMessage());
                     results.add(result);
                 } catch (Exception e){
+                    Sentry.captureException(e);
+                    boolean connectionLost = NetworkUtils.isConnectionError(e) || !global.isNetworkAvailable();
                     if(!global.isNetworkAvailable()){
                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.CheckConnection));
+                    } else if (NetworkUtils.isConnectionError(e)) {
+                        result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.ConnectionProblem));
                     } else {
                         result = new PostNewClaims.Result(claim.getClaimNumber(), PostNewClaims.Result.Status.ERROR,getResources().getString(R.string.SomethingWentWrongServer));
                     }
-                    Sentry.captureException(e);
                     results.add(result);
+                    if (connectionLost) {
+                        // The remaining claims would fail the same way: stop here instead of waiting for a
+                        // connection timeout on every one of them.
+                        break;
+                    }
                 }
             }
             JSONArray claimStatus = processClaimResponse(results);
@@ -226,7 +235,11 @@ public class SynchronizeService extends JobIntentService {
         } catch (Exception e) {
             e.printStackTrace();
             Sentry.captureException(e);
-            broadcastError(getResources().getString(R.string.ErrorOccurred) + ": " + e.getMessage(), ACTION_UPLOAD_CLAIMS);
+            if (NetworkUtils.isConnectionError(e)) {
+                broadcastError(getResources().getString(R.string.ConnectionProblem), ACTION_UPLOAD_CLAIMS);
+            } else {
+                broadcastError(getResources().getString(R.string.ErrorOccurred) + ": " + e.getMessage(), ACTION_UPLOAD_CLAIMS);
+            }
         }
     }
 
