@@ -335,7 +335,7 @@ public class SynchronizeActivity extends ImisActivity {
 
     public void downloadUpdate(String lastVersion, String tagName) {
         try {
-            String apkUrl = "https://github.com/mngoe/claims_android_app_java/releases/download/" + tagName + "/claims-" + tagName +".apk";
+            String apkUrl = "https://github.com/mngoe/claims_android_app_java/releases/download/" + tagName + "/claims-" + tagName +"-release.apk";
 
             DownloadManager.Request request = new DownloadManager.Request(Uri.parse(apkUrl))
                     .setTitle(getResources().getString(R.string.Update)+ " " + getResources().getString(R.string.app_name_claims))

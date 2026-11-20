@@ -1,15 +1,15 @@
-name: claims-Develop Comores
+name: claims-Feature Comores Release
 
 on:
   push:
-    branches: [ "develop-comores" ]
-  pull_request:
-    branches: [ "develop-comores" ]
+    branches: [ "feature-38564" ]
 
 jobs:
   build:
-    name: Build APK
+    name: Build and Publish signed APK
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -30,22 +30,50 @@ jobs:
         with:
           cache-disabled: true
 
-      - name: Build release APK
-        run: ./gradlew assemblecomoresDevDebug --stacktrace
+      - name: Build release APK (unsigned)
+        run: ./gradlew assemblecomoresDevRelease --stacktrace
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Verify APK exists
-        run: ls -la claimManagement/build/outputs/apk/comoresDev/debug/
+      - name: Verify release APK exists
+        run: ls -la claimManagement/build/outputs/apk/comoresDev/release/
 
-      - name: Rename APK
+      - name: Sign APK
         run: |
-          cp claimManagement/build/outputs/apk/comoresDev/debug/claimManagement-comoresDev-debug.apk claims-comores-test.apk
+          "$ANDROID_HOME/build-tools/33.0.0/apksigner" sign \
+            --ks policies_comores.jks \
+            --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass pass:"$KEYSTORE_PASSWORD" \
+            --key-pass pass:"$KEY_PASSWORD" \
+            --out claims-comores-dev-release.apk \
+            claimManagement/build/outputs/apk/comoresDev/release/claimManagement-comoresDev-release-unsigned.apk
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Verify signed APK
+        run: |
+          "$ANDROID_HOME/build-tools/33.0.0/apksigner" verify claims-comores-dev-release.apk
+
+      - name: Extract versionName
+        id: version
+        run: |
+          VERSION_NAME=$(python3 - <<'PY'
+import json
+with open('claimManagement/build/outputs/apk/comoresDev/release/output-metadata.json', 'r', encoding='utf-8') as f:
+    data = json.load(f)
+print(data['elements'][0]['versionName'])
+PY
+          )
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
+      - name: Publish to release tag comores-dev
+        uses: softprops/action-gh-release@v2
         with:
-          name: claims-comores-test
-          path: claims-comores-test.apk
+          tag_name: comores-dev
+          name: ${{ steps.version.outputs.version_name }}
+          files: claims-comores-dev-release.apk
+          overwrite_files: true
