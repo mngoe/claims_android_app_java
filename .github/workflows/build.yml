@@ -41,18 +41,23 @@ jobs:
           overwrite-settings: false
 
       - name: Decode keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > claims_comores.jks
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > claims_comores.jks
 
       - name: Detect keystore type and validate alias
         id: keystore_meta
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          RAW_KEY_ALIAS="${{ secrets.KEY_ALIAS }}"
+          RAW_KEY_ALIAS="$KEY_ALIAS"
 
           STORE_TYPE=""
-          if keytool -list -keystore claims_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype JKS >/dev/null 2>&1; then
+          if keytool -list -keystore claims_comores.jks -storepass "$KEYSTORE_PASSWORD" -storetype JKS >/dev/null 2>&1; then
             STORE_TYPE=JKS
-          elif keytool -list -keystore claims_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype PKCS12 >/dev/null 2>&1; then
+          elif keytool -list -keystore claims_comores.jks -storepass "$KEYSTORE_PASSWORD" -storetype PKCS12 >/dev/null 2>&1; then
             STORE_TYPE=PKCS12
           else
             echo "Unable to read keystore as JKS or PKCS12 with KEYSTORE_PASSWORD"
@@ -61,14 +66,14 @@ jobs:
 
           KEY_ALIAS_VALUE="$RAW_KEY_ALIAS"
           if [ -z "$KEY_ALIAS_VALUE" ]; then
-            KEY_ALIAS_VALUE=$(keytool -list -keystore claims_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype "$STORE_TYPE" | awk -F, '/,/{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1); if ($1 != "") { print $1; exit }}')
+            KEY_ALIAS_VALUE=$(keytool -list -keystore claims_comores.jks -storepass "$KEYSTORE_PASSWORD" -storetype "$STORE_TYPE" | awk -F, '/,/{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1); if ($1 != "") { print $1; exit }}')
             if [ -z "$KEY_ALIAS_VALUE" ]; then
               echo "Unable to auto-detect alias from keystore. Please set KEY_ALIAS secret."
               exit 1
             fi
           fi
 
-          if ! keytool -list -keystore claims_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype "$STORE_TYPE" -alias "$KEY_ALIAS_VALUE" >/dev/null 2>&1; then
+          if ! keytool -list -keystore claims_comores.jks -storepass "$KEYSTORE_PASSWORD" -storetype "$STORE_TYPE" -alias "$KEY_ALIAS_VALUE" >/dev/null 2>&1; then
             echo "Alias '$KEY_ALIAS_VALUE' not found in keystore for detected store type: $STORE_TYPE"
             exit 1
           fi
@@ -77,14 +82,17 @@ jobs:
           echo "key_alias=$KEY_ALIAS_VALUE" >> "$GITHUB_OUTPUT"
 
       - name: Create keystore.properties
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           mkdir -p claimManagement
           cat > claimManagement/keystore.properties <<EOF
           storeFile=../claims_comores.jks
           storeType=${{ steps.keystore_meta.outputs.store_type }}
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          storePassword=$KEYSTORE_PASSWORD
           keyAlias=${{ steps.keystore_meta.outputs.key_alias }}
-          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyPassword=$KEY_PASSWORD
           EOF
 
       - name: Build release APK
