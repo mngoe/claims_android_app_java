@@ -51,12 +51,12 @@ jobs:
       - name: Prepare updater APK asset
         run: |
           mkdir -p claimManagement/build/outputs/apk/update
-          APK_PATH=$(find claimManagement/build/outputs/apk -type f -name "*.apk" ! -path "*/update/*" | head -n 1)
+          APK_PATH=$(find claimManagement/build/outputs/apk -type f -name "*.apk" ! -name "*-unsigned.apk" ! -path "*/update/*" | head -n 1)
           if [ -z "$APK_PATH" ]; then
             echo "No signed APK found after build"
             exit 1
           fi
-          cp "$APK_PATH" "claimManagement/build/outputs/apk/update/${{ steps.release_meta.outputs.update_apk_name }}"
+          cp "$APK_PATH" "claimManagement/build/outputs/apk/update/${UPDATE_APK_NAME}"
           ls -la claimManagement/build/outputs/apk/update
 
       - name: Extract versionName
@@ -87,9 +87,9 @@ jobs:
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ steps.release_meta.outputs.release_tag }}
+          tag: ${{ env.RELEASE_TAG }}
           name: ${{ steps.app_version.outputs.release_title }}
           allowUpdates: true
           replacesArtifacts: true
           artifactErrorsFailBuild: true
-          artifacts: claimManagement/build/outputs/apk/update/${{ steps.release_meta.outputs.update_apk_name }}
+          artifacts: claimManagement/build/outputs/apk/update/${{ env.UPDATE_APK_NAME }}
