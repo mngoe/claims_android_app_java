@@ -63,11 +63,11 @@ jobs:
         id: version
         run: |
           VERSION_NAME=$(python3 - <<'PY'
-import json
-with open('claimManagement/build/outputs/apk/comoresDev/release/output-metadata.json', 'r', encoding='utf-8') as f:
-    data = json.load(f)
-print(data['elements'][0]['versionName'])
-PY
+          import json
+          with open('claimManagement/build/outputs/apk/comoresDev/release/output-metadata.json', 'r', encoding='utf-8') as f:
+            data = json.load(f)
+          print(data['elements'][0]['versionName'])
+          PY
           )
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
 
