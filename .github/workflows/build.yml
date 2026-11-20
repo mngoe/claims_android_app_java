@@ -33,7 +33,7 @@ jobs:
           validate-wrappers: false
 
       - name: Build release APK (unsigned)
-        run: ./gradlew assemblecomoresDevRelease --stacktrace --warning-mode all
+        run: ./gradlew assembleComoresDevRelease --stacktrace --warning-mode all
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
