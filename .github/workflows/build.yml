@@ -2,7 +2,7 @@ name: claims-Feature Comores Release
 
 on:
   push:
-    branches: [ "feature-38564" ]
+    branches: [ "develop-comores" ]
   workflow_dispatch:
 
 permissions:
