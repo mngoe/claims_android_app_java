@@ -12,23 +12,12 @@ jobs:
   build:
     name: Build and Publish signed APK
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ vars.RELEASE_TAG || 'comores-dev' }}
+      UPDATE_APK_NAME: claimManagement-comoresDev-release.apk
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Resolve release tag and asset name
-        id: release_meta
-        run: |
-          RELEASE_TAG=$(grep -oE 'resValue "string",[[:space:]]*"release_tag",[[:space:]]*"[^"]+"' claimManagement/build.gradle | head -n 1 | sed -E 's/.*"([^"]+)"$/\1/')
-          if [ -z "$RELEASE_TAG" ]; then
-            echo "release_tag not found in claimManagement/build.gradle"
-            exit 1
-          fi
-          UPDATE_APK_NAME="claims-${RELEASE_TAG}-release.apk"
-          echo "release_tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
-          echo "update_apk_name=$UPDATE_APK_NAME" >> "$GITHUB_OUTPUT"
-          echo "Resolved release_tag=$RELEASE_TAG"
-          echo "Resolved update_apk_name=$UPDATE_APK_NAME"
 
       - name: Make Gradle wrapper executable
         run: chmod +x ./gradlew
@@ -38,70 +27,31 @@ jobs:
         with:
           distribution: 'temurin'
           java-version: 17
-          overwrite-settings: false
 
       - name: Decode keystore
-        env:
-          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > claims_comores.jks
-
-      - name: Detect keystore type and validate alias
-        id: keystore_meta
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-        run: |
-          RAW_KEY_ALIAS="$KEY_ALIAS"
-
-          STORE_TYPE=""
-          if keytool -list -keystore claims_comores.jks -storepass "$KEYSTORE_PASSWORD" -storetype JKS >/dev/null 2>&1; then
-            STORE_TYPE=JKS
-          elif keytool -list -keystore claims_comores.jks -storepass "$KEYSTORE_PASSWORD" -storetype PKCS12 >/dev/null 2>&1; then
-            STORE_TYPE=PKCS12
-          else
-            echo "Unable to read keystore as JKS or PKCS12 with KEYSTORE_PASSWORD"
-            exit 1
-          fi
-
-          KEY_ALIAS_VALUE="$RAW_KEY_ALIAS"
-          if [ -z "$KEY_ALIAS_VALUE" ]; then
-            KEY_ALIAS_VALUE=$(keytool -list -keystore claims_comores.jks -storepass "$KEYSTORE_PASSWORD" -storetype "$STORE_TYPE" | awk -F, '/,/{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1); if ($1 != "") { print $1; exit }}')
-            if [ -z "$KEY_ALIAS_VALUE" ]; then
-              echo "Unable to auto-detect alias from keystore. Please set KEY_ALIAS secret."
-              exit 1
-            fi
-          fi
-
-          if ! keytool -list -keystore claims_comores.jks -storepass "$KEYSTORE_PASSWORD" -storetype "$STORE_TYPE" -alias "$KEY_ALIAS_VALUE" >/dev/null 2>&1; then
-            echo "Alias '$KEY_ALIAS_VALUE' not found in keystore for detected store type: $STORE_TYPE"
-            exit 1
-          fi
-
-          echo "store_type=$STORE_TYPE" >> "$GITHUB_OUTPUT"
-          echo "key_alias=$KEY_ALIAS_VALUE" >> "$GITHUB_OUTPUT"
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > claims_comores.jks
 
       - name: Create keystore.properties
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          mkdir -p claimManagement
-          cat > claimManagement/keystore.properties <<EOF
+          cat > app/keystore.properties <<EOF
           storeFile=../claims_comores.jks
-          storeType=${{ steps.keystore_meta.outputs.store_type }}
-          storePassword=$KEYSTORE_PASSWORD
-          keyAlias=${{ steps.keystore_meta.outputs.key_alias }}
-          keyPassword=$KEY_PASSWORD
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
           EOF
 
+      - name: Environment info
+        run: |
+          gradle --version
+          
       - name: Build release APK
-        run: ./gradlew assembleComoresDevRelease --stacktrace --warning-mode all
+        run: ./gradlew assembleComoresDevRelease --stacktrace
 
       - name: Prepare updater APK asset
         run: |
           mkdir -p claimManagement/build/outputs/apk/update
-          APK_PATH=$(find claimManagement/build/outputs/apk -type f -name "*.apk" ! -name "*-unsigned.apk" ! -path "*/update/*" | head -n 1)
+          APK_PATH=$(find claimManagement/build/outputs/apk -type f -name "*.apk" ! -path "*/update/*" | head -n 1)
           if [ -z "$APK_PATH" ]; then
             echo "No signed APK found after build"
             exit 1
