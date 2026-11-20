@@ -34,7 +34,7 @@ jobs:
 
       - name: Create keystore.properties
         run: |
-          cat > app/keystore.properties <<EOF
+          cat > claimManagement/keystore.properties <<EOF
           storeFile=../claims_comores.jks
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
