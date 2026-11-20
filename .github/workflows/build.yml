@@ -41,15 +41,33 @@ jobs:
       - name: Verify release APK exists
         run: ls -la claimManagement/build/outputs/apk/comoresDev/release/
 
+      - name: Resolve tools and APK paths
+        id: paths
+        shell: bash
+        run: |
+          set -euo pipefail
+          APKSIGNER_PATH=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          if [[ -z "$APKSIGNER_PATH" ]]; then
+            echo "apksigner not found in $ANDROID_HOME/build-tools"
+            exit 1
+          fi
+          APK_UNSIGNED=$(find claimManagement/build/outputs/apk/comoresDev/release -type f -name '*-unsigned.apk' | head -n 1)
+          if [[ -z "$APK_UNSIGNED" ]]; then
+            echo "unsigned APK not found in claimManagement/build/outputs/apk/comoresDev/release"
+            exit 1
+          fi
+          echo "apksigner=$APKSIGNER_PATH" >> "$GITHUB_OUTPUT"
+          echo "apk_unsigned=$APK_UNSIGNED" >> "$GITHUB_OUTPUT"
+
       - name: Sign APK
         run: |
-          "$ANDROID_HOME/build-tools/33.0.0/apksigner" sign \
+          "${{ steps.paths.outputs.apksigner }}" sign \
             --ks policies_comores.jks \
             --ks-key-alias "$KEY_ALIAS" \
             --ks-pass pass:"$KEYSTORE_PASSWORD" \
             --key-pass pass:"$KEY_PASSWORD" \
             --out claims-comores-dev-release.apk \
-            claimManagement/build/outputs/apk/comoresDev/release/claimManagement-comoresDev-release-unsigned.apk
+            "${{ steps.paths.outputs.apk_unsigned }}"
         env:
           KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
@@ -57,18 +75,12 @@ jobs:
 
       - name: Verify signed APK
         run: |
-          "$ANDROID_HOME/build-tools/33.0.0/apksigner" verify claims-comores-dev-release.apk
+          "${{ steps.paths.outputs.apksigner }}" verify claims-comores-dev-release.apk
 
       - name: Extract versionName
         id: version
         run: |
-          VERSION_NAME=$(python3 - <<'PY'
-          import json
-          with open('claimManagement/build/outputs/apk/comoresDev/release/output-metadata.json', 'r', encoding='utf-8') as f:
-            data = json.load(f)
-          print(data['elements'][0]['versionName'])
-          PY
-          )
+          VERSION_NAME=$(python3 -c "import json;print(json.load(open('claimManagement/build/outputs/apk/comoresDev/release/output-metadata.json', 'r', encoding='utf-8'))['elements'][0]['versionName'])")
           echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
 
       - name: Publish to release tag comores-dev
