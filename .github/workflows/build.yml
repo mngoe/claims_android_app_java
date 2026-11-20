@@ -46,8 +46,18 @@ jobs:
 
       - name: Create keystore.properties
         run: |
+          STORE_TYPE=""
+          if keytool -list -keystore policies_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype JKS >/dev/null 2>&1; then
+            STORE_TYPE=JKS
+          elif keytool -list -keystore policies_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype PKCS12 >/dev/null 2>&1; then
+            STORE_TYPE=PKCS12
+          else
+            echo "Unable to detect keystore type with provided KEYSTORE_PASSWORD"
+            exit 1
+          fi
           cat > claimManagement/keystore.properties <<EOF
           storeFile=../policies_comores.jks
+          storeType=$STORE_TYPE
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
