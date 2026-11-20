@@ -30,15 +30,15 @@ jobs:
 
       - name: Decode keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > claims_comores.jks
+          echo "${{ secrets.COMORES_KEYSTORE_BASE64 }}" | base64 --decode > claims_comores.jks
 
       - name: Create keystore.properties
         run: |
           cat > claimManagement/keystore.properties <<EOF
           storeFile=../claims_comores.jks
-          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.KEY_ALIAS }}
-          keyPassword=${{ secrets.KEY_PASSWORD }}
+          storePassword=${{ secrets.COMORES_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.COMORES_KEY_ALIAS }}
+          keyPassword=${{ secrets.COMORES_KEY_PASSWORD }}
           EOF
 
       - name: Environment info
