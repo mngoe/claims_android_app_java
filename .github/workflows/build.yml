@@ -30,6 +30,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           cache-disabled: true
+          validate-wrappers: false
 
       - name: Build release APK (unsigned)
         run: ./gradlew assemblecomoresDevRelease --stacktrace
@@ -40,24 +41,6 @@ jobs:
 
       - name: Verify release APK exists
         run: ls -la claimManagement/build/outputs/apk/comoresDev/release/
-
-      - name: Resolve tools and APK paths
-        id: paths
-        shell: bash
-        run: |
-          set -euo pipefail
-          APKSIGNER_PATH=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
-          if [[ -z "$APKSIGNER_PATH" ]]; then
-            echo "apksigner not found in $ANDROID_HOME/build-tools"
-            exit 1
-          fi
-          APK_UNSIGNED=$(find claimManagement/build/outputs/apk/comoresDev/release -type f -name '*-unsigned.apk' | head -n 1)
-          if [[ -z "$APK_UNSIGNED" ]]; then
-            echo "unsigned APK not found in claimManagement/build/outputs/apk/comoresDev/release"
-            exit 1
-          fi
-          echo "apksigner=$APKSIGNER_PATH" >> "$GITHUB_OUTPUT"
-          echo "apk_unsigned=$APK_UNSIGNED" >> "$GITHUB_OUTPUT"
 
       - name: Sign APK
         run: |
