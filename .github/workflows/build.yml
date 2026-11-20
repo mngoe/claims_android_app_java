@@ -47,10 +47,7 @@ jobs:
       - name: Detect keystore type and validate alias
         id: keystore_meta
         run: |
-          if [ -z "${{ secrets.KEY_ALIAS }}" ]; then
-            echo "KEY_ALIAS secret is empty"
-            exit 1
-          fi
+          RAW_KEY_ALIAS="${{ secrets.KEY_ALIAS }}"
 
           STORE_TYPE=""
           if keytool -list -keystore claims_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype JKS >/dev/null 2>&1; then
@@ -62,12 +59,22 @@ jobs:
             exit 1
           fi
 
-          if ! keytool -list -keystore claims_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype "$STORE_TYPE" -alias "${{ secrets.KEY_ALIAS }}" >/dev/null 2>&1; then
-            echo "KEY_ALIAS not found in keystore for detected store type: $STORE_TYPE"
+          KEY_ALIAS_VALUE="$RAW_KEY_ALIAS"
+          if [ -z "$KEY_ALIAS_VALUE" ]; then
+            KEY_ALIAS_VALUE=$(keytool -list -keystore claims_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype "$STORE_TYPE" | awk -F, '/,/{gsub(/^[[:space:]]+|[[:space:]]+$/, "", $1); if ($1 != "") { print $1; exit }}')
+            if [ -z "$KEY_ALIAS_VALUE" ]; then
+              echo "Unable to auto-detect alias from keystore. Please set KEY_ALIAS secret."
+              exit 1
+            fi
+          fi
+
+          if ! keytool -list -keystore claims_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype "$STORE_TYPE" -alias "$KEY_ALIAS_VALUE" >/dev/null 2>&1; then
+            echo "Alias '$KEY_ALIAS_VALUE' not found in keystore for detected store type: $STORE_TYPE"
             exit 1
           fi
 
-          echo "store_type=$STORE_TYPE" >> "$GITHUB_OUTPUT" 
+          echo "store_type=$STORE_TYPE" >> "$GITHUB_OUTPUT"
+          echo "key_alias=$KEY_ALIAS_VALUE" >> "$GITHUB_OUTPUT"
 
       - name: Create keystore.properties
         run: |
@@ -76,7 +83,7 @@ jobs:
           storeFile=../claims_comores.jks
           storeType=${{ steps.keystore_meta.outputs.store_type }}
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyAlias=${{ steps.keystore_meta.outputs.key_alias }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           EOF
 
