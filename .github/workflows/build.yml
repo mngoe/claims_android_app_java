@@ -67,7 +67,7 @@ jobs:
             exit 1
           fi
 
-          echo "store_type=$STORE_TYPE" >> "$GITHUB_OUTPUT"
+          echo "store_type=$STORE_TYPE" >> "$GITHUB_OUTPUT" 
 
       - name: Create keystore.properties
         run: |
