@@ -42,13 +42,39 @@ jobs:
 
       - name: Decode keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > policies_comores.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > claims_comores.jks
+
+      - name: Detect keystore type and validate alias
+        id: keystore_meta
+        run: |
+          if [ -z "${{ secrets.KEY_ALIAS }}" ]; then
+            echo "KEY_ALIAS secret is empty"
+            exit 1
+          fi
+
+          STORE_TYPE=""
+          if keytool -list -keystore claims_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype JKS >/dev/null 2>&1; then
+            STORE_TYPE=JKS
+          elif keytool -list -keystore claims_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype PKCS12 >/dev/null 2>&1; then
+            STORE_TYPE=PKCS12
+          else
+            echo "Unable to read keystore as JKS or PKCS12 with KEYSTORE_PASSWORD"
+            exit 1
+          fi
+
+          if ! keytool -list -keystore claims_comores.jks -storepass "${{ secrets.KEYSTORE_PASSWORD }}" -storetype "$STORE_TYPE" -alias "${{ secrets.KEY_ALIAS }}" >/dev/null 2>&1; then
+            echo "KEY_ALIAS not found in keystore for detected store type: $STORE_TYPE"
+            exit 1
+          fi
+
+          echo "store_type=$STORE_TYPE" >> "$GITHUB_OUTPUT"
 
       - name: Create keystore.properties
         run: |
           mkdir -p claimManagement
           cat > claimManagement/keystore.properties <<EOF
-          storeFile=../policies_comores.jks
+          storeFile=../claims_comores.jks
+          storeType=${{ steps.keystore_meta.outputs.store_type }}
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
