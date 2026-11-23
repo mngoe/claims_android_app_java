@@ -1,51 +1,95 @@
-name: claims-Develop Comores
+name: claims-Feature Comores Release
 
 on:
   push:
-    branches: [ "develop-comores" ]
-  pull_request:
-    branches: [ "develop-comores" ]
+    branches: [ "main-comores" ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   build:
-    name: Build APK
+    name: Build and Publish signed APK
     runs-on: ubuntu-latest
+    env:
+      RELEASE_TAG: ${{ vars.RELEASE_TAG || 'comores' }}
+      UPDATE_APK_NAME: claimManagement-comoresDev-release.apk
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 17
 
       - name: Decode keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > policies_comores.jks
+          echo "${{ secrets.COMORES_KEYSTORE_BASE64 }}" | base64 --decode > claims_comores.jks
 
-      - name: Set up Gradle
-        uses: gradle/gradle-build-action@v2
-        with:
-          cache-disabled: true
+      - name: Create keystore.properties
+        run: |
+          cat > claimManagement/keystore.properties <<EOF
+          storeFile=../claims_comores.jks
+          storePassword=${{ secrets.COMORES_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.COMORES_KEY_ALIAS }}
+          keyPassword=${{ secrets.COMORES_KEY_PASSWORD }}
+          EOF
+
+      - name: Environment info
+        run: |
+          gradle --version
 
       - name: Build release APK
-        run: ./gradlew assemblecomoresDevDebug --stacktrace
-        env:
-          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: ./gradlew assembleComoresDevRelease --stacktrace
 
-      - name: Verify APK exists
-        run: ls -la claimManagement/build/outputs/apk/comoresDev/debug/
-
-      - name: Rename APK
+      - name: Prepare updater APK asset
         run: |
-          cp claimManagement/build/outputs/apk/comoresDev/debug/claimManagement-comoresDev-debug.apk claims-comores-test.apk
+          mkdir -p claimManagement/build/outputs/apk/update
+          APK_PATH=$(find claimManagement/build/outputs/apk -type f -name "*.apk" ! -name "*-unsigned.apk" ! -path "*/update/*" | head -n 1)
+          if [ -z "$APK_PATH" ]; then
+            echo "No signed APK found after build"
+            exit 1
+          fi
+          cp "$APK_PATH" "claimManagement/build/outputs/apk/update/${UPDATE_APK_NAME}"
+          ls -la claimManagement/build/outputs/apk/update
 
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
+      - name: Extract versionName
+        id: app_version
+        run: |
+          METADATA_PATH=$(find claimManagement/build/outputs/apk -type f -name "output-metadata.json" | grep -Ei "comoresDev/.*/release|comoresDev/release" | head -n 1)
+          if [ -z "$METADATA_PATH" ]; then
+            METADATA_PATH=$(find claimManagement/build/outputs/apk -type f -name "output-metadata.json" | head -n 1)
+          fi
+          if [ -z "$METADATA_PATH" ]; then
+            echo "output-metadata.json not found"
+            exit 1
+          fi
+          VERSION_NAME=$(grep -oE '"versionName"[[:space:]]*:[[:space:]]*"[^"]+"' "$METADATA_PATH" | head -n 1 | sed -E 's/.*"([^"]+)"$/\1/')
+          if [ -z "$VERSION_NAME" ]; then
+            echo "versionName not found in $METADATA_PATH"
+            exit 1
+          fi
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "release_title=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
         with:
-          name: claims-comores-test
-          path: claims-comores-test.apk
+          name: claims-comores-apk-${{ github.run_number }}.apk
+          path: claimManagement/build/outputs/**/*.apk
+
+      - name: Publish APK to release tag
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.RELEASE_TAG }}
+          name: ${{ steps.app_version.outputs.release_title }}
+          allowUpdates: true
+          replacesArtifacts: true
+          artifactErrorsFailBuild: true
+          artifacts: claimManagement/build/outputs/apk/update/${{ env.UPDATE_APK_NAME }}
