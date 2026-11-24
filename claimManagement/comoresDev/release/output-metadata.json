@@ -1,0 +1,20 @@
+{
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "org.openimis.imisclaims.comoresDev",
+  "variantName": "comoresDevRelease",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 4,
+      "versionName": "1.2.9",
+      "outputFile": "claimManagement-comoresDev-release.apk"
+    }
+  ],
+  "elementType": "File"
+}
