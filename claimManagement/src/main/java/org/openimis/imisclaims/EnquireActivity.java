@@ -599,8 +599,21 @@ public class EnquireActivity extends ImisActivity {
         }
 
         ArrayList<Map<String, String>> PolicyList = new ArrayList<>();
-        Collections.reverse(insuree.getPolicies());
-        for (Policy policy : insuree.getPolicies()) {
+        List<Policy> sortedPolicies = new ArrayList<>();
+        for (Policy p : insuree.getPolicies()) {
+            if (p != null) {
+                sortedPolicies.add(p);
+            }
+        }
+        Collections.sort(sortedPolicies, (p1, p2) -> {
+            Date d1 = p1.getExpiryDate();
+            Date d2 = p2.getExpiryDate();
+            if (d1 == null && d2 == null) return 0;
+            if (d1 == null) return 1;
+            if (d2 == null) return -1;
+            return d2.compareTo(d1);
+        });
+        for (Policy policy : sortedPolicies) {
             HashMap<String, String> policyMap = new HashMap<>();
             double iDedType = policy.getDeductibleType() != null ? policy.getDeductibleType() : 0;
 

@@ -63,6 +63,7 @@
 		android:layout_height="wrap_content"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
+		android:visibility="gone"
 		android:textAppearance="?android:attr/textAppearanceSmall">
 	</TextView>
 	<TextView
@@ -71,6 +72,7 @@
 		android:layout_height="wrap_content"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
+		android:visibility="gone"
 		android:textAppearance="?android:attr/textAppearanceSmall">
 	</TextView>
 	<TextView
@@ -79,6 +81,7 @@
 		android:layout_height="wrap_content"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
+		android:visibility="gone"
 		android:textAppearance="?android:attr/textAppearanceSmall">
 	</TextView>
 	<TextView
@@ -87,6 +90,7 @@
 		android:layout_height="wrap_content"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
+		android:visibility="gone"
 		android:textAppearance="?android:attr/textAppearanceSmall">
 	</TextView>
 	<TextView
@@ -95,6 +99,7 @@
 		android:layout_height="wrap_content"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
+		android:visibility="gone"
 		android:textAppearance="?android:attr/textAppearanceSmall">
 	</TextView>
 	<TextView
@@ -103,6 +108,7 @@
 		android:layout_height="wrap_content"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
+		android:visibility="gone"
 		android:textAppearance="?android:attr/textAppearanceSmall">
 	</TextView>
 	<TextView
@@ -111,6 +117,7 @@
 		android:layout_height="wrap_content"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
+		android:visibility="gone"
 		android:textAppearance="?android:attr/textAppearanceSmall">
 	</TextView>
 	<TextView
@@ -119,6 +126,7 @@
 		android:layout_height="wrap_content"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
+		android:visibility="gone"
 		android:textAppearance="?android:attr/textAppearanceSmall">
 	</TextView>
 	<TextView
@@ -127,6 +135,7 @@
 		android:layout_height="wrap_content"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
+		android:visibility="gone"
 		android:textAppearance="?android:attr/textAppearanceSmall">
 	</TextView>
 	<TextView
@@ -135,6 +144,7 @@
 		android:layout_height="wrap_content"
 		android:paddingLeft="10dp"
 		android:paddingRight="10dp"
+		android:visibility="gone"
 		android:textAppearance="?android:attr/textAppearanceSmall">
 	</TextView>
 </LinearLayout>
