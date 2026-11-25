@@ -16,4 +16,7 @@
     <string name="ClaimCode">Numéro de facture</string>
     <string name="Diagnosis">Diagnostic Principal</string>
     <string name="DeleteClaim">Supprimer la prestation</string>
+    <string name="family_members">Membres de la famille</string>
+    <string name="member_photo">Photo du membre</string>
+    <string name="Policies">Contrats d\'assurance</string>
 </resources>
