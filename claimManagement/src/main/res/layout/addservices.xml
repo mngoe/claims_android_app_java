@@ -100,7 +100,6 @@
 	    android:id="@+id/llListView"
 	    android:layout_width="match_parent"
 	    android:layout_height="match_parent"
-	    android:layout_above="@+id/llButton"
 	    android:layout_below="@+id/llTop"
 	    android:visibility="visible" >
 
